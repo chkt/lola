@@ -49,10 +49,8 @@ abstract class AController {
 	static public function getClass($id) {
 		if (!is_string($id) || empty($id)) throw new \ErrorException();
 		
-		$class = ucfirst($id) . 'Controller';
-		
-		require_once static::getApp()->getPath('ctrl') . "/$class.php";		//REVIEW make namespace safe
-		
+		$class = '\\app\\ctrl\\' . ucfirst($id) . 'Controller';
+				
 		if (!class_exists($class)) throw new \ErrorException();
 		
 		return $class;
