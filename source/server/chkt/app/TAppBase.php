@@ -54,19 +54,6 @@ trait TAppBase {
 	}
 	
 	
-	
-	/**
-	 * DEPRECATED - use HttpRequest::time() instead
-	 * Returnes the synchronised app timestamp
-	 * @return integer
-	 */
-	public function getNow() {
-		if (is_null($this->_now)) $this->_now = time();
-		
-		return $this->_now;
-	}
-	
-	
 	/**
 	 * Returns <code>true</code> is the app is in debug mode, <code>false</code> otherwise
 	 * @return boolean
