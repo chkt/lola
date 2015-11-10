@@ -9,7 +9,7 @@ class HttpRequest {
 	/**
 	 * The version string
 	 */
-	const VERSION = '0.0.5';
+	const VERSION = '0.0.6';
 	
 	/**
 	 * The http protocol
@@ -501,12 +501,70 @@ class HttpRequest {
 	}
 	
 	
+	/**
+	 * Returns the raw request body of the instance
+	 * @return string
+	 */
 	public function getBody() {
 		return array_key_exists('body', $this->_property) ? $this->_property['body'] : self::body();
 	}
 	
+	/**
+	 * Sets the raw request body of the instance
+	 * @param string $body
+	 * @throws \ErrorException if $body is not a string
+	 * @return HttpRequest
+	 */
 	public function setBody($body) {
-		//IMPLEMENT
+		if (!is_string($body)) throw new \ErrorException();
+		
+		$property =& $this->_property;
+		
+		$property['body'] = $body;
+		
+		unset($property['payload']);
+		
+		return $this;
+	}
+	
+	/**
+	 * Returns a structured representation of the request body of the instance if possible,
+	 * the raw request body otherwise
+	 * @return mixed
+	 */
+	public function getPayload() {
+		$property =& $this->_property;
+		
+		if (array_key_exists('payload', $property)) return $property['payload'];
+		
+		$body = $this->getBody();
+		$mime = $this->getMime();
+		
+		switch($mime) {
+			case HttpRequest::MIME_FORM :
+				$res = [];
+				
+				parse_str($body, $res);
+				
+				return $res;
+				
+			case HttpRequest::MIME_JSON : 
+				return json_decode($body, true);
+				
+			default :
+				return $body;
+		}
+	}
+	
+	/**
+	 * Sets the structured representation of the request body of the instance
+	 * @param mixed $payload
+	 * @return HttpRequest
+	 */
+	public function setPayload($payload) {
+		$this->_property['payload'] = $payload;
+		
+		return $this;
 	}
 	
 	
