@@ -45,12 +45,13 @@ final class AppLoader {
 		if (array_key_exists('rootOffset', $config)) $this->_setRootOffset($config['rootOffset']);
 		
 		if (array_key_exists('namespace', $config)) $this->registerNamespace($config['namespace']);
+		if (array_key_exists('composer', $config)) $this->registerComposerAutoload();
 		
 		$config['rootPath'] = $this->getRootPath();
 		
 		$app = $this->_app = new \app\app\App($config);
 		
-		if (array_key_exists('exceptionPage', $config)) $app->registerExceptionPage($config['exceptionPage']);
+		if (array_key_exists('exceptionPage', $config)) $app->registerExceptionPage($config['rootPath'] . DIRECTORY_SEPARATOR . $config['exceptionPage']);
 		
 		\chkt\ctrl\AController::setInjectedAll('app', $app);
 	}
@@ -84,7 +85,13 @@ final class AppLoader {
 	public function getApp() {
 		return $this->_app;
 	}
+
 	
+	public function registerComposerAutoload() {
+		$root = $this->getRootPath();
+		
+		include $root . DIRECTORY_SEPARATOR . 'vendor' . DIRECTORY_SEPARATOR . 'autoload.php';
+	}
 	
 	public function registerNamespace(Array $names) {
 		$root = $this->getRootPath();
