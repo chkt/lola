@@ -14,7 +14,7 @@ abstract class AReplyController extends AController {
 	/**
 	 * The version string
 	 */
-	const VERSION = '0.0.4';
+	const VERSION = '0.0.6';
 	
 	
 	/**
@@ -33,7 +33,7 @@ abstract class AReplyController extends AController {
 	 * The reply transform
 	 * @var \Callable 
 	 */
-	protected $_transform = null;
+	protected $_replyTransform = null;
 	
 	
 	
@@ -43,8 +43,8 @@ abstract class AReplyController extends AController {
 	 * @param any   $reply The reply
 	 * @return any
 	 */
-	protected function _defaultTransform(Route $route, $reply) {
-		return $reply;
+	protected function _defaultReplyTransform(Route $route, $reply) {
+		return (string) $reply;
 	}
 	
 	
@@ -52,7 +52,7 @@ abstract class AReplyController extends AController {
 	 * Returns a reference to the route
 	 * @return Route
 	 */
-	public function &useRoute() {
+	public function& useRoute() {
 		return $this->_route;
 	}
 	
@@ -72,7 +72,7 @@ abstract class AReplyController extends AController {
 	 * Returns a reference to the reply
 	 * @return \HttpReply
 	 */
-	public function &useReply() {
+	public function& useReply() {
 		if (is_null($this->_reply)) $this->_reply = new HttpReply(200, HttpReply::MIME_HTML);
 		
 		return $this->_reply;
@@ -91,22 +91,22 @@ abstract class AReplyController extends AController {
 	
 	
 	/**
-	 * Returns a reference to the transform function
+	 * Returns a reference to the reply transform function
 	 * @return Callable
 	 */
-	public function &useTransform() {
-		if (is_null($this->_transform)) $this->_transform = [$this, '_defaultTransform'];
+	public function& useReplyTransform() {
+		if (is_null($this->_replyTransform)) $this->_replyTransform = [$this, '_defaultReplyTransform'];
 		
-		return $this->_transform;
+		return $this->_replyTransform;
 	}
 	
 	/**
-	 * Sets the transform function
-	 * @param  Callable         $transform The transform function
+	 * Sets the reply transform function
+	 * @param  Callable $transform The transform function
 	 * @return AReplyController
 	 */
-	public function setTransform(Callable $transform) {
-		$this->_transform = $transform;
+	public function setReplyTransform(Callable $transform) {
+		$this->_replyTransform = $transform;
 		
 		return $this;
 	}
@@ -121,7 +121,7 @@ abstract class AReplyController extends AController {
 		$this->_route = $route;
 		
 		$ret  = parent::enter($action, $route);		
-		$body = call_user_func($this->useTransform(), $this->useRoute(), $ret);
+		$body = call_user_func($this->useReplyTransform(), $this->useRoute(), $ret);
 		
 		$this
 			->useReply()
