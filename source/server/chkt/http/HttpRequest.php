@@ -62,6 +62,12 @@ class HttpRequest {
 	 */
 	const MIME_JSON  = 'application/json';
 	
+	/**
+	 * The utf-8 encoding
+	 */
+	const ENC_UTF8 = 'utf-8';
+	
+	
 	
 	static protected $_languages = [];
 	static protected $_mimes = [];
@@ -85,6 +91,7 @@ class HttpRequest {
 			'protocol' => self::protocol(),
 			'name'     => self::hostName(),
 			'mime'     => self::mime(),
+			'encoding' => self::encoding(),
 			'method'   => self::method(),
 			
 			'mimes'    => self::acceptMimes(),
@@ -193,7 +200,27 @@ class HttpRequest {
 	 * @return string
 	 */
 	static public function mime() {
-		return filter_input(INPUT_SERVER, 'CONTENT_TYPE');
+		$mime = str_replace(';', '&', filter_input(INPUT_SERVER, 'CONTENT_TYPE'));
+		
+		$data = [];
+		
+		if (!empty($mime)) parse_str('mime=' . $mime, $data);
+		
+		return array_key_exists('mime', $data) ? $data['mime'] : '';
+	}
+	
+	/**
+	 * Returns the origin request body charset
+	 * @return string
+	 */
+	static public function encoding() {
+		$mime = str_replace(';', '&', filter_input(INPUT_SERVER, 'CONTENT_TYPE'));
+		
+		$data = [];
+		
+		if (!empty($mime)) parse_str('mime=' . $mime, $data);
+		
+		return array_key_exists('charset', $data) ? $data['encoding'] : '';
 	}
 	
 	/**
@@ -205,23 +232,6 @@ class HttpRequest {
 		
 		return self::$_languages;
 	}
-	
-	
-	/**
-	 * DEPRECATED - chkt\http\Cookie should be used instead
-	 * Returns the named origin request cookie
-	 * @param string $name The cookie name
-	 * @return string
-	 * @throws \ErrorException if <code>$name</code> is not a string
-	 */
-	static public function getCookie($name) {		//DEPRECATED
-		if (!is_string($name) || empty($name)) throw new \ErrorException();
-		
-		$cookie = filter_input(INPUT_COOKIE, $name);
-		
-		return is_string($cookie) ? $cookie : '';
-	}
-	
 	
 	/**
 	 * Returns the origin request query
@@ -285,6 +295,17 @@ class HttpRequest {
 			self::MIME_FORM,
 			self::MIME_JSON,
 			self::MIME_XML
+		]);
+	}
+	
+	/**
+	 * Returns true if $charset is a valid mime type, false otherwise
+	 * @param string $charset
+	 * @return bool
+	 */
+	static public function isEncoding($charset) {
+		return in_array($charset, [
+			self::ENC_UTF8
 		]);
 	}
 	
@@ -414,9 +435,32 @@ class HttpRequest {
 	 * @throws \ErrorException if <code>$mime</code> is not a valid mime type
 	 */
 	public function setMime($mime) {
-		if (!self::isMime()) throw new \ErrorException();
+		if (!self::isMime($mime)) throw new \ErrorException();
 		
 		$this->_property['mime'] = $mime;
+		
+		return $this;
+	}
+	
+	
+	/**
+	 * Returns the instance character encoding
+	 * @return string
+	 */
+	public function getEncoding() {
+		return array_key_exists('encoding', $this->_property) ? $this->_property['encoding'] : self::charset();
+	}
+	
+	/**
+	 * Sets the instance character encoding
+	 * @param string $charset The character encoding
+	 * @return HttpRequest
+	 * @throws \ErrorException if $charset is not a valid encoding
+	 */
+	public function setEncoding($charset) {
+		if (!self::isEncoding($charset)) throw new \ErrorException();
+		
+		$this->_property['encoding'] = $charset;
 		
 		return $this;
 	}
