@@ -9,7 +9,7 @@ class HttpRequest {
 	/**
 	 * The version string
 	 */
-	const VERSION = '0.0.6';
+	const VERSION = '0.0.7';
 	
 	/**
 	 * The http protocol
@@ -69,9 +69,12 @@ class HttpRequest {
 	
 	
 	
-	static protected $_languages = [];
-	static protected $_mimes = [];
-	
+	/**
+	 * The origin request properties
+	 * @var mixed[]
+	 */
+	static protected $_origin = [];
+
 	
 	/**
 	 * The request properties
@@ -82,27 +85,25 @@ class HttpRequest {
 	
 	
 	/**
+	 * DEPRECATED - use either a provider or new HttpRequest()
 	 * Returns an instance reprenting the origin request
 	 * @param HttpRequest $target The target instance
 	 * @return HttpRequest
 	 */
 	static public function Origin(HttpRequest &$target = null) {
-		$props = [
-			'protocol' => self::protocol(),
-			'name'     => self::hostName(),
-			'mime'     => self::mime(),
-			'encoding' => self::encoding(),
-			'method'   => self::method(),
-			
-			'mimes'    => self::acceptMimes(),
-			'langs'    => self::acceptLanguages()
-		];
-		
-		
-		if (is_null($target)) $target = new HttpRequest($props);
-		else $target->_construct($props);
+		if (is_null($target)) $target = new HttpRequest();
+		else $target->_construct();
 		
 		return $target;
+	}
+	
+	
+	static private function _parseHeader($raw, $attr = '__default__') {
+		$data = [];
+		
+		parse_str('__default__=' . str_replace(';', '&', $raw), $data);
+		
+		return array_key_exists($attr, $data) ? $data[$attr] : '';
 	}
 	
 	
@@ -139,9 +140,22 @@ class HttpRequest {
 	
 	/**
 	 * Returns the origin request timestamp
+	 * @return int
+	 */
+	static public function originTime() {
+		$origin =& self::$_origin;
+		
+		if (!array_key_exists('time', $origin)) $origin['time'] = $_SERVER['REQUEST_TIME'];		//php does not return anything when using filter_input()
+		
+		return $origin['time'];
+	}
+	
+	/**
+	 * DEPRECATED - use ::originTime instead
+	 * Returns the origin request timestamp
 	 * @return uint
 	 */
-	static public function time() {		
+	static public function time() {
 		return $_SERVER['REQUEST_TIME'];		//php does not return anything when using filter_input()
 		//return filter_input(INPUT_SERVER, 'REQUEST_TIME');
 	}
@@ -151,108 +165,153 @@ class HttpRequest {
 	 * Returns the origin request protocol
 	 * @return string
 	 */
-	static public function protocol() {
-		switch (filter_input(INPUT_SERVER, 'HTTPS')) {
-			case '' :
-			case 'off' :
-				return 'http';
-			default : return 'https';
+	static public function originProtocol() {
+		$origin =& self::$_origin;
+		
+		if (!array_key_exists('protocol', $origin)) {
+			switch (filter_input(INPUT_SERVER, 'HTTPS')) {
+				case '' :
+				case 'off' :
+					$origin['protocol'] = 'http';
+					
+					break;
+				
+				default : $origin['protocol'] = 'https';
+			}
 		}
+		
+		return $origin['protocol'];
 	}
 	
 	/**
 	 * Returns the origin request host name
 	 * @return string
 	 */
-	static public function hostName() {
-		return filter_input(INPUT_SERVER, 'SERVER_NAME');
-	}
-	
-	
-	/**
-	 * Returns the origin request ip address
-	 * @return string
-	 */
-	static public function clientIP() {
-		return filter_input(INPUT_SERVER, 'REMOTE_ADDR');
+	static public function originHostName() {
+		$origin =& self::$_origin;
+		
+		if (!array_key_exists('hostName', $origin)) $origin['hostName'] = filter_input(INPUT_SERVER, 'SERVER_NAME');
+		
+		return $origin['hostName'];
 	}
 	
 	/**
 	 * Returns the origin request http method
 	 * @return string
 	 */
-	static public function method() {
-		return filter_input(INPUT_SERVER, 'REQUEST_METHOD');
+	static public function originMethod() {
+		$origin =& self::$_origin;
+		
+		if (!array_key_exists('method', $origin)) $origin['method'] = filter_input(INPUT_SERVER, 'REQUEST_METHOD');
+		
+		return $origin['method'];
 	}
 	
 	/**
 	 * Returns the origin request accepted mime types
 	 * @return string[]
 	 */
-	static public function acceptMimes() {
-		if (empty(self::$_mimes)) self::$_mimes = self::_parseAccept(filter_input(INPUT_SERVER, 'HTTP_ACCEPT'), '[a-z]+\\/[a-z]+|\\*\\/\\*');
+	static public function originAcceptMimes() {
+		$origin =& self::$_origin;
+		
+		if (!array_key_exists('acceptMimes', $origin)) $origin['acceptMimes'] = self::_parseAccept(filter_input(INPUT_SERVER, 'HTTP_ACCEPT'), '[a-z]+\\/[a-z]+|\\*\\/\\*');
 			
-		return self::$_mimes;
+		return $origin['acceptMimes'];
 	}
 	
 	/**
 	 * Returns the origin request body mime type
 	 * @return string
 	 */
-	static public function mime() {
-		$mime = str_replace(';', '&', filter_input(INPUT_SERVER, 'CONTENT_TYPE'));
+	static public function originMime() {
+		$origin =& self::$_origin;
 		
-		$data = [];
+		if (!array_key_exists('mime', $origin)) $origin['mime'] = self::_parseHeader(filter_input(INPUT_SERVER, 'CONTENT_TYPE'));
 		
-		if (!empty($mime)) parse_str('mime=' . $mime, $data);
-		
-		return array_key_exists('mime', $data) ? $data['mime'] : '';
+		return $origin['mime'];
 	}
 	
 	/**
 	 * Returns the origin request body charset
 	 * @return string
 	 */
-	static public function encoding() {
-		$mime = str_replace(';', '&', filter_input(INPUT_SERVER, 'CONTENT_TYPE'));
+	static public function originEncoding() {
+		$origin =& self::$_origin;
 		
-		$data = [];
+		if (!array_key_exists('encoding', $origin)) $origin['encoding'] = self::_parseHeader(filter_input(INPUT_SERVER, 'CONTENT_TYPE'), 'charset');
 		
-		if (!empty($mime)) parse_str('mime=' . $mime, $data);
-		
-		return array_key_exists('charset', $data) ? $data['encoding'] : '';
+		return $origin['encoding'];
 	}
 	
 	/**
 	 * Returns the origin request accepted languages
 	 * @return string[]
 	 */
-	static public function acceptLanguages() {
-		if (empty(self::$_languages)) self::$_languages = self::_parseAccept(filter_input(INPUT_SERVER, 'HTTP_ACCEPT_LANGUAGE'), '[A-Za-z]{2}(?:-[A-Za-z]{2})?');
+	static public function originAcceptLanguages() {
+		$origin =& self::$_origin;
 		
-		return self::$_languages;
+		if (!array_key_exists('acceptLanguages', $origin)) $origin['acceptLanguages'] = self::_parseAccept(filter_input(INPUT_SERVER, 'HTTP_ACCEPT_LANGUAGE'), '[A-Za-z]{2}(?:-[A-Za-z]{2})?');
+		
+		return $origin['acceptLanguages'];
 	}
 	
 	/**
 	 * Returns the origin request query
 	 * @return string[]
 	 */
-	static public function query() {
-		$res = [];
+	static public function originQuery() {
+		$origin =& self::$_origin;
 		
-		parse_str(filter_input(INPUT_SERVER, 'QUERY_STRING'), $res);
+		if (!array_key_exists('query', $origin)) {
+			$origin['query'] = [];
+			
+			parse_str(filter_input(INPUT_SERVER, 'QUERY_STRING'), $origin['query']);
+		}
 		
-		return $res;
+		return $origin['query'];
 	}
 	
 	/**
 	 * Returns the origin request body
 	 * @return string
 	 */
-	static public function body() {
-		$handle = fopen('php://input', 'r');
+	static public function originBody() {
+		$origin =& self::$_origin;
 		
-		return stream_get_contents($handle);
+		if (!array_key_exists('body', $origin)) {
+			$handle = fopen('php://input', 'r');
+		
+			$origin['body'] = stream_get_contents($handle);
+			
+			fclose($handle);
+		}
+		
+		return $origin['body'];
+	}
+	
+	
+	/**
+	 * Returns the origin request client ip address
+	 * @return string
+	 */
+	static public function originClientIP() {
+		$origin =& self::$_origin;
+		
+		if (!array_key_exists('clientIP', $origin)) $origin['clientIP'] = filter_input(INPUT_SERVER, 'REMOTE_ADDR');
+		
+		return $origin['clientIP'];
+	}
+	
+	/**
+	 * Returns true if the origin request is asynchronous, false otherwise
+	 * @return bool
+	 */
+	static public function originClientAsync() {
+		$origin =& self::$_origin;
+		
+		if (!array_key_exists('clientAsync', $origin)) $origin['clientAsync'] = filter_input(INPUT_SERVER, 'HTTP_X_REQUESTED_WITH') === 'XMLHttpRequest';
+		
+		return $origin['clientAsync'];
 	}
 	
 	
@@ -309,14 +368,6 @@ class HttpRequest {
 		]);
 	}
 	
-	/**
-	 * Returns <code>true</code> if the origin request is a <em>XMLHttpRequest</em>, <code>false</code> otherwise
-	 * @return bool
-	 */
-	static public function isXMLHttp() {
-		return filter_input(INPUT_SERVER, 'HTTP_X_REQUESTED_WITH') === 'XMLHttpRequest';
-	}
-	
 	
 	
 	/**
@@ -333,7 +384,7 @@ class HttpRequest {
 	 * @return uint
 	 */
 	public function getTime() {
-		return array_key_exists('time', $this->_property) ? $this->_property['time'] : self::time();
+		return array_key_exists('time', $this->_property) ? $this->_property['time'] : self::originTime();
 	}
 	
 	/**
@@ -356,7 +407,7 @@ class HttpRequest {
 	 * @return string
 	 */
 	public function getProtocol() {
-		return array_key_exists('protocol', $this->_property) ? $this->_property['protocol'] : self::protocol();
+		return array_key_exists('protocol', $this->_property) ? $this->_property['protocol'] : self::originProtocol();
 	}
 	
 	/**
@@ -379,7 +430,7 @@ class HttpRequest {
 	 * @return string
 	 */
 	public function getHostName() {
-		return array_key_exists('name', $this->_property) ? $this->_property['name'] : self::hostName();
+		return array_key_exists('name', $this->_property) ? $this->_property['name'] : self::originHostName();
 	}
 	
 	/**
@@ -402,7 +453,7 @@ class HttpRequest {
 	 * @return string
 	 */
 	public function getMethod() {
-		return array_key_exists('method', $this->_property) ? $this->_property['method'] : self::method();
+		return array_key_exists('method', $this->_property) ? $this->_property['method'] : self::originMethod();
 	}
 	
 	/**
@@ -425,7 +476,7 @@ class HttpRequest {
 	 * @return string
 	 */
 	public function getMime() {
-		return array_key_exists('mime', $this->_property) ? $this->_property['mime'] : self::mime();
+		return array_key_exists('mime', $this->_property) ? $this->_property['mime'] : self::originMime();
 	}
 	
 	/**
@@ -448,7 +499,7 @@ class HttpRequest {
 	 * @return string
 	 */
 	public function getEncoding() {
-		return array_key_exists('encoding', $this->_property) ? $this->_property['encoding'] : self::charset();
+		return array_key_exists('encoding', $this->_property) ? $this->_property['encoding'] : self::originEncoding();
 	}
 	
 	/**
@@ -471,7 +522,7 @@ class HttpRequest {
 	 * @return string[]
 	 */
 	public function getAcceptMimes() {
-		return array_key_exists('mimes', $this->_property) ? $this->_property['mimes'] : self::acceptMimes();
+		return array_key_exists('mimes', $this->_property) ? $this->_property['mimes'] : self::priginAcceptMimes();
 	}
 	
 	/**
@@ -506,7 +557,7 @@ class HttpRequest {
 	 * @return string[]
 	 */
 	public function getAcceptLanguages() {
-		return array_key_exists('langs', $this->_property) ? $this->_property['langs'] : self::acceptLanguages();
+		return array_key_exists('langs', $this->_property) ? $this->_property['langs'] : self::originAcceptLanguages();
 	}
 	
 	/**
@@ -537,11 +588,13 @@ class HttpRequest {
 	
 	
 	public function getQuery() {
-		return array_key_exists('query', $this->_property) ? $this->_property['query'] : self::query();
+		return array_key_exists('query', $this->_property) ? $this->_property['query'] : self::originQuery();
 	}
 	
 	public function setQuery() {
 		//IMPLEMENT
+		
+		return $this;
 	}
 	
 	
@@ -550,7 +603,7 @@ class HttpRequest {
 	 * @return string
 	 */
 	public function getBody() {
-		return array_key_exists('body', $this->_property) ? $this->_property['body'] : self::body();
+		return array_key_exists('body', $this->_property) ? $this->_property['body'] : self::originBody();
 	}
 	
 	/**
@@ -609,24 +662,5 @@ class HttpRequest {
 		$this->_property['payload'] = $payload;
 		
 		return $this;
-	}
-	
-	
-	/**
-	 * Returns <code>true</code> if the instance contains all set properties of <code>$request</code>, <code>false</code> otherwise
-	 * @param HttpRequest $request The contained request
-	 * @return bool
-	 */
-	public function contains(HttpRequest $request) {
-		//IMPLEMENT
-	}
-	
-	/**
-	 * Returns <code>true</code> if the instance contains all properties represented by <code>$request</code>, <code>false</code> otherwise
-	 * @param array $request The request properties
-	 * @return bool
-	 */
-	public function containsArray(Array $request) {
-		//IMPLEMENT
 	}
 }
