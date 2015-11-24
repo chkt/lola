@@ -4,8 +4,6 @@ namespace chkt\ctrl;
 
 use chkt\ctrl\AReplyController;
 
-use chkt\route\Route;
-
 
 
 abstract class ATwigReplyController extends AReplyController {
@@ -13,10 +11,16 @@ abstract class ATwigReplyController extends AReplyController {
 	const VERSION = '0.0.6';
 	
 	
-	protected $_twigView = 'default';
+	protected $_twigView = '';
 	
 	
-	protected function _defaultReplyTransform(Route $route, $reply) {		
-		return $this->_useInjected('app')->drawTwigView($this->_twigView, $route->getView(), $reply);
+	public function __construct($view = 'default') {
+		if (!is_string($view) || empty($view)) throw new \ErrorException();
+		
+		$this->_twigView = $view;
+		
+		$this->setReplyTransform(function($route, $reply) {
+			return $this->_useInjected('app')->drawTwigView($this->_twigView, $route->getView(), $reply);
+		});
 	}
 }
