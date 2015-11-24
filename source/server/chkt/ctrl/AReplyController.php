@@ -5,6 +5,7 @@ namespace chkt\ctrl;
 use chkt\ctrl\AController;
 use chkt\route\Route;
 
+use chkt\http\HttpRequest;
 use chkt\http\HttpReply;
 
 
@@ -14,7 +15,8 @@ abstract class AReplyController extends AController {
 	/**
 	 * The version string
 	 */
-	const VERSION = '0.0.6';
+	const VERSION = '0.0.7';
+	
 	
 	
 	/**
@@ -24,8 +26,14 @@ abstract class AReplyController extends AController {
 	protected $_route = null;
 	
 	/**
+	 * The request
+	 * @var HttpRequest
+	 */
+	protected $_request = null;
+	
+	/**
 	 * The reply
-	 * @var \HttpReply
+	 * @var HttpReply
 	 */
 	protected $_reply = null;
 	
@@ -35,6 +43,7 @@ abstract class AReplyController extends AController {
 	 */
 	protected $_replyTransform = null;
 	
+	protected $_requestTransform = null;
 	
 	
 	/**
@@ -45,6 +54,10 @@ abstract class AReplyController extends AController {
 	 */
 	protected function _defaultReplyTransform(Route $route, $reply) {
 		return (string) $reply;
+	}
+	
+	protected function _defaultRequestTransform(Route $route, $action) {
+		return (string) $action;
 	}
 	
 	
@@ -69,8 +82,40 @@ abstract class AReplyController extends AController {
 	
 	
 	/**
+	 * Returns a reference to the request
+	 * @return HttpRequest
+	 */
+	public function& useRequest() {
+		if (is_null($this->_request)) $this->_request = HttpRequest::Origin();
+		
+		return $this->_request;
+	}
+	
+	/**
+	 * Sets the request
+	 * @param HttpRequest $request
+	 */
+	public function setRequest(HttpRequest $request) {
+		$this->_request = $request;
+		
+		return $this;
+	}
+	
+	
+	public function& useRequestTransform() {
+		if (is_null($this->_requestTransform)) $this->_requestTransform = [$this, '_defaultRequestTransform'];
+		
+		return $this->_requestTransform;
+	}
+	
+	public function setRequestTransform(Callable $transform) {
+		$this->_requestTransform = $transform;
+	}
+	
+	
+	/**
 	 * Returns a reference to the reply
-	 * @return \HttpReply
+	 * @return HttpReply
 	 */
 	public function& useReply() {
 		if (is_null($this->_reply)) $this->_reply = new HttpReply(200, HttpReply::MIME_HTML);
@@ -80,7 +125,7 @@ abstract class AReplyController extends AController {
 	
 	/**
 	 * Sets the reply
-	 * @param  \HttpReply $reply The reply
+	 * @param HttpReply $reply The reply
 	 * @return AReplyController
 	 */
 	public function setReply(HttpReply $reply) {
@@ -120,8 +165,11 @@ abstract class AReplyController extends AController {
 	public function enter($action, Route $route) {
 		$this->_route = $route;
 		
-		$ret  = parent::enter($action, $route);		
-		$body = call_user_func($this->useReplyTransform(), $this->useRoute(), $ret);
+		$target = !is_null($this->_requestTransform) ? call_user_func($this->useRequestTransform(), $this->useRoute(), $action) : $action;
+		
+		$ret  = parent::enter($target, $route);
+		
+		$body = !is_null($this->_replyTransform) ? call_user_func($this->useReplyTransform(), $this->useRoute(), $ret) : $ret;
 		
 		$this
 			->useReply()
