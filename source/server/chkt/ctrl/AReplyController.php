@@ -86,7 +86,7 @@ abstract class AReplyController extends AController {
 	 * @return HttpRequest
 	 */
 	public function& useRequest() {
-		if (is_null($this->_request)) $this->_request = HttpRequest::Origin();
+		if (is_null($this->_request)) $this->_request = new HttpRequest();
 		
 		return $this->_request;
 	}

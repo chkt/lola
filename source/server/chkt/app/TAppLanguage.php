@@ -40,7 +40,7 @@ trait TAppLanguage {
 	}
 	
 	public function getNegotiatedLanguage() {
-		$want = HttpRequest::acceptLanguages();
+		$want = HttpRequest::originAcceptLanguages();
 		$have = $this->getAvailableLanguages();
 		
 		print_r($have);
