@@ -522,7 +522,7 @@ class HttpRequest {
 	 * @return string[]
 	 */
 	public function getAcceptMimes() {
-		return array_key_exists('mimes', $this->_property) ? $this->_property['mimes'] : self::priginAcceptMimes();
+		return array_key_exists('mimes', $this->_property) ? $this->_property['mimes'] : self::originAcceptMimes();
 	}
 	
 	/**
