@@ -25,7 +25,7 @@ trait TAppFile {
 	
 	
 	public function getPath($id) {
-		$path = $this->_tFilePath;
+		$path =& $this->_tFilePath;
 		
 		if (!array_key_exists($id, $path)) {
 			if (!array_key_exists('path', $this->_dict)) throw new \ErrorException();
