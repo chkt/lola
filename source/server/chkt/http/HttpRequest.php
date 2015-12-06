@@ -256,6 +256,18 @@ class HttpRequest {
 	}
 	
 	/**
+	 * Returns the origin request path
+	 * @return string
+	 */
+	static public function originPath() {
+		$origin =& self::$_origin;
+		
+		if (!array_key_exists('path', $origin)) $origin['path'] = parse_url(filter_input(INPUT_SERVER, 'REQUEST_URI'), PHP_URL_PATH);
+		
+		return $origin['path'];
+	}
+	
+	/**
 	 * Returns the origin request query
 	 * @return string[]
 	 */
@@ -600,6 +612,28 @@ class HttpRequest {
 	
 	
 	/**
+	 * Returns the path of the instance
+	 * @return string
+	 */
+	public function getPath() {
+		return array_key_exists('path', $this->_property) ? $this->_property['path'] : self::originPath();
+	}
+	
+	/**
+	 * Sets the path of the instance
+	 * @param string $path
+	 * @return HttpRequest
+	 */
+	public function setPath($path) {
+		if (!is_string($path)) throw new \ErrorException();
+		
+		$this->_property['path'] = $path;
+		
+		return $this;
+	}
+	
+	
+	/**
 	 * Returns the query of the instance
 	 * @return string
 	 */
@@ -609,12 +643,12 @@ class HttpRequest {
 	
 	/**
 	 * Sets the query of the instance
-	 * @param string $query
+	 * @param array $query
 	 * @return HttpRequest
 	 */
-	public function setQuery($query) {
-		if (!is_string($query)) throw new \ErrorException();
-		
+	public function setQuery(Array $query) {
+		if (!array_filter($query, 'is_string')) throw new \ErrorException();
+			
 		$this->_property['query'] = $query;
 		
 		return $this;
