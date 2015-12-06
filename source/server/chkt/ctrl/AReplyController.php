@@ -160,16 +160,16 @@ abstract class AReplyController extends AController {
 	/**
 	 * Replies with the instance-action referenced by <code>$action</code>
 	 * @param string $action The action
-	 * @param Route  $route  The route
+	 * @param Route& $route The route
 	 */
-	public function enter($action, Route $route) {
-		$this->_route = $route;
+	public function enter($action, Route& $route) {
+		$this->_route =& $route;
 		
-		$target = !is_null($this->_requestTransform) ? call_user_func($this->useRequestTransform(), $this->useRoute(), $action) : $action;
+		$target = !is_null($this->_requestTransform) ? call_user_func($this->useRequestTransform(), $route, $action) : $action;
 		
 		$ret  = parent::enter($target, $route);
 		
-		$body = !is_null($this->_replyTransform) ? call_user_func($this->useReplyTransform(), $this->useRoute(), $ret) : $ret;
+		$body = !is_null($this->_replyTransform) ? call_user_func($this->useReplyTransform(), $route, $ret) : $ret;
 		
 		$this
 			->useReply()
