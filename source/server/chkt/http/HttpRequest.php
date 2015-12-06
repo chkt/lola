@@ -291,6 +291,18 @@ class HttpRequest {
 	
 	
 	/**
+	 * Returns the origin request client user agent
+	 * @return string
+	 */
+	static public function originClientUA() {
+		$origin =& self::$_origin;
+		
+		if (!array_key_exists('clientUA', $origin)) $origin['clientUA'] = filter_input(INPUT_SERVER, 'HTTP_USER_AGENT');
+		
+		return $origin['clientUA'];
+	}
+	
+	/**
 	 * Returns the origin request client ip address
 	 * @return string
 	 */
@@ -587,12 +599,23 @@ class HttpRequest {
 	}
 	
 	
+	/**
+	 * Returns the query of the instance
+	 * @return string
+	 */
 	public function getQuery() {
 		return array_key_exists('query', $this->_property) ? $this->_property['query'] : self::originQuery();
 	}
 	
-	public function setQuery() {
-		//IMPLEMENT
+	/**
+	 * Sets the query of the instance
+	 * @param string $query
+	 * @return HttpRequest
+	 */
+	public function setQuery($query) {
+		if (!is_string($query)) throw new \ErrorException();
+		
+		$this->_property['query'] = $query;
 		
 		return $this;
 	}
