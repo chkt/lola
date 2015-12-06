@@ -18,7 +18,7 @@ abstract class AController {
 	/**
 	 * The version string
 	 */
-	const VERSION = '0.0.6';
+	const VERSION = '0.0.7';
 	
 	
 	/**
@@ -69,16 +69,16 @@ abstract class AController {
 	
 	/**
 	 * Returns the result of <code>$action</code> inside the controller referenced by <code>$id</code>
-	 * @param string        $id      The controller id
-	 * @param string        $action  The controller action
-	 * @param Route         $route   The associated route
-	 * @param Callable|null $fn      The initialization callback
+	 * @param string $id The controller id
+	 * @param string $action The controller action
+	 * @param Route& $route The associated route
+	 * @param Callable|null $fn The initialization callback
 	 * @return mixed
 	 */
-	static public function getAndEnter($id, $action, Route $route, Callable $fn = null) {
+	static public function getAndEnter($id, $action, Route& $route, Callable $fn = null) {
 		$ins = self::getInstance($id);
 		
-		if (!is_null($fn)) call_user_func ($fn, $ins, $route);
+		if (!is_null($fn)) call_user_func($fn, $ins, $route);
 		
 		return $ins->enter($action, $route);
 	}
@@ -116,12 +116,12 @@ abstract class AController {
 	
 	/**
 	 * Reenters the instance through <code>$action</code>
-	 * @param  string $action The controller action
-	 * @param &Route  $route  The associated route
+	 * @param string $action The controller action
+	 * @param Route& $route The associated route
 	 * @return mixed
 	 * @throws \ErrorException if <code>$action</code> is not a <em>nonempty</em> <code>String</code>
 	 */
-	protected function _reenter($action, Route &$route) {
+	protected function _reenter($action, Route& $route) {
 		if (!is_string($action) || empty($action)) throw new \ErrorException();
 		
 		if (!method_exists($this, $action . 'Action')) $action = 'default';
@@ -146,11 +146,11 @@ abstract class AController {
 	/**
 	 * Enters <code>$action</code> of the instance
 	 * @param String $action The controller action
-	 * @param Route  $route  The associated route
+	 * @param Route& $route The associated route
 	 * @return mixed
 	 * @throws ErrorException if <code>$action</code> is not a <em>nonempty</em> <code>String</code>
 	 */
-	public function enter($action, Route $route) {
+	public function enter($action, Route& $route) {
 		if (!is_string($action) || empty($action)) throw new \ErrorException();
 		
 		$method = $action . 'Action';
@@ -163,10 +163,10 @@ abstract class AController {
 	
 	/**
 	 * The resolve action of the controller
-	 * @param Route $route The associated route
+	 * @param Route& $route The associated route
 	 * @return mixed
 	 */
-	public function resolveAction(Route $route) {
+	public function resolveAction(Route& $route) {
 		$action = 'default';
 		
 		if (is_callable($this->_resolveTransform)) {
