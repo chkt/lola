@@ -102,4 +102,23 @@ class NamedQueue {
 		
 		return $this;
 	}
+	
+	/**
+	 * Replaced the callback identified by $name with $cb
+	 * @param string $name The callback identifier
+	 * @param callable $cb The callback function
+	 * @return NamedQueue
+	 * @throws \ErrorException if $name is not a nonempty string or is not a registered name
+	 */
+	public function replace($name, Callable $cb) {
+		if (!is_string($name) || empty($name)) throw new \ErrorException();
+		
+		$index = array_search($name, $this->_keys);
+		
+		if ($index === false) throw new \ErrorException();
+		
+		array_splice($this->_keys, $index, 1, $cb);
+		
+		return $this;
+	}
 }
