@@ -18,7 +18,7 @@ abstract class AController {
 	/**
 	 * The version string
 	 */
-	const VERSION = '0.0.7';
+	const VERSION = '0.0.8';
 	
 	
 	/**
@@ -157,7 +157,7 @@ abstract class AController {
 		
 		if (!method_exists($this, $method)) $method = 'defaultAction';
 		
-		return call_user_func([$this, $method], $route);
+		return $this->$method($route);		
 	}
 	
 	
