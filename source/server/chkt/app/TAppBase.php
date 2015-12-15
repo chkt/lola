@@ -74,12 +74,23 @@ trait TAppBase {
 	 * @param Cookie $cookie The cookie representation
 	 * @return boolean
 	 */
-	public function updateDebug(Cookie &$cookie) {	
-		if ($cookie->getValue('debug') === 'true') return true;
-		if (!$this->isDebug()) return false;
+	public function updateDebug(Cookie &$cookie, $exclude = false) {
+		$debug = $this->isDebug();
 		
-		$cookie->set('debug', 'true', Cookie::EXPIRES_SESSION, Cookie::PATH_ROOT);
+		if ($debug) {
+			$cookie
+				->set('debug', '1', Cookie::EXPIRES_SESSION, Cookie::PATH_ROOT)
+				->set('t', '1', Cookie::EXPIRES_SESSION, Cookie::PATH_ROOT);
+		}
+		else { 
+			$cookie->reset('debug');
+			
+			if ($exclude) $cookie->set('t', '1', Cookie::EXPIRES_SESSION, Cookie::PATH_ROOT);
+		}
 		
-		return true;
+		return [
+			'debug' => $debug,
+			'exclude' => $cookie->value('t')
+		];
 	}
 }
