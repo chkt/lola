@@ -156,10 +156,7 @@ abstract class AReplyController extends AController {
 		
 		$ret = parent::enter($target, $route);
 		
-		if (!empty($ret)) {
-			if (is_array($ret)) $route->setVars($ret);
-			else $route->setVar($target . '_result', $ret);
-		}
+		if (isset($ret) && !is_null($ret)) $route->useActionResult()->pushItem($ret);
 		
 		$reply =& $this->useReply();
 		
