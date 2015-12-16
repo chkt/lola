@@ -2,8 +2,11 @@
 
 namespace chkt\route;
 
-use \chkt\route\Router;
-use \chkt\ctrl\AController;
+use chkt\route\Router;
+use chkt\ctrl\AController;
+
+use chkt\type\Collection;
+use chkt\type\Stack;
 
 
 
@@ -12,7 +15,7 @@ class Route {
 	/**
 	 * The version string
 	 */
-	const VERSION = '0.0.6';
+	const VERSION = '0.0.8';
 	
 	/**
 	 * The router
@@ -57,6 +60,16 @@ class Route {
 	 */
 	private $_vars   = null;
 	
+	/**
+	 * The route model data
+	 * @var Collection|null
+	 */
+	private $_models = null;
+	/**
+	 * The route action result data
+	 * @var Stack|null
+	 */
+	private $_result = null;
 	
 	
 	/**
@@ -77,8 +90,11 @@ class Route {
 		$this->_action = '';
 		$this->_view   = '';
 		
-		$this->_data   = [];
-		$this->_vars   = [];
+		$this->_data = [];
+		$this->_vars = [];
+		
+		$this->_models = null;
+		$this->_result = null;
 	}
 	
 	
@@ -148,6 +164,15 @@ class Route {
 		$key = array_combine($names, array_fill(0, count($names), 1));
 		
 		return array_intersect_key($this->_param, $key);
+	}
+	
+	
+	/**
+	 * Gets a reference to the route params
+	 * @return array
+	 */
+	public function& useParams() {
+		return $this->_param;
 	}
 	
 	
@@ -288,6 +313,28 @@ class Route {
 	 */
 	public function &useData() {
 		return $this->_data;
+	}
+	
+
+	/**
+	 * Returns a reference to the collected models of the route
+	 * @return Collection
+	 */
+	public function& useActionData() {
+		if (is_null($this->_models)) $this->_models = new Collection();
+		
+		return $this->_models;
+	}
+	
+	
+	/**
+	 * Returns a reference to the stacked action results of the route
+	 * @return Stack
+	 */
+	public function& useActionResult() {
+		if (is_null($this->_result)) $this->_result = new Stack();
+		
+		return $this->_result;
 	}
 	
 	
