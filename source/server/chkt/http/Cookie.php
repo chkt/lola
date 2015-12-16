@@ -188,7 +188,7 @@ class Cookie {
 	 * @return Cookie
 	 */
 	public function reset($name) {		
-		if (!$this->wasSet($name)) return $this;
+		if (!$this->has($name)) return $this;
 		
 		$this->_state[$name] = $this->_state[$name] & ~0x4 | 0x8;
 		
@@ -207,7 +207,7 @@ class Cookie {
 	 */
 	public function send() {
 		foreach ($this->_state as $name => $value) {
-			if      ($value & 0x8) setcookie($name, '', 1);
+			if      ($value & 0x8) setcookie($name, null, 0);
 			else if ($value & 0x4) setcookie($name, $this->_value[$name], $this->_ts[$name], $this->_path[$name]);
 		}
 		
