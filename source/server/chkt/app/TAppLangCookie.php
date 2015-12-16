@@ -27,14 +27,4 @@ trait TAppLangCookie {
 		
 		return $this->_tLangCookiePrefered;
 	}
-	
-	public function updateLangLocale(Cookie &$cookie, $lang) {
-		if (!$this->isAvailableLanguage($lang)) throw new \ErrorException();
-		
-		setlocale(LC_ALL, $this->getLocaleByLang($lang));
-		
-		$cookie->set('lang', $lang, Cookie::EXPIRES_SESSION, Cookie::PATH_ROOT);
-		
-		return $lang;
-	}
 }
