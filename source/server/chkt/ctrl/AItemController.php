@@ -39,7 +39,7 @@ abstract class AItemController extends AReplyController {
 			->useReplyProcessor()
 			->append('view', function(Route $route, HttpReply& $reply) {
 				$reply
-					->setContent(json_encode($route->useVars()))
+					->setContent(json_encode($route->useActionResult()->popItem()))
 					->setMime(HttpReply::MIME_JSON);
 			});
 	}
