@@ -420,6 +420,6 @@ class Route {
 	 * @return mixed
 	 */
 	public function enter(Callable $fn = null) {
-		return AController::getAndEnter($this->_ctrl, $this->_action, $this, $fn);
+		return AController::getAndEnter($this, $fn);
 	}
 }
