@@ -8,6 +8,9 @@ use chkt\route\Route;
 use chkt\http\HttpRequest;
 use chkt\http\HttpReply;
 
+use chkt\ctrl\RequestProcessor;
+use chkt\ctrl\ReplyProcessor;
+
 
 
 abstract class AReplyController extends AController {
@@ -15,7 +18,7 @@ abstract class AReplyController extends AController {
 	/**
 	 * The version string
 	 */
-	const VERSION = '0.0.8';
+	const VERSION = '0.0.9';
 	
 	
 	
@@ -37,15 +40,10 @@ abstract class AReplyController extends AController {
 	 */
 	protected $_reply = null;
 	
-		
-	protected $_requestTransform = null;
+			
+	protected $_requestProcessor = null;
 	
 	protected $_replyProcessor = null;
-	
-	
-	protected function _defaultRequestTransform(Route $route, $action) {
-		return (string) $action;
-	}
 	
 	
 	/**
@@ -89,17 +87,6 @@ abstract class AReplyController extends AController {
 	}
 	
 	
-	public function& useRequestTransform() {
-		if (is_null($this->_requestTransform)) $this->_requestTransform = [$this, '_defaultRequestTransform'];
-		
-		return $this->_requestTransform;
-	}
-	
-	public function setRequestTransform(Callable $transform) {
-		$this->_requestTransform = $transform;
-	}
-	
-	
 	/**
 	 * Returns a reference to the reply
 	 * @return HttpReply
@@ -117,6 +104,28 @@ abstract class AReplyController extends AController {
 	 */
 	public function setReply(HttpReply $reply) {
 		$this->_reply = $reply;
+		
+		return $this;
+	}
+	
+	
+	/**
+	 * Returns a reference to the request processor
+	 * @return RequestProcessor
+	 */
+	public function& useRequestProcessor() {
+		if (is_null($this->_requestProcessor)) $this->_requestProcessor = new RequestProcessor();
+		
+		return $this->_requestProcessor;
+	}
+	
+	/**
+	 * Sets the request processor
+	 * @param RequestProcessor $processor
+	 * @return AReplyController
+	 */
+	public function setRequestProcessor(RequestProcessor $processor) {
+		$this->_requestProcessor = $processor;
 		
 		return $this;
 	}
@@ -145,16 +154,15 @@ abstract class AReplyController extends AController {
 	
 	
 	/**
-	 * Replies with the instance-action referenced by <code>$action</code>
-	 * @param string $action The action
+	 * Replies with the instance-action referenced by $route
 	 * @param Route& $route The route
 	 */
-	public function enter($action, Route& $route) {
+	public function enter(Route& $route) {
 		$this->_route =& $route;
 		
-		$target = !is_null($this->_requestTransform) ? call_user_func($this->useRequestTransform(), $route, $action) : $action;
+		if (!is_null($this->_requestProcessor)) $this->useRequestProcessor()->process($this->useRequest(), $route);
 		
-		$ret = parent::enter($target, $route);
+		$ret = parent::enter($route);
 		
 		if (isset($ret) && !is_null($ret)) $route->useActionResult()->pushItem($ret);
 		
