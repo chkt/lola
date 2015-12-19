@@ -232,6 +232,22 @@ class Route {
 		return [$this->_ctrl, $this->_action];
 	}
 	
+	/**
+	 * Gets the route controller name
+	 * @return string
+	 */
+	public function getCtrlName() {
+		return $this->_ctrl;
+	}
+	
+	/**
+	 * Gets the route controller action name
+	 * @return string
+	 */
+	public function getCtrlAction() {
+		return $this->_action;
+	}
+	
 	
 	/**
 	 * Sets the route view
