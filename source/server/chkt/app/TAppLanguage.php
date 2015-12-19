@@ -53,8 +53,10 @@ trait TAppLanguage {
 	}
 	
 	
-	public function getAvailableLocales() {
-		if (is_null($this->_tLanguageLocs)) $this->_tLanguageLocs = $this->_dict['locales'];
+	public function getAvailableLocales() {		
+		if (is_null($this->_tLanguageLocs)) $this->_tLanguageLocs = array_map(function($item) {
+			return $item['encoding'];
+		}, $this->_dict['locales']);
 		
 		return $this->_tLanguageLocs;
 	}
