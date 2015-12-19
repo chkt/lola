@@ -3,7 +3,6 @@
 namespace chkt\app;
 
 use chkt\http\HttpReply;
-use chkt\http\Cookie;
 
 
 
@@ -67,30 +66,5 @@ trait TAppBase {
 		}
 		
 		return $this->_debug;
-	}
-	
-	/**
-	 * Updates <code>$cookie</code> with the current debug mode of the app
-	 * @param Cookie $cookie The cookie representation
-	 * @return boolean
-	 */
-	public function updateDebug(Cookie &$cookie, $exclude = false) {
-		$debug = $this->isDebug();
-		
-		if ($debug) {
-			$cookie
-				->set('debug', '1', Cookie::EXPIRES_SESSION, Cookie::PATH_ROOT)
-				->set('t', '1', Cookie::EXPIRES_SESSION, Cookie::PATH_ROOT);
-		}
-		else { 
-			$cookie->reset('debug');
-			
-			if ($exclude) $cookie->set('t', '1', Cookie::EXPIRES_SESSION, Cookie::PATH_ROOT);
-		}
-		
-		return [
-			'debug' => $debug,
-			'exclude' => $cookie->value('t')
-		];
 	}
 }
