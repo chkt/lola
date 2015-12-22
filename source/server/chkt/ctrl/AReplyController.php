@@ -8,6 +8,9 @@ use chkt\route\Route;
 use chkt\http\HttpRequest;
 use chkt\http\HttpReply;
 
+use chkt\ctrl\RequestProcessor;
+use chkt\ctrl\ReplyProcessor;
+
 
 
 abstract class AReplyController extends AController {
@@ -15,7 +18,7 @@ abstract class AReplyController extends AController {
 	/**
 	 * The version string
 	 */
-	const VERSION = '0.0.7';
+	const VERSION = '0.0.9';
 	
 	
 	
@@ -37,28 +40,10 @@ abstract class AReplyController extends AController {
 	 */
 	protected $_reply = null;
 	
-	/**
-	 * The reply transform
-	 * @var \Callable 
-	 */
-	protected $_replyTransform = null;
+			
+	protected $_requestProcessor = null;
 	
-	protected $_requestTransform = null;
-	
-	
-	/**
-	 * The default reply transform function
-	 * @param Route $route The route
-	 * @param any   $reply The reply
-	 * @return any
-	 */
-	protected function _defaultReplyTransform(Route $route, $reply) {
-		return (string) $reply;
-	}
-	
-	protected function _defaultRequestTransform(Route $route, $action) {
-		return (string) $action;
-	}
+	protected $_replyProcessor = null;
 	
 	
 	/**
@@ -102,17 +87,6 @@ abstract class AReplyController extends AController {
 	}
 	
 	
-	public function& useRequestTransform() {
-		if (is_null($this->_requestTransform)) $this->_requestTransform = [$this, '_defaultRequestTransform'];
-		
-		return $this->_requestTransform;
-	}
-	
-	public function setRequestTransform(Callable $transform) {
-		$this->_requestTransform = $transform;
-	}
-	
-	
 	/**
 	 * Returns a reference to the reply
 	 * @return HttpReply
@@ -136,44 +110,66 @@ abstract class AReplyController extends AController {
 	
 	
 	/**
-	 * Returns a reference to the reply transform function
-	 * @return Callable
+	 * Returns a reference to the request processor
+	 * @return RequestProcessor
 	 */
-	public function& useReplyTransform() {
-		if (is_null($this->_replyTransform)) $this->_replyTransform = [$this, '_defaultReplyTransform'];
+	public function& useRequestProcessor() {
+		if (is_null($this->_requestProcessor)) $this->_requestProcessor = new RequestProcessor();
 		
-		return $this->_replyTransform;
+		return $this->_requestProcessor;
 	}
 	
 	/**
-	 * Sets the reply transform function
-	 * @param  Callable $transform The transform function
+	 * Sets the request processor
+	 * @param RequestProcessor $processor
 	 * @return AReplyController
 	 */
-	public function setReplyTransform(Callable $transform) {
-		$this->_replyTransform = $transform;
+	public function setRequestProcessor(RequestProcessor $processor) {
+		$this->_requestProcessor = $processor;
 		
 		return $this;
 	}
 	
 	
 	/**
-	 * Replies with the instance-action referenced by <code>$action</code>
-	 * @param string $action The action
+	 * Returns a reference to the reply processor
+	 * @return ReplyProcessor
+	 */
+	public function& useReplyProcessor() {
+		if (is_null($this->_replyProcessor)) $this->_replyProcessor = new ReplyProcessor();
+		
+		return $this->_replyProcessor;
+	}
+	
+	/**
+	 * Sets the reply processor
+	 * @param ReplyProcessor $processor
+	 * @return AReplyController
+	 */
+	public function setReplyProcessor(ReplyProcessor $processor) {
+		$this->_replyProcessor = $processor;
+		
+		return $this;
+	}
+	
+	
+	/**
+	 * Replies with the instance-action referenced by $route
 	 * @param Route& $route The route
 	 */
-	public function enter($action, Route& $route) {
+	public function enter(Route& $route) {
 		$this->_route =& $route;
 		
-		$target = !is_null($this->_requestTransform) ? call_user_func($this->useRequestTransform(), $route, $action) : $action;
+		if (!is_null($this->_requestProcessor)) $this->useRequestProcessor()->process($this->useRequest(), $route);
 		
-		$ret  = parent::enter($target, $route);
+		$ret = parent::enter($route);
 		
-		$body = !is_null($this->_replyTransform) ? call_user_func($this->useReplyTransform(), $route, $ret) : $ret;
+		if (isset($ret) && !is_null($ret)) $route->useActionResult()->pushItem($ret);
 		
-		$this
-			->useReply()
-			->setContent($body)
-			->send();
+		$reply =& $this->useReply();
+		
+		$this->useReplyProcessor()->process($route, $reply);
+		
+		$reply->send();
 	}
 }

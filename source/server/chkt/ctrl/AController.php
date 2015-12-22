@@ -18,7 +18,7 @@ abstract class AController {
 	/**
 	 * The version string
 	 */
-	const VERSION = '0.0.7';
+	const VERSION = '0.0.8';
 	
 	
 	/**
@@ -68,19 +68,17 @@ abstract class AController {
 	}
 	
 	/**
-	 * Returns the result of <code>$action</code> inside the controller referenced by <code>$id</code>
-	 * @param string $id The controller id
-	 * @param string $action The controller action
+	 * Returns the result of the action referenced by $route
 	 * @param Route& $route The associated route
 	 * @param Callable|null $fn The initialization callback
 	 * @return mixed
 	 */
-	static public function getAndEnter($id, $action, Route& $route, Callable $fn = null) {
-		$ins = self::getInstance($id);
+	static public function getAndEnter(Route& $route, Callable $fn = null) {
+		$ins = self::getInstance($route->getCtrlName());
 		
 		if (!is_null($fn)) call_user_func($fn, $ins, $route);
 		
-		return $ins->enter($action, $route);
+		return $ins->enter($route);
 	}
 	
 	
@@ -144,20 +142,17 @@ abstract class AController {
 	}
 	
 	/**
-	 * Enters <code>$action</code> of the instance
-	 * @param String $action The controller action
+	 * Enters the action of the instance referenced by $route
 	 * @param Route& $route The associated route
 	 * @return mixed
 	 * @throws ErrorException if <code>$action</code> is not a <em>nonempty</em> <code>String</code>
 	 */
-	public function enter($action, Route& $route) {
-		if (!is_string($action) || empty($action)) throw new \ErrorException();
+	public function enter(Route& $route) {
+		$action = $route->getCtrlAction() . 'Action';
 		
-		$method = $action . 'Action';
+		if (!method_exists($this, $action)) $action = 'defaultAction';
 		
-		if (!method_exists($this, $method)) $method = 'defaultAction';
-		
-		return call_user_func([$this, $method], $route);
+		return $this->$action($route);
 	}
 	
 	
