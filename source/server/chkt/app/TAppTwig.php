@@ -26,7 +26,7 @@ trait TAppTwig {
 			
 			$root  = self::getRootPath();
 			$path  = $this->getPath('twig');
-			$cache = $this->getPath('twig-cache');
+			$cache = $this->getPath('cache') . DIRECTORY_SEPARATOR . 'twig';
 			
 			$debug = $this->isDebug();
 			
