@@ -79,7 +79,7 @@ class HttpReply {
 		if (
 			static::isHttpRedirectCode((string) $code) ||
 			!is_string($message)
-		) throw new ErrorException();
+		) throw new \ErrorException();
 		
 		$ins = new static($code, $mime, $encoding);
 		$ins->_content = $message;
@@ -90,7 +90,7 @@ class HttpReply {
 		if (
 			!static::isHttpRedirectCode((string) $code) ||
 			!is_string($location) || empty($location)
-		) throw new ErrorException();
+		) throw new \ErrorException();
 		
 		$ins = new static($code, $mime, $encoding);
 		$ins->_target = $location;
@@ -113,7 +113,7 @@ class HttpReply {
 	}
 	
 	static public function OB($code = 200, $mime = self::MIME_PLAIN, $encoding = self::ENCODING_UTF8, HttpReply &$target = null) {
-		if (ob_get_level() === 0) throw new ErrorException();
+		if (ob_get_level() === 0) throw new \ErrorException();
 		
 		if (!is_null($target)) $target->__construct($code, $mime, $encoding);
 		else $target = new static($code, $mime, $encoding);
@@ -152,7 +152,7 @@ class HttpReply {
 			!static::isHttpCode((string) $code) ||
 			!static::isMimeType($mime) ||
 			!static::isEncoding($encoding)
-		) throw new ErrorException();
+		) throw new \ErrorException();
 		
 		$this->_code   = $code;
 		$this->_mime   = $mime;
@@ -171,7 +171,7 @@ class HttpReply {
 	}
 	
 	public function setCode($code) {
-		if (!static::isHttpCode((string) $code)) throw new ErrorException();
+		if (!static::isHttpCode((string) $code)) throw new \ErrorException();
 		
 		$this->_code = $code;
 		
@@ -189,7 +189,7 @@ class HttpReply {
 	}
 	
 	public function setMime($mime) {
-		if (!static::isMimeType($mime)) throw new ErrorException();
+		if (!static::isMimeType($mime)) throw new \ErrorException();
 		
 		$this->_mime = $mime;
 		
@@ -202,7 +202,7 @@ class HttpReply {
 	}
 	
 	public function setEncoding($encoding) {
-		if (!static::isEncoding($encoding)) throw new ErrorException();
+		if (!static::isEncoding($encoding)) throw new \ErrorException();
 		
 		$this->_char = $encoding;
 		
@@ -224,7 +224,7 @@ class HttpReply {
 	}
 	
 	public function setRedirectTarget($url) {
-		if (!is_string($url)) throw new ErrorException();
+		if (!is_string($url)) throw new \ErrorException();
 		
 		$this->_target = in_array($this->_code, self::$_REDIRECT) ? $url : '';
 		
@@ -248,7 +248,7 @@ class HttpReply {
 	}
 	
 	public function setContent($string) {
-		if (!is_string($string)) throw new ErrorException();
+		if (!is_string($string)) throw new \ErrorException();
 		
 		$this->_content = $string;
 		
@@ -256,7 +256,7 @@ class HttpReply {
 	}
 	
 	public function setContentOB() {
-		if (ob_get_level() === 0) throw new ErrorException();
+		if (ob_get_level() === 0) throw new \ErrorException();
 		
 		$ob = ob_get_contents();
 		

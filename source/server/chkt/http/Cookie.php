@@ -17,6 +17,27 @@ class Cookie {
 	const EXPIRES_SESSION =  0;
 	
 	/**
+	 * The 1 hour interval
+	 */
+	const INTERVAL_1H = 3600;
+	/**
+	 * The 1 day interval
+	 */
+	const INTERVAL_1D = 86400;
+	/**
+	 * The 1 month interval (60 * 60 * 24 * 7 * 4.25)
+	 */
+	const INTERVAL_1M = 2570400;
+	/**
+	 * The 1 year interval (60 * 60 * 24 * 365)
+	 */
+	const INTERVAL_1Y = 31536000;
+	/**
+	 * The 10 year interval (60 * 60 * 24 * 365 * 10);
+	 */
+	const INTERVAL_10Y = 315360000;
+	
+	/**
 	 * The root path
 	 */
 	const PATH_ROOT = '/';
@@ -188,7 +209,7 @@ class Cookie {
 	 * @return Cookie
 	 */
 	public function reset($name) {		
-		if (!$this->wasSet($name)) return $this;
+		if (!$this->has($name)) return $this;
 		
 		$this->_state[$name] = $this->_state[$name] & ~0x4 | 0x8;
 		
@@ -207,7 +228,7 @@ class Cookie {
 	 */
 	public function send() {
 		foreach ($this->_state as $name => $value) {
-			if      ($value & 0x8) setcookie($name, '', 1);
+			if      ($value & 0x8) setcookie($name, null, 0);
 			else if ($value & 0x4) setcookie($name, $this->_value[$name], $this->_ts[$name], $this->_path[$name]);
 		}
 		

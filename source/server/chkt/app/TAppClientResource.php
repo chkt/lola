@@ -20,20 +20,42 @@ trait TAppClientResource {
 	protected $_tClientResourceHash = '';
 	
 	
+	private function _readClientResourceTimestamp($path) {
+		$handle = fopen($path, 'r');
+		$hash = false;
+		
+		if ($handle !== false) {
+			$hash = fread($handle, 32);
+			
+			fclose($handle);
+		}
+		
+		return $hash;
+	}
+	
+	private function _createClientResourceTimestamp($path) {
+		$handle = fopen($path, 'w');
+		$hash = md5(time());
+		
+		if ($handle !== false) {
+			fwrite($handle, $hash);
+			fclose($handle);
+		}
+		
+		return $hash;
+	}
+	
 	
 	public function getClientResource($name) {
 		if (!is_string($name) || empty($name)) throw new \ErrorException();
 		
 		if (empty($this->_tClientResourceHash)) {			
-			$path = $this->getPath('resource') . '/clientTS';
-			$handle = fopen($path, 'r');
+			$path = $this->getPath('cache') . DIRECTORY_SEPARATOR . 'timestamp';
+			$hash = $this->_readClientResourceTimestamp($path);
 			
-			if ($handle === false) $this->_tClientResourceHash = md5(time());
-			else {
-				$this->_tClientResourceHash = fread($handle, 32);
-				
-				fclose($handle);
-			}
+			if ($hash === false) $hash = $this->_createClientResourceTimestamp($path);
+			
+			$this->_tClientResourceHash = $hash;
 		}
 		
 		return $name . '?' . $this->_tClientResourceHash;
