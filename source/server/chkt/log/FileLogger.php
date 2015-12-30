@@ -2,6 +2,7 @@
 
 namespace chkt\log;
 
+use chkt\type\IInjectable;
 use chkt\log\ILogger;
 
 use chkt\log\Colorizer;
@@ -11,7 +12,12 @@ use chkt\http\HttpReply;
 
 
 
-class FileLogger implements ILogger {	
+class FileLogger implements IInjectable, ILogger {	
+	
+	static public function getDependencyConfig($id) {
+		return [];
+	}
+	
 	
 	static protected function _valueToString($value) {
 		if (is_null($value)) return 'null';
