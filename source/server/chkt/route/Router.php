@@ -113,24 +113,10 @@ class Router {
 			}
 			
 			$list = substr($seg, 0, $index);
-			$val  = !empty($list) ? explode(',', $list) : [];
+			$val  = !empty($list) ? explode(',', $list) : [];		
 			
-			switch (count($val)) {
-				case 0 :
-					if (array_key_exists($name, $expand)) $res .= '/' . $expand[$name];
-					else if (!$opt) $res .= '/%' . $name . '%';
-					
-					break;
-					
-				case 1 :
-					$res .= '/' . $val[0];
-					
-					break;
-				
-				default :
-					if (array_key_exists($name, $expand) && in_array($expand[$name], $val)) $res .= '/' . $expand[$name];
-					else if (!$opt) $res .= '/%' . $name . '%';
-			}
+			if (array_key_exists($name, $expand) && (count($val) === 0 || in_array($expand[$name], $val))) $res .= '/' . $expand[$name];
+			else if (!$opt) $res .= '/%' . $name . '%';
 		}
 		
 		return $res;
