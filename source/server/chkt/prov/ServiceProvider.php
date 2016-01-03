@@ -3,9 +3,8 @@
 namespace chkt\prov;
 
 use chkt\prov\AProvider;
-use chkt\type\IInjectable;
-
-use app\app\App;
+use chkt\inject\Injector;
+use chkt\inject\IInjectable;
 
 
 
@@ -14,26 +13,30 @@ extends AProvider
 implements IInjectable
 {
 	
-	const VERSION = '0.0.9';
+	const VERSION = '0.1.0';
 	
 	
-	static public function getDependencyConfig($id) {
+	static public function getDependencyConfig(Array $config) {
 		return [[
-			'type' => 'app'
+			'type' => 'injector'
 		]];
 	}
 	
 	
 	
-	public function __construct(App $app) {
-		parent::__construct(function($hash) use ($app) {
-			$segs = explode('.', $hash);
-			$type = $segs[0];
-			$id = count($segs) > 1 ? $segs[1] : '';
-						
-			$qname = '\\app\\service\\' . ucfirst($type) . 'Service';
+	public function __construct(Injector $injector) {
+		parent::__construct(function($hash) use ($injector) {
+			if (!is_string($hash) || empty($hash)) throw new \ErrorException();
 			
-			return $app->InjectorFactory($qname, $id);
+			$segs = explode('.', $hash);
+			$name = $segs[0];
+			$id = count($segs) > 1 ? implode('.', array_slice($segs, 1)) : '';
+						
+			$qname = '\\app\\service\\' . ucfirst($name) . 'Service';
+			
+			return $injector->produce($qname, [
+				'id' => $id
+			]);
 		});
 	}
 }
