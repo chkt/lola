@@ -2,7 +2,7 @@
 
 namespace chkt\log;
 
-use chkt\type\IInjectable;
+use chkt\inject\IInjectable;
 use chkt\log\ILogger;
 
 use chkt\log\Colorizer;
@@ -14,7 +14,7 @@ use chkt\http\HttpReply;
 
 class FileLogger implements IInjectable, ILogger {	
 	
-	static public function getDependencyConfig($id) {
+	static public function getDependencyConfig(Array $config) {
 		return [];
 	}
 	
