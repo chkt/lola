@@ -2,18 +2,30 @@
 
 namespace chkt\route;
 
-use \chkt\route\Router;
+use chkt\route\Router;
+use chkt\inject\Injector;
 
 
 
 class CSVRouter extends Router {
 	
-	public function __construct($path) {
-		if (!is_string($path)) throw new \ErrorException();
+	static public function getDependencyConfig(array $config) {
+		return [[
+			'type' => 'injector'
+		], [
+			'type' => 'object',
+			'data' => $config
+		]];
+	}
+	
+	
+	
+	public function __construct(Injector $injector, Array $config) {
+		if (!array_key_exists('path', $config) || !is_string($config['path'])) throw new \ErrorException();
 		
-		parent::__construct();
+		parent::__construct($injector);
 		
-		$handle = fopen($path , 'r');
+		$handle = fopen($config['path'], 'r');
 		
 		if ($handle == false) throw new \ErrorException();
 		
