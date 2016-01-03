@@ -3,30 +3,30 @@
 namespace chkt\prov;
 
 use chkt\prov\AProvider;
-use chkt\type\IInjectable;
-
-use app\app\App;
+use chkt\inject\Injector;
+use chkt\inject\IInjectable;
 
 
 
 class ClassProvider
 extends AProvider
-implements IInjectable {
+implements IInjectable 
+{
 	
-	const VERSION = '0.0.9';
+	const VERSION = '0.1.0';
 	
 	
-	static public function getDependencyConfig($id) {
+	static public function getDependencyConfig(Array $config) {
 		return [[
-			'type' => 'app'
+			'type' => 'injector'
 		]];
 	}
 	
 	
 	
-	public function __construct(App $app) {
-		parent::__construct(function($qName) use ($app) {
-			return $app->InjectorFactory($qName);
+	public function __construct(Injector $injector) {
+		parent::__construct(function($qName) use ($injector) {
+			return $injector->produce($qName);
 		});
 	}
 }
