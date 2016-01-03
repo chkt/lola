@@ -2,83 +2,28 @@
 
 namespace chkt\ctrl;
 
-use chkt\type\TInjectable;
-use chkt\app\IApp;
+use chkt\inject\IInjectable;
 
 use chkt\route\Route;
 use chkt\route\RouteCanceledException;
 
 
 
-abstract class AController {
-	use TInjectable;
-	
-	
+abstract class AController implements IInjectable {
 	
 	/**
 	 * The version string
 	 */
-	const VERSION = '0.0.8';
+	const VERSION = '0.1.0';
 	
 	
 	/**
-	 * The resolveAction transform
-	 * @var Callable|null
+	 * Gets the dependency configuration
+	 * @param array $config The seed config
+	 * @return array
 	 */
-	private $_resolveTransform = null;
-	
-	
-	
-	/**
-	 * DEPRECATED
-	 * Gets the application state object
-	 * @return IApp
-	 */
-	static public function getApp() {
-		return array_key_exists('app', self::$_tInjectableAll) ? self::$_tInjectableAll['app'] : null;
-	}
-	
-	
-	/**
-	 * Returns the class referenced by <code>$id</code>
-	 * @param string $id The controller id
-	 * @return string
-	 * @throws ErrorException of <code>$id</code> is not a <em>nonempty</em> <code>String</code>
-	 * @throws ErrorException if <code>$id</code> does not reference a class
-	 */
-	static public function getClass($id) {
-		if (!is_string($id) || empty($id)) throw new \ErrorException();
-		
-		$class = '\\app\\ctrl\\' . ucfirst($id) . 'Controller';
-				
-		if (!class_exists($class)) throw new \ErrorException();
-		
-		return $class;
-	}
-	
-	/**
-	 * Returns a new instance of the class referenced by <code>$id</code>
-	 * @param string $id The controller id
-	 * @return \Class
-	 */
-	static public function getInstance($id) {		
-		$class = self::getClass($id);
-		
-		return new $class();
-	}
-	
-	/**
-	 * Returns the result of the action referenced by $route
-	 * @param Route& $route The associated route
-	 * @param Callable|null $fn The initialization callback
-	 * @return mixed
-	 */
-	static public function getAndEnter(Route& $route, Callable $fn = null) {
-		$ins = self::getInstance($route->getCtrlName());
-		
-		if (!is_null($fn)) call_user_func($fn, $ins, $route);
-		
-		return $ins->enter($route);
+	static public function getDependencyConfig(Array $config) {
+		return [];
 	}
 	
 	
@@ -113,6 +58,13 @@ abstract class AController {
 	
 	
 	/**
+	 * The resolveAction transform
+	 * @var Callable|null
+	 */
+	private $_resolveTransform = null;
+	
+	
+	/**
 	 * Reenters the instance through <code>$action</code>
 	 * @param string $action The controller action
 	 * @param Route& $route The associated route
@@ -124,7 +76,7 @@ abstract class AController {
 		
 		if (!method_exists($this, $action . 'Action')) $action = 'default';
 		
-		$route->setCtrlAction($action);
+		$route->setAction($action);
 		
 		return call_user_func([$this, $action . 'Action'], $route);
 	}
@@ -148,7 +100,7 @@ abstract class AController {
 	 * @throws ErrorException if <code>$action</code> is not a <em>nonempty</em> <code>String</code>
 	 */
 	public function enter(Route& $route) {
-		$action = $route->getCtrlAction() . 'Action';
+		$action = $route->getAction() . 'Action';
 		
 		if (!method_exists($this, $action)) $action = 'defaultAction';
 		
