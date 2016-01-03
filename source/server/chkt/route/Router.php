@@ -2,18 +2,39 @@
 
 namespace chkt\route;
 
-use \chkt\route\Route;
-use \chkt\route\RouteCanceledException;
+use chkt\inject\IInjectable;
+use chkt\inject\Injector;
+
+use chkt\route\RouteCanceledException;
 
 
 
-class Router {
+class Router implements IInjectable {
 	
 	/**
 	 * The version string
 	 */
-	const VERSION = '0.0.5';
+	const VERSION = '0.1.0';
+	
+	
+	/**
+	 * Gets the dependency configuration
+	 * @param array $config The config seed
+	 * @return array
+	 */
+	static public function getDependencyConfig(Array $config) {
+		return [[
+			'type' => 'injector'
+		]];
+	}
+	
 
+	
+	/**
+	 * The injector reference
+	 * @var type 
+	 */
+	protected $_injector = null;
 	
 	/**
 	 * The route paths
@@ -228,11 +249,6 @@ class Router {
 	
 	
 	
-	static public function JSON($json) {
-		//IMPLEMENT
-	}
-	
-	
 	/**
 	 * Returns the <code>Array</code> of segments referenced by <code>$index</code>
 	 * @param uint $index The route index
@@ -304,7 +320,9 @@ class Router {
 	/**
 	 * Creates an instance
 	 */
-	public function __construct() {
+	public function __construct(Injector $injector) {
+		$this->_injector = $injector;
+		
 		$this->_path    = [];
 		$this->_segment = [];
 	
@@ -397,11 +415,13 @@ class Router {
 	 * @return Router
 	 */
 	public function defineAndEnter($ctrl, $action, $view, array $params = [], array $data = []) {
-		$route = new Route($this, '', $params);
-		$route
-			->setCtrl($ctrl, $action)
-			->setView($view)
-			->setData($data);
+		$route = $this->_injector->produce('\\chkt\\route\\Route', [
+			'ctrl' => $ctrl,
+			'action' => $action,
+			'view' => $view,
+			'params' => $params,
+			'data' => $data
+		]);
 		
 		$this->_returnStack[] = $route->enter();
 		$this->_routeStack[]  = $route;
@@ -426,12 +446,14 @@ class Router {
 
 		$index = $list[0];
 		$path = self::_expandPath($this->_getSegs($index), $params);
-		$route = new Route($this, $path, $params);
-
-		return $route
-			->setCtrl($this->_ctrl[$index], $this->_action[$index])
-			->setView($this->_view[$index])
-			->setData($this->_getHash($index, $path));
+		
+		return $this->_injector->produce('\\chkt\\route\\Route', [
+			'params' => $params,
+			'data' => $this->_getHash($index, $path),
+			'ctrl' => $this->_ctrl[$index],
+			'action' => $this->_action[$index],
+			'view' => $this->_view[$index]
+		]);
 	}
 	
 	/**
@@ -450,11 +472,14 @@ class Router {
 		
 		foreach ($list as $index) {
 			$path = self::_expandPath($this->_getSegs($index), $params);
-			$route = new Route($this, $path, $params);
-			$res[] = $route
-				->setCtrl($this->_ctrl[$index], $this->_action[$index])
-				->setView($this->_view[$index])
-				->setData($this->_getHash($index, $path));
+			
+			$res[] = $this->_injector->produce('\\chkt\\route\\Route', [
+				'params' => $params,
+				'data' => $this->_getHash($index, $path),
+				'ctrl' => $this->_ctrl[$index],
+				'action' => $this->_action[$index],
+				'view' => $this->_view[$index]
+			]);
 		}
 		
 		return $res;
@@ -484,12 +509,13 @@ class Router {
 			
 			if (!self::_matchRoute($rseg, $pseg, $rparam)) continue;
 			
-			$route = new Route($this, $path, array_merge($param, $rparam));
-			
-			return $route
-				->setCtrl($this->_ctrl[$r], $this->_action[$r])
-				->setView($this->_view[$r])
-				->setData($this->_getHash($r, $path));
+			return $this->_injector->produce('\\chkt\\route\\Route', [
+				'param' => array_merge($param, $rparam),
+				'data' => $this->_getHash($r, $path),
+				'ctrl' => $this->_ctrl[$r],
+				'action' => $this->_action[$r],
+				'view' => $this->_view[$r]
+			]);
 		}
 		
 		return null;
