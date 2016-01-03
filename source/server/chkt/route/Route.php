@@ -2,58 +2,72 @@
 
 namespace chkt\route;
 
-use chkt\route\Router;
-use chkt\ctrl\AController;
+use chkt\inject\IInjectable;
+use chkt\prov\ProviderProvider;
 
 use chkt\type\Collection;
 use chkt\type\Stack;
 
 
 
-class Route {
+class Route implements IInjectable {
 	
 	/**
 	 * The version string
 	 */
-	const VERSION = '0.0.8';
+	const VERSION = '0.1.0';
+	
 	
 	/**
-	 * The router
-	 * @var Router
+	 * Gets the dependency configuration
+	 * @param array $config The config seed
+	 * @return array
 	 */
-	private $_router = null;
+	static public function getDependencyConfig(Array $config) {
+		return [[
+			'type' => 'locator'
+		], [
+			'type' => 'object',
+			'data' => $config
+		]];
+	}
+	
+	
+	
+	
 	/**
-	 * The route path
-	 * @var string
+	 * The locator reference
+	 * @var ProviderProvider
 	 */
-	private $_path   = '';
+	private $_locator = null;
+	
 	/**
 	 * The route parameters
 	 * @var array
 	 */
 	private $_param  = null;
-	
-	/**
-	 * The route controller name
-	 * @var string
-	 */
-	private $_ctrl   = '';
-	/**
-	 * The route action name
-	 * @var string
-	 */
-	private $_action = '';
-	/**
-	 * The route view name
-	 * @var string
-	 */
-	private $_view   = '';
-	
 	/**
 	 * The route identity data
 	 * @var array 
 	 */
 	private $_data   = null;
+	
+	/**
+	 * The route controller name
+	 * @var string
+	 */
+	private $_ctrlName   = '';
+	/**
+	 * The route action name
+	 * @var string
+	 */
+	private $_actionName = '';
+	/**
+	 * The route view name
+	 * @var string
+	 */
+	private $_viewName   = '';
+	
 	/**
 	 * The route environment data
 	 * @var array
@@ -74,24 +88,26 @@ class Route {
 	
 	/**
 	 * Creates a new instance
-	 * @param Router $router The router
-	 * @param string $path   The route path
-	 * @param array  $params The route parameters
-	 * @throws \ErrorException if <code>$path</code> is not a <code>String</code>
+	 * @param ProviderProvider $locator
+	 * @param array $config
 	 */
-	public function __construct(Router $router, $path = '', Array $params = []) {
-		if (!is_string($path)) throw new \ErrorException();
+	public function __construct(ProviderProvider& $locator, Array $config = []) {
+		$ctrl = array_key_exists('ctrl', $config) ? $config['ctrl'] : '';
+		$action = array_key_exists('action', $config) ? $config['action'] : '';
+		$view = array_key_exists('view', $config) ? $config['view'] : '';
 		
-		$this->_router = $router;
-		$this->_path   = $path;
-		$this->_param  = $params;
+		if (!is_string($ctrl) || !is_string($action) || !is_string($view)) throw new \ErrorException();
 		
-		$this->_ctrl   = '';
-		$this->_action = '';
-		$this->_view   = '';
+		$this->_locator =& $locator;
 		
-		$this->_data = [];
-		$this->_vars = [];
+		$this->_param = new Collection(array_key_exists('param', $config) ? $config['param'] : []);
+		$this->_data = new Collection(array_key_exists('data', $config) ? $config['data'] : []);
+		
+		$this->_ctrlName = $ctrl;
+		$this->_actionName = $action;
+		$this->_viewName = $view;
+				
+		$this->_vars = new Collection();
 		
 		$this->_models = null;
 		$this->_result = null;
@@ -99,33 +115,13 @@ class Route {
 	
 	
 	/**
-	 * Gets the router of the instance
-	 * @return Router
-	 */
-	public function getRouter() {
-		return $this->_router;
-	}
-	
-	
-	/**
-	 * Gets the path of the instance
-	 * @return string
-	 */
-	public function getPath() {
-		return $this->_path;
-	}
-	
-	/**
 	 * Sets a route parameter
 	 * @param string $name  The parameter name
 	 * @param mixed  $value The parameter value
 	 * @return Route
-	 * @throws \ErrorException if <code>$name</code> is not a <em>nonempty</em> <code>String</code>
 	 */
 	public function setParam($name, $value) {
-		if (!is_string($name) || empty($name)) throw new \ErrorException();
-		
-		$this->_param[$name] = $value;
+		$this->_param->setItem($name, $value);
 		
 		return $this;
 	}
@@ -136,7 +132,7 @@ class Route {
 	 * @return Route
 	 */
 	public function setParams(Array $params) {
-		$this->_param = array_merge($this->_param, $params);
+		$this->_param->getItems($params);
 		
 		return $this;
 	}
@@ -145,12 +141,9 @@ class Route {
 	 * Gets a route parameter
 	 * @param string $name The parameter name
 	 * @return mixed
-	 * @throws \ErrorException if <code>$name</code> is not a <em>nonempty</em> <code>String</code>
 	 */
 	public function getParam($name) {
-		if (!is_string($name) || empty($name)) throw new \ErrorException();
-				
-		return array_key_exists($name, $this->_param) ? $this->_param[$name] : '';
+		return $this->_param->getItem($name);
 	}
 	
 	/**
@@ -159,11 +152,7 @@ class Route {
 	 * @return array
 	 */
 	public function getParams(Array $names = null) {
-		if (is_null($names)) return $this->_param;
-		
-		$key = array_combine($names, array_fill(0, count($names), 1));
-		
-		return array_intersect_key($this->_param, $key);
+		return $this->_param->getItems($names);
 	}
 	
 	
@@ -172,103 +161,7 @@ class Route {
 	 * @return array
 	 */
 	public function& useParams() {
-		return $this->_param;
-	}
-	
-	
-	/**
-	 * Sets the route controller
-	 * @param string $ctrl   The controller name
-	 * @param string $action The action name
-	 * @return Route
-	 * @throws \ErrorException if <code>$ctrl</code> is not a <em>nonempty</em> <code>String</code>
-	 * @throws \ErrorException if <code>$action</code> is not a <em>nonempty</em> <code>String</code>
-	 */
-	public function setCtrl($ctrl, $action) {
-		if (
-			!is_string($ctrl)   || empty($ctrl) ||
-			!is_string($action) || empty($action) 
-		) throw new \ErrorException();
-		
-		$this->_ctrl   = $ctrl;
-		$this->_action = $action;
-		
-		return $this;
-	}
-	
-	/**
-	 * Sets the route controller instance
-	 * @param string $ctrl The controller name
-	 * @return Route
-	 * @throws \ErrorException if <code>$ctrl</code> is not a <em>nonempty</em> <code>String</code>
-	 */
-	public function setCtrlName($ctrl) {
-		if (!is_string($ctrl) || empty($ctrl)) throw new \ErrorException();
-		
-		$this->_ctrl = $ctrl;
-		
-		return $this;
-	}
-	
-	/**
-	 * Sets the route controller action
-	 * @param string $action The controller action
-	 * @return Route
-	 * @throws \ErrorException if <code>$action</code> is not a <em>nonempty</em> <code>String</code>
-	 */
-	public function setCtrlAction($action) {
-		if (!is_string($action) || empty($action)) throw new \ErrorException();
-		
-		$this->_action = $action;
-		
-		return $this;
-	}
-	
-	/**
-	 * Gets the route controller
-	 * @return array
-	 */
-	public function getCtrl() {		
-		return [$this->_ctrl, $this->_action];
-	}
-	
-	/**
-	 * Gets the route controller name
-	 * @return string
-	 */
-	public function getCtrlName() {
-		return $this->_ctrl;
-	}
-	
-	/**
-	 * Gets the route controller action name
-	 * @return string
-	 */
-	public function getCtrlAction() {
-		return $this->_action;
-	}
-	
-	
-	/**
-	 * Sets the route view
-	 * @param string $view The view name
-	 * @return Route
-	 * @throws \ErrorException if <code>$view</code> is not a <em>nonempty</em> <code>String</code>
-	 */
-	public function setView($view) {
-		if (!is_string($view)) throw new \ErrorException();
-		
-		$this->_view = $view;
-		
-		return $this;
-	}
-	
-	/**
-	 * Gets the route view
-	 * @return string
-	 */
-	public function getView() {
-		return $this->_view;
+		return $this->_param->useItems();
 	}
 	
 	
@@ -277,12 +170,9 @@ class Route {
 	 * @param string $name  The data name
 	 * @param mixed  $value The data value
 	 * @return Route
-	 * @throws \ErrorException if <code>$name</code> is not a <em>nonempty</em> <code>String</code>
 	 */
-	public function setDatum($name, $value) {
-		if (!is_string($name) || empty($name)) throw new \ErrorException();
-		
-		$this->_data[$name] = $value;
+	public function setRouteDatum($name, $value) {
+		$this->_data->setItem($name, $value);
 		
 		return $this;
 	}
@@ -292,9 +182,9 @@ class Route {
 	 * @param array $data The route identity data
 	 * @return Route
 	 */
-	public function setData(Array $data) {
-		$this->_data = array_merge($this->_data, $data);
-		
+	public function setRouteData(Array $data) {
+		$this->_data->setItems($data);
+	
 		return $this;
 	}
 	
@@ -302,12 +192,9 @@ class Route {
 	 * Gets a route identity datum
 	 * @param string $name The data name
 	 * @return mixed
-	 * @throws \ErrorException if <code>$name</code> is not a <em>nonempty</em> <code>String</code>
 	 */
-	public function getDatum($name) {
-		if (!is_string($name) || empty($name)) throw new \ErrorException();
-		
-		return array_key_exists($name, $this->_data) ? $this->_data[$name] : null;
+	public function getRouteDatum($name) {
+		return $this->_data->getItem($name);
 	}
 	
 	/**
@@ -315,20 +202,135 @@ class Route {
 	 * @param array $names The data names
 	 * @return array
 	 */
-	public function getData(Array $names = null) {
-		if (is_null($names)) return $this->_data;
-		
-		$key = array_combine($names, array_fill(0, count($names), 1));
-		
-		return array_intersect_key($this->_data, $key);
+	public function getRouteData(Array $names = null) {
+		return $this->_data->getItems($names);
 	}
 	
 	/**
 	 * Gets a reference to the route identity data array
 	 * @return array
 	 */
-	public function &useData() {
-		return $this->_data;
+	public function &useRouteData() {
+		return $this->_data->useItems();
+	}
+	
+	
+	/**
+	 * Sets the controller name
+	 * @param string $name
+	 * @return Route
+	 * @throws \ErrorException if $name is not a nonempty string
+	 */
+	public function setCtrl($name) {
+		if (!is_string($name) || empty($name) || !is_null($this->_ctrl)) throw new \ErrorException();
+		
+		$this->_ctrlName = $name;
+		
+		return $this;
+	}
+	
+	/**
+	 * Gets the controller name
+	 * @return string
+	 */
+	public function getCtrl() {
+		return $this->_ctrlName;
+	}
+	
+	
+	/**
+	 * Sets the route controller action
+	 * @param string $action The controller action
+	 * @return Route
+	 * @throws \ErrorException if $action is not a nonempty string
+	 */
+	public function setAction($action) {
+		if (!is_string($action) || empty($action)) throw new \ErrorException();
+		
+		$this->_actionName = $action;
+		
+		return $this;
+	}
+	
+	/**
+	 * Gets the route controller action name
+	 * @return string
+	 */
+	public function getAction() {
+		return $this->_actionName;
+	}
+	
+	
+	/**
+	 * Sets the route view
+	 * @param string $view The view name
+	 * @return Route
+	 * @throws \ErrorException if $view is not a nonempty string
+	 */
+	public function setView($view) {
+		if (!is_string($view)) throw new \ErrorException();
+		
+		$this->_viewName = $view;
+		
+		return $this;
+	}
+	
+	/**
+	 * Gets the route view
+	 * @return string
+	 */
+	public function getView() {
+		return $this->_viewName;
+	}
+	
+	
+	/**
+	 * Sets an environment variable
+	 * @param string $name The var name
+	 * @param mixed  $value The var value
+	 * @return Route
+	 */
+	public function setVar($name, $value) {
+		$this->_vars->setItem($name, $value);
+		
+		return $this;
+	}
+	
+	/**
+	 * Sets multiple environment variables
+	 * @param array $vars The vars
+	 * @return Route
+	 */
+	public function setVars(Array $vars) {
+		$this->_vars->setItems($vars);
+		
+		return $this;
+	}
+	
+	/**
+	 * Gets an environment variable
+	 * @param string $name The var name
+	 * @return mixed
+	 */
+	public function getVar($name) {
+		return $this->_vars->getItem($name);
+	}
+	
+	/**
+	 * Gets multiple environment variables
+	 * @param array $names The var names
+	 * @return array
+	 */
+	public function getVars(Array $names = null) {
+		return $this->_vars->getItems($names);
+	}
+	
+	/**	
+	 * Gets a reference to the environment variable array
+	 * @return array
+	 */
+	public function &useVars() {
+		return $this->_vars->useItems();
 	}
 	
 
@@ -355,71 +357,13 @@ class Route {
 	
 	
 	/**
-	 * Sets an environment variable
-	 * @param string $name The var name
-	 * @param mixed  $var  The var value
-	 * @return Route
-	 * @throws \ErrorException if <code>$name</code> is a <em>nonempty</em> <code>String</code>
-	 */
-	public function setVar($name, $var) {
-		if (!is_string($name) || empty($name)) throw new \ErrorException();
-		
-		$this->_vars[$name] = $var;
-		
-		return $this;
-	}
-	
-	/**
-	 * Sets multiple environment variables
-	 * @param array $vars The vars
-	 * @return Route
-	 */
-	public function setVars(Array $vars) {
-		$this->_vars = array_merge($this->_vars, $vars);
-		
-		return $this;
-	}
-	
-	/**
-	 * Gets an environment variable
-	 * @param string $name The var name
-	 * @return mixed
-	 * @throws \ErrorException if <code>$name</code> is not a <em>nonempty</em> <code>String</code>
-	 */
-	public function getVar($name) {
-		if (!is_string($name) || empty($name)) throw new \ErrorException();
-		
-		return array_key_exists($name, $this->_vars) ? $this->_vars[$name] : null;
-	}
-	
-	/**
-	 * Gets multiple environment variables
-	 * @param array $names The var names
-	 * @return array
-	 */
-	public function getVars(Array $names = null) {
-		if (is_null($names)) return $this->_vars;
-		
-		$key = array_combine($names, array_fill(0, count($names), 1));
-		
-		return array_intersect_key($this->_vars, $key);
-	}
-	
-	/**	
-	 * Gets a reference to the environment variable array
-	 * @return array
-	 */
-	public function &useVars() {
-		return $this->_vars;
-	}
-	
-	
-	/**
 	 * Executes the route
-	 * @param Callable|null $fn The initialization callback
 	 * @return mixed
 	 */
-	public function enter(Callable $fn = null) {
-		return AController::getAndEnter($this, $fn);
+	public function enter() {
+		return $this->_locator
+			->using('controller')
+			->using($this->_ctrlName)
+			->enter($this);
 	}
 }
