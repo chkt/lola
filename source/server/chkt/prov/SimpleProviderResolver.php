@@ -2,11 +2,13 @@
 
 namespace chkt\prov;
 
+use chkt\prov\IProviderResolver;
+
 
 
 class SimpleProviderResolver implements IProviderResolver {
 	
-	const VERSION = '0.0.7';
+	const VERSION = '0.1.0';
 	
 	const DEFAULT_ID = 'default';
 	
