@@ -52,8 +52,6 @@ final class AppLoader {
 		$app = $this->_app = new \app\app\App($config);
 		
 		if (array_key_exists('exceptionPage', $config)) $app->registerExceptionPage($config['rootPath'] . DIRECTORY_SEPARATOR . $config['exceptionPage']);
-		
-		\chkt\ctrl\AController::setInjectedAll('app', $app);
 	}
 	
 	
