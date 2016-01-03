@@ -1,19 +1,17 @@
 <?php
 
-namespace chkt\app;
+namespace chkt\prov;
 
 use chkt\prov\ProviderProvider;
 
 
 
 trait TAppLocator {
-	
-	protected $_dict = [];
-	
+		
 	protected $_tLocator = null;
 	
 	
-	public function getLocator() {
+	public function& useLocator() {
 		if (is_null($this->_tLocator)) $this->_tLocator = new ProviderProvider($this);
 		
 		return $this->_tLocator;
