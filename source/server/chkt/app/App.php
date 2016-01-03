@@ -4,26 +4,24 @@ namespace chkt\app;
 
 use \chkt\app\TAppBase;
 use \chkt\app\TAppFile;
+use \chkt\inject\TAppInjector;
+use \chkt\prov\TAppLocator;
 
 
 
 class App implements IApp {
 	use TAppBase;
 	use TAppFile;
+	use TAppInjector;
+	use TAppLocator;
 	
 	
-	const VERSION = '0.0.1';
+	
+	const VERSION = '0.1.0';
+	
 	
 	
 	protected $_dict = [];
-	
-	
-	
-	static public function File($name) {		
-		$config = include $name;
-		
-		return new static($config);
-	}
 	
 	
 	public function __construct(Array $config) {
