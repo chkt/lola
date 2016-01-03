@@ -4,17 +4,17 @@ namespace chkt\prov;
 
 use chkt\prov\AProvider;
 
-use chkt\app\App;
+use chkt\app\IApp;
 
 
 
 class ProviderProvider extends AProvider {
 	
-	const VERSION = '0.0.9';
+	const VERSION = '0.1.0';
 	
 	
 	
-	public function __construct(App $app) {
+	public function __construct(IApp $app) {
 		parent::__construct(function($providerName) use ($app) {
 			$props = $app->getProperty('locator');
 			
@@ -22,7 +22,9 @@ class ProviderProvider extends AProvider {
 			
 			$qName = $props[$providerName];
 			
-			return $app->InjectorFactory($qName);
+			return $app
+				->useInjector()
+				->produce($qName);
 		});
 	}
 }
