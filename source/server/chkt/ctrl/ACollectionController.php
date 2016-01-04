@@ -13,11 +13,11 @@ use chkt\http\HttpReply;
 
 abstract class ACollectionController extends AReplyController {
 	
-	const VERSION = '0.0.7';
+	const VERSION = '0.1.0';
 		
 	
 	
-	protected $_itemController = null;
+	protected $_itemController = '';
 	
 	
 	public function __construct() {
@@ -47,14 +47,15 @@ abstract class ACollectionController extends AReplyController {
 	
 	
 	protected function createAction(Route $route) {
-		if (is_null($this->_itemController)) return $this->unavailableAction($route);
+		if (empty($this->_itemController)) return $this->unavailableAction($route);
 		
-		$request = $this->useRequest();
+		$request =& $this->useRequest();
 		
 		return $route
-			->setCtrl($this->_itemController, 'resolve')
-			->enter(function(&$ins, $route) use ($request) {
-				$ins->setRequest($request);
+			->setCtrl($this->_itemController)
+			->setAction('resolve')
+			->enter(function(AItemController $ctrl) use ($request) {
+				$ctrl->setRequest($request);
 			});
 	}
 	
