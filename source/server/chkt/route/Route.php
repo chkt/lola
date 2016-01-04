@@ -360,10 +360,13 @@ class Route implements IInjectable {
 	 * Executes the route
 	 * @return mixed
 	 */
-	public function enter() {
-		return $this->_locator
+	public function enter(Callable $fn = null) {
+		$ctrl = $this->_locator
 			->using('controller')
-			->using($this->_ctrlName)
-			->enter($this);
+			->using($this->_ctrlName);
+		
+		if (!is_null($fn)) call_user_func($fn, $ctrl);
+		
+		$ctrl->enter($this);
 	}
 }
