@@ -2,6 +2,7 @@
 
 namespace chkt\log;
 
+use chkt\ctrl\AReplyController;
 use chkt\http\HttpRequest;
 use chkt\http\HttpReply;
 
@@ -24,6 +25,8 @@ interface ILogger {
 	public function logClient($ip = self::IP_OR_UA);
 	
 	public function logReply(HttpReply $reply, $stackOffset = self::STACK_IGNORE);
+	
+	public function logCtrlState(AReplyController $ctrl);
 	
 	public function logException(\Exception $ex, $stack = true, $deep = true);
 }
