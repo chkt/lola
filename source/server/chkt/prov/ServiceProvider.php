@@ -8,7 +8,7 @@ use chkt\inject\IInjectable;
 
 
 
-class ServiceProvider
+final class ServiceProvider
 extends AProvider
 implements IInjectable
 {
@@ -30,7 +30,7 @@ implements IInjectable
 			
 			$segs = explode('.', $hash);
 			$name = $segs[0];
-			$id = count($segs) > 1 ? implode('.', array_slice($segs, 1)) : '';
+			$id = count($segs) > 1 ? implode('.', array_slice($segs, 1)) : 'default';
 						
 			$qname = '\\app\\service\\' . ucfirst($name) . 'Service';
 			
