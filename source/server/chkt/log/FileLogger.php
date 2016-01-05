@@ -7,6 +7,7 @@ use chkt\log\ILogger;
 
 use chkt\log\Colorizer;
 
+use chkt\ctrl\AReplyController;
 use chkt\http\HttpRequest;
 use chkt\http\HttpReply;
 
@@ -172,6 +173,14 @@ class FileLogger implements IInjectable, ILogger {
 		if ($stackOffset !== self::STACK_IGNORE) $access[] = self::_buildStackOrigin($stackOffset + 1);
 		
 		return $this->log(implode(' ', $access));
+	}
+	
+	
+	public function logCtrlState(AReplyController $ctrl) {
+		return $this
+			->logRequest($ctrl->useRequest())
+			->logClient()
+			->logReply($ctrl->useReply());
 	}
 	
 	
