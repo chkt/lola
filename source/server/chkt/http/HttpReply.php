@@ -11,6 +11,15 @@ class HttpReply {
 	
 	const VERSION = '0.0.6';
 	
+	const CODE_OK = 200;
+	const CODE_NOT_FOUND = 404;
+	const CODE_GONE = 410;
+	
+	const CODE_MOVED_PERMANENT = 301;
+	const CODE_MOVED_TEMPORARY = 307;
+	const CODE_REDIRECT = 303;
+	const CODE_NOT_AUTHENTICATED = 403;
+	
 	const MIME_PLAIN = 'text/plain';
 	const MIME_HTML  = 'text/html';
 	const MIME_XML   = 'application/xml';
@@ -20,8 +29,8 @@ class HttpReply {
 	
 	
 	
-	static private $_CODE = ['200','204','301','302','303','307','400','403','404','500','503'];
-	static private $_INVALID = ['400','403','404'];
+	static private $_CODE = ['200','204','301','302','303','307','400','403','404','410','500','503'];
+	static private $_INVALID = ['400','403','404','410'];
 	static private $_REDIRECT = ['301','302','303','307'];
 	static private $_MESSAGE = [
 		'200' => '200 - OK',
@@ -33,6 +42,7 @@ class HttpReply {
 		'400' => '400 - Bad Request',
 		'403' => '403 - Forbidden',
 		'404' => '404 - Page not found',
+		'410' => '410 - Gone',
 		'500' => '500 - Internal Server error',
 		'503' => '503 - Service Unavailable'
 	];
@@ -46,6 +56,7 @@ class HttpReply {
 		'400' => 'HTTP/1.1 400 Bad Request',
 		'403' => 'HTTP/1.1 403 Forbidden',
 		'404' => 'HTTP/1.1 404 Not Found',
+		'410' => 'HTTP/1.1 410 Gone',
 		'500' => 'HTTP/1.1 500 Internal Server Error',
 		'503' => 'HTTP/1.1 503 Service Unavailable'
 	];
