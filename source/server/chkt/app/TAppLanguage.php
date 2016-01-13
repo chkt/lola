@@ -2,70 +2,35 @@
 
 namespace chkt\app;
 
-use chkt\http\HttpRequest;
 
 
-
+/**
+ * DEPRECATED
+ */
 trait TAppLanguage {
 	
-	protected $_dict = [];
-	
-	protected $_tLanguageLangs = null;
-	protected $_tLanguageDefault = null;
-	
-	protected $_tLanguageLocs = null;
-	
-	
-	
 	public function getAvailableLanguages() {
-		if (is_null($this->_tLanguageLangs)) $this->_tLanguageLangs = array_keys($this->_dict['locales']);
-		
-		return $this->_tLanguageLangs;
+		return $this->useLocator()->using('service')->using('locale')->getAvailableLCs();
 	}
 	
 	public function isAvailableLanguage($lang) {
-		if (!is_string($lang) || empty($lang)) throw new \ErrorException();
-		
-		return array_search($lang, $this->getAvailableLanguages(), true) !== false;
+		return $this->useLocator()->using('service')->using('locale')->isAvailableLC($lang);
 	}
 	
 	public function getDefaultLanguage() {
-		if (is_null($this->_tLanguageDefault)) {
-			$langs = $this->getAvailableLanguages();
-			
-			$this->_tLanguageDefault = count($langs) !== 0 ? $langs[0] : 'en';
-		}
-		
-		return $this->_tLanguageDefault;
+		return $this->useLocator()->using('service')->using('locale')->getDefaultLC();
 	}
 	
 	public function getNegotiatedLanguage() {
-		$want = HttpRequest::originAcceptLanguages();
-		$have = $this->getAvailableLanguages();
-		
-		print_r($have);
-		
-		foreach ($want as $lang => $weight) {
-			if (array_search($lang, $have) !== false) return $lang;
-		}
-		
-		return $this->getDefaultLanguage();
+		return $this->useLocator()->using('service')->using('locale')->getNegotiatedLC();
 	}
 	
 	
-	public function getAvailableLocales() {		
-		if (is_null($this->_tLanguageLocs)) $this->_tLanguageLocs = array_map(function($item) {
-			return $item['encoding'];
-		}, $this->_dict['locales']);
-		
-		return $this->_tLanguageLocs;
+	public function getAvailableLocales() {
+		return $this->useLocator()->using('service')->using('locale')->getAvailableLocales();
 	}
 	
 	public function getLocaleByLang($lang) {
-		if (!is_string($lang) || empty($lang)) throw new \ErrorException();
-		
-		$locales = $this->getAvailableLocales();
-		
-		return array_key_exists($lang, $locales) ? $locales[$lang] : 'en_US.utf8';
+		return $this->useLocator()->using('service')->using('locale')->getLocaleByLC($lang);
 	}
 }
