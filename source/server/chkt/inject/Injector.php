@@ -37,6 +37,10 @@ class Injector {
 					else if (!array_key_exists('id', $item)) return $this->_locator->using($item['provider']);
 					else return $this->_locator->using($item['provider'])->using($item['id']);
 					
+				case 'service' :
+					if (!array_key_exists('id', $item)) return $this->_locator->using('service');
+					else return $this->_locator->using('service')->using($item['id']);
+					
 				case 'factory' :
 					return call_user_func($item['function'], $this);
 					
@@ -53,6 +57,8 @@ class Injector {
 	
 	
 	public function produce($className, Array $params = []) {
+		if (!is_string($className) || empty($className)) throw new \ErrorException();
+		
 		$class = new \ReflectionClass($className);
 		
 		if (!$class->implementsInterface('\\chkt\\inject\\IInjectable')) throw new \ErrorException();
