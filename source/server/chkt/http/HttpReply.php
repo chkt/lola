@@ -18,6 +18,8 @@ class HttpReply {
 	const CODE_MOVED_PERMANENT = 301;
 	const CODE_MOVED_TEMPORARY = 307;
 	const CODE_REDIRECT = 303;
+	
+	const CODE_NOT_VALID = 400;
 	const CODE_NOT_AUTHENTICATED = 403;
 	
 	const MIME_PLAIN = 'text/plain';
