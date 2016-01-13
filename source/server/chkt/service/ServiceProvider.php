@@ -1,6 +1,6 @@
 <?php
 
-namespace chkt\prov;
+namespace chkt\service;
 
 use chkt\prov\AProvider;
 use chkt\inject\Injector;
