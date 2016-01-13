@@ -2,16 +2,26 @@
 
 namespace chkt\input;
 
-use \chkt\input\Field;
-use \chkt\input\Processor;
+use chkt\inject\IInjectable;
 
-use \chkt\http\HttpRequest;
+use chkt\input\Field;
+use chkt\input\Processor;
+
+use chkt\http\HttpRequest;
 
 
 
-class Form {
+class Form
+implements IInjectable
+{
 	
-	const VERSION = '0.0.6';
+	const VERSION = '0.1.0';
+	
+	
+	
+	static public function getDependencyConfig(Array $config) {
+		return [];
+	}
 	
 	
 	
