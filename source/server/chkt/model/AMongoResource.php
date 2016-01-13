@@ -5,6 +5,7 @@ namespace chkt\model;
 use chkt\model\IResource;
 
 use MongoDB\Collection;
+use MongoDB\BSON\ObjectID;
 
 
 
@@ -26,6 +27,11 @@ abstract class AMongoResource implements IResource {
 	}
 	
 	
+	static public function isValidId($id) {
+		return $id instanceof ObjectID;
+	}
+	
+	
 	
 	protected $_collection = null;
 	protected $_deserialize = null;
@@ -42,6 +48,22 @@ abstract class AMongoResource implements IResource {
 		$this->_data = null;
 		$this->_dirty = false;
 		$this->_life = self::STATE_NEW;
+	}
+	
+	
+	protected function _read(Array $query) {
+		if ($this->_life !== self::STATE_NEW) throw new \ErrorException();
+		
+		$this->_life = self::STATE_DEAD;
+		
+		$data = $this->_collection->findOne($query, [
+			'typeMap' => $this->_deserialize
+		]);
+		
+		if (!is_null($data)) {
+			$this->_data = $data;
+			$this->_life = self::STATE_LIVE;
+		}
 	}
 	
 	
@@ -72,7 +94,7 @@ abstract class AMongoResource implements IResource {
 		if ($this->_life !== self::STATE_NEW) throw new \ErrorException();
 		
 		$ret = $this->_collection->insertOne($data);
-		$data['id'] = $ret->getInsertedId();
+		$data['_id'] = $ret->getInsertedId();
 		
 		$this->_data = $data;
 		$this->_life = self::STATE_LIVE;
@@ -81,22 +103,12 @@ abstract class AMongoResource implements IResource {
 		return $this;
 	}
 	
-	public function read(Array $map) {
-		if ($this->_life !== self::STATE_NEW) throw new \ErrorException();
-		
-		$this->_live = self::STATE_DEAD;
+	public function read(Array $map) {		
 		$query = [];
 		
 		foreach ($map as $key => $value) $query[$key] = [ '$eq' => $value ];
 		
-		$data = $this->_collection->findOne($query, [
-			'typeMap' => $this->_deserialize
-		]);
-		
-		if (!is_null($data)) {
-			$this->_data = $data;
-			$this->_life = self::STATE_LIVE;
-		}
+		$this->_read($query);
 		
 		return $this;
 	}
