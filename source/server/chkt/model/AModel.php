@@ -55,7 +55,10 @@ abstract class AModel {
 	}
 	
 	public function update() {
-		$this->_resource->update();
+		$this->_resource
+			->setData($this->_data)
+			->update();
+		
 		$this->_update = true;
 		
 		return $this;
