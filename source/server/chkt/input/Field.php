@@ -80,7 +80,7 @@ class Field {
 	public function setValue($value) {
 		if (!is_string($value)) throw new \ErrorException();
 				
-		if ($this->_validating) $this->_invalid = (int) call_user_func($this->_validate, $value);
+		if ($this->_validating) $this->_invalid = (int) call_user_func($this->_validate, $value, $this->_valueFirst);
 		
 		$this->_valueNow = $value;
 		
