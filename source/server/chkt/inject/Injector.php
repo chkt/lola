@@ -8,7 +8,13 @@ use chkt\prov\ProviderProvider;
 
 class Injector {
 	
-	const VERSION = '0.1.0';
+	const VERSION = '0.1.1';
+	
+	const TYPE_INJECTOR = 'injector';
+	const TYPE_LOCATOR = 'locator';
+	const TYPE_SERVICE = 'service';
+	const TYPE_FACTORY = 'factory';
+	const TYPE_ARGUMENT = 'object';
 	
 	
 	
@@ -29,22 +35,23 @@ class Injector {
 			$type = $item['type'];
 						
 			switch($type) {
-				case 'injector' :
+				case self::TYPE_INJECTOR :
 					return $this;
 				
-				case 'locator' :
+				case self::TYPE_LOCATOR :
 					if (!array_key_exists('provider', $item)) return $this->_locator;
 					else if (!array_key_exists('id', $item)) return $this->_locator->using($item['provider']);
 					else return $this->_locator->using($item['provider'])->using($item['id']);
 					
-				case 'service' :
+				case self::TYPE_SERVICE :
 					if (!array_key_exists('id', $item)) return $this->_locator->using('service');
 					else return $this->_locator->using('service')->using($item['id']);
 					
-				case 'factory' :
-					return call_user_func($item['function'], $this);
+				case self::TYPE_FACTORY :
+					if (!array_key_exists('dependencies', $item)) return $this->process($item['function']);
+					else return $this->process($item['function'], $item['dependencies']);
 					
-				case 'object' :
+				case self::TYPE_ARGUMENT :
 					return $item['data'];
 					
 				default : 
@@ -67,5 +74,11 @@ class Injector {
 		$args = $this->_resolveDependencies($deps);
 		
 		return $class->newInstanceArgs($args);
+	}
+	
+	public function process(Callable $fn, Array $deps = []) {
+		$args =& $this->_resolveDependencies($deps);
+				
+		return $fn(...$args);
 	}
 }
