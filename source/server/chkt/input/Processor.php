@@ -112,7 +112,7 @@ class Processor {
 			
 			if ($key === false) continue;
 			
-			unset($ownfield[$key]);
+			unset($ownField[$key]);
 			
 			$index = array_search($key, $ownSubmit);
 			
@@ -156,6 +156,12 @@ class Processor {
 	
 	public function getData() {		
 		return [
+			'states' => [
+				'unvalidated' => self::STATE_UNVALIDATED,
+				'unmodified' => self::STATE_UNMODIFIED,
+				'invalid' => self::STATE_INVALID,
+				'valid' => self::STATE_VALID
+			],
 			'state' => $this->_state,
 			'field' => array_map(function($item) {
 				return $item->getData();
