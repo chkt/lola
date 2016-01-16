@@ -21,7 +21,7 @@ trait TAppClientResource {
 	
 	
 	private function _readClientResourceTimestamp($path) {
-		$handle = fopen($path, 'r');
+		$handle = @fopen($path, 'r');
 		$hash = false;
 		
 		if ($handle !== false) {
