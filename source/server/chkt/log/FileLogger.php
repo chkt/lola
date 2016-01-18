@@ -15,8 +15,39 @@ use chkt\http\HttpReply;
 
 class FileLogger implements IInjectable, ILogger {	
 	
+	static $_map = [
+		ILogger::TAG_TYPE => [Colorizer::F_MAGENTA, Colorizer::MOD_BRIGHT],
+		ILogger::TAG_MESSAGE => [Colorizer::MOD_BRIGHT],
+		ILogger::TAG_VOID => [],
+		ILogger::TAG_URL_PATH => [Colorizer::F_GREEN, Colorizer::MOD_BRIGHT],
+		ILogger::TAG_SOURCE_FILE => [Colorizer::F_BLUE, Colorizer::MOD_BRIGHT],
+		ILogger::TAG_SOURCE_LINE => [],
+		ILogger::TAG_CLIENT_UA => [],
+		ILogger::TAG_CLIENT_IP => [Colorizer::F_RED, Colorizer::MOD_BRIGHT],
+		ILogger::TAG_ERROR => [Colorizer::F_RED, Colorizer::MOD_BRIGHT],
+		ILogger::TAG_ERROR_CODE => [],
+		ILogger::TAG_ERROR_MESSAGE => [],
+		ILogger::TAG_ERROR_FILE => [Colorizer::F_RED],
+		ILogger::TAG_ERROR_LINE => [],
+		ILogger::TAG_ERROR_SOURCE => [Colorizer::F_RED],
+		ILogger::TAG_ERROR_ARG_NAME => [],
+		ILogger::TAG_ERROR_ARG_VAL => [],
+		ILogger::TAG_STACK => [Colorizer::F_RED, Colorizer::MOD_BRIGHT],
+		ILogger::TAG_STACK_FILE => [Colorizer::F_BLUE],
+		ILogger::TAG_STACK_LINE => []
+	];
+	
+	
 	static public function getDependencyConfig(Array $config) {
 		return [];
+	}
+	
+	
+	static protected function _createTag($type, $content) {
+		return [
+			ILogger::TOKEN_TYPE => $type,
+			ILogger::TOKEN_CONTENT => $content
+		];
 	}
 	
 	
@@ -34,76 +65,77 @@ class FileLogger implements IInjectable, ILogger {
 		$stack = debug_backtrace(0, $offset);
 		$step = $stack[$offset - 1];
 		
-		$file = Colorizer::encode($step['file'], 'f-blue', 'bright');
-		$line = $step['line'];
-		
-		return "$file:$line";
+		return [
+			self::_createTag(ILogger::TAG_SOURCE_FILE, $step['file']),
+			self::_createTag(ILogger::TAG_SOURCE_LINE, $step['line'])
+		];
 	}
 	
-	protected function _buildTraceOrigin(Array $trace) {
-		$file = array_key_exists('file', $trace) ? Colorizer::encode($trace['file'], 'f-blue') : Colorizer::encode('?', 'f-red');
-		$line = array_key_exists('line', $trace) ? $trace['line'] : Colorizer::encode('?', 'f-red');
-		
-		return "$file:$line";
+	static protected function _buildTraceOrigin(Array $trace) {
+		return [
+			self::_createTag(ILogger::TAG_STACK_FILE, array_key_exists('file', $trace) ? $trace['file'] : '?'),
+			self::_createTag(ILogger::TAG_STACK_LINE, array_key_exists('line', $trace) ? $trace['line'] : '?')
+		];
 	}
 	
 	
 	
 	static protected function _buildExceptionMessage(\Exception $ex) {
-		$data = [];
-		$data[] = Colorizer::encode('! ' . get_class($ex), 'f-red', 'bright');
+		$tags = [ self::_createTag(ILogger::TAG_ERROR, '! ' . get_class($ex)) ];
 		
 		$code = $ex->getCode();
 		$msg = $ex->getMessage();
 		
-		if (!empty($code)) $data[] = "[$code]";
-		if (!empty($msg)) $data[] = "'$msg'";
+		if (!empty($code)) $tags[] = self::_createTag(ILogger::TAG_ERROR_CODE, "[$code]");
+		if (!empty($msg)) $tags[] = self::_createTag(ILogger::TAG_ERROR_MESSAGE, "'$msg'");
 		
-		$data[] = 'IN';
-		$data[] = Colorizer::encode($ex->getFile(), 'f-red') . ':' . $ex->getLine();
+		$tags[] = self::_createTag(ILogger::TAG_VOID, 'IN');
+		$tags[] = self::_createTag(ILogger::TAG_ERROR_FILE, $ex->getFile());
+		$tags[] = self::_createTag(ILogger::TAG_ERROR_LINE, $ex->getLine());
 		
-		return implode(' ', $data);
+		return $tags;
 	}
 	
 	static protected function _buildTraceArguments(Array $args, Array $params = null) {
-		$data = [];
+		$tags = [ self::_createTag(ILogger::TAG_VOID, '(') ];
 		
-		if (is_null($params)) $data[] = '?';
+		if (is_null($params)) $tags[] = self::_createTag(ILogger::TAG_ERROR_ARG_NAME, '?');
 		else {
 			foreach ($params as $key => $param) {
-				$item = [];
-				$item[] = "\$$param->name";
+				$tags[] = self::_createTag(ILogger::TAG_ERROR_ARG_NAME, "$$param->name");
 				
-				if (array_key_exists($key, $args)) $item[] = self::_valueToString($args[$key]);
-				else if ($param->isOptional()) $item[] = self::_valueToString($param->getDefaultValue());
-				else $item[] = 'unset';
+				if (array_key_exists($key, $args)) $tags[] = self::_createTag(ILogger::TAG_ERROR_ARG_VAL, self::_valueToString($args[$key]));
+				else if ($param->isOptional()) $tags[] = self::_createTag(ILogger::TAG_ERROR_ARG_VAL, self::_valueToString($param->getDefaultValue()));
+				else $tags[] = self::_createTag(ILogger::TAG_ERROR_ARG_VAL, 'unset');
 				
-				$data[] = implode(' ', $item);
+				$tags[] = self::_CreateTag(ILogger::TAG_VOID, ',');
 			}
-		}		
+		}
 		
-		return '(' . implode(', ', $data) . ')';
+		array_pop($tags);
+		array_push($tags, self::_createTag(ILogger::TAG_VOID, ')'));
+		
+		return $tags;
 	}
 	
 	
 	static protected function _buildExceptionStack(\Exception $ex) {
 		$trace = $ex->getTrace();
-		$data = [];
+		$tags = [];
 		
 		for ($i = 0, $l = count($trace); $i < $l; $i += 1) {
 			$step = $trace[$i];
-			$item = [];
-			
-			$item[] = Colorizer::encode((string) $i, 'f-red', 'bright');
+			$tags[] = self::_createTag(ILogger::TAG_VOID, PHP_EOL);
+			$tags[] = self::_createTag(ILogger::TAG_STACK, (string) $i);
 			
 			if (array_key_exists('class', $step)) {
-				$item[] = Colorizer::encode($step['class'] . $step['type'] . $step['function'], 'f-red');
+				$tags[] = self::_createTag(ILogger::TAG_ERROR_SOURCE, $step['class'] . $step['type'] . $step['function']);
 				
 				$method = new \ReflectionMethod($step['class'], $step['function']);
 				$params = $method->getParameters();
 			}
 			else {
-				$item[] = Colorizer::encode($step['function'], 'f-red');
+				$tags[] = self::_createTag(ILogger::TAG_ERROR_SOURCE, $step['function']);
 				
 				try {
 					$fn = new \ReflectionFunction($step['function']);
@@ -113,13 +145,14 @@ class FileLogger implements IInjectable, ILogger {
 				}
 			}
 			
-			$item[] = self::_buildTraceArguments($step['args'], $params);
-			$item[] = self::_buildTraceOrigin($step);
-			
-			$data[] = implode(' ', $item);
+			$tags = array_merge(
+				$tags,
+				self::_buildTraceArguments($step['args'], $params),
+				self::_buildTraceOrigin($step)
+			);
 		}
 		
-		return implode(PHP_EOL, $data);
+		return $tags;
 	}
 	
 	
@@ -132,47 +165,61 @@ class FileLogger implements IInjectable, ILogger {
 		return $this;
 	}
 	
-	public function logRequest(HttpRequest $request, $stackOffset = self::STACK_IGNORE) {
-		$access = [];
+	public function logTags(Array $message) {
+		$items = [];
 		
-		$access[] = Colorizer::encode('<', 'f-magenta', 'bright');
-		$access[] = Colorizer::encode($request->getMethod(), 'bright');
-		$access[] = Colorizer::encode($request->getPath(), 'f-green', 'bright');
+		foreach ($message as $token) {
+			$type = $token[ILogger::TOKEN_TYPE];
+			$content = $token[ILogger::TOKEN_CONTENT];
+			
+			$items[] = Colorizer::encode($content, self::$_map[$type]);
+		}
 		
-		if ($stackOffset !== self::STACK_IGNORE) $access[] = self::_buildStackOrigin($stackOffset + 1);
+		return $this->log(implode(' ', $items));
+	}
+	
+	
+	public function logRequest(HttpRequest $request, $stackOffset = self::STACK_IGNORE) {		
+		$tags = [
+			self::_createTag(ILogger::TAG_TYPE, '<'),
+			self::_createTag(ILogger::TAG_MESSAGE, $request->getMethod()),
+			self::_createTag(ILogger::TAG_URL_PATH, $request->getPath())
+		];
 		
-		return $this->log(implode(' ', $access));
+		if ($stackOffset !== self::STACK_IGNORE) $tags = array_merge($tags, self::_buildStackOrigin($stackOffset + 1));
+		
+		return $this->logTags($tags);
 	}
 	
 	public function logClient($ip = self::IP_OR_UA) {
-		$data = [];
-		$data[] = Colorizer::encode('~', 'f-magenta', 'bright');
+		$tags = [ self::_createTag(ILogger::TAG_TYPE, '~') ];
 		
 		$ua = HttpRequest::originClientUA();
 		
-		if (!empty($ua)) $data[] = $ua;
+		if (!empty($ua)) $tags[] = self::_createTag (ILogger::TAG_CLIENT_UA, $ua);
 		
 		if (
-			$ip == self::IP_ALWAYS ||
+			$ip === self::IP_ALWAYS ||
 			$ip === self::IP_OR_UA && empty($ua)
-		) $data[] = Colorizer::encode('[' . HttpRequest::originClientIP() . ']', 'f-red', 'bright');
+		) $tags[] = self::_createTag('[' . HttpRequest::originClientIP() . ']', ILogger::TAG_CLIENT_IP);
 		
-		return $this->log(implode(' ', $data));
+		return $this->logTags($tags);
 	}
 	
 	public function logReply(HttpReply $reply, $stackOffset = self::STACK_IGNORE) {
-		$access = [];
-		$access[] = Colorizer::encode('>', 'f-magenta', 'bright');
-		$access[] = Colorizer::encode($reply->getCodeMessage(), 'bright');
+		$tags = [
+			self::_createTag(ILogger::TAG_TYPE, '>'),
+			self::_createTag(ILogger::TAG_MESSAGE, $reply->getCodeMessage())
+		];
 		
 		if ($reply->isRedirect()) {
-			$access[] = 'REDIRECT';
-			$access[] = Colorizer::encode($reply->getRedirectTarget(), 'f-green', 'bright');
+			$tags[] = self::_createTag(ILogger::TAG_VOID, 'REDIRECT');
+			$tags[] = self::_createTag(ILogger::TAG_URL_PATH, $reply->getRedirectTarget());
 		}
 		
-		if ($stackOffset !== self::STACK_IGNORE) $access[] = self::_buildStackOrigin($stackOffset + 1);
+		if ($stackOffset !== self::STACK_IGNORE) $tags = array_merge($tags, self::_buildStackOrigin ($stackOffset + 1));
 		
-		return $this->log(implode(' ', $access));
+		return $this->logTags($tags);
 	}
 	
 	
@@ -185,19 +232,19 @@ class FileLogger implements IInjectable, ILogger {
 	
 	
 	public function logException(\Exception $ex, $stack = true, $deep = true) {
-		$data = [];
-		$data[] = self::_buildExceptionMessage($ex);
+		$tags = self::_buildExceptionMessage($ex);
 		
 		if ($deep) {
 			while(!is_null($prev = $ex->getPrevious())) {
-				$data[] = self::_buildExceptionMessage($prev);
+				$tags[] = self::_createTag(ILogger::TAG_VOID, PHP_EOL);
+				$tags = array_merge($tags, self::_buildExceptionMessage($prev));
 				
 				$ex = $prev;
 			}
 		}
 		
-		if ($stack) $data[] = self::_buildExceptionStack($ex);
+		if ($stack) $tags = array_merge($tags, self::_buildExceptionStack($ex));
 		
-		return $this->log(implode(PHP_EOL, $data));
+		return $this->logTags($tags);
 	}
 }
