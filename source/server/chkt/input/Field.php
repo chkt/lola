@@ -8,6 +8,13 @@ class Field {
 	
 	const VERSION = '0.0.6';
 	
+	const KEY_TYPE = 'type';
+	const KEY_NAME = 'name';
+	const KEY_VALUE = 'value';
+	const KEY_VALIDATE = 'validate';
+	
+	const TYPE_SUBMIT = 'submit';
+	
 	const FLAG_SUBMIT = 0x1;
 	
 	
@@ -24,15 +31,17 @@ class Field {
 	
 	static public function fromArray(Array $data) {
 		return array_map(function($item) {
+			if (!array_key_exists(self::KEY_NAME, $item)) throw new \ErrorException();
+			
+			$name = $item[self::KEY_NAME];
+			$type = array_key_exists(self::KEY_TYPE, $item) ? $item[self::KEY_TYPE] : '';
+			$validate = array_key_exists(self::KEY_VALIDATE, $item) ? $item[self::KEY_VALIDATE] : null;
 			$flags = 0x0;
 			
-			if (array_key_exists('type', $item) && $item['type'] === 'submit') $flags |= self::FLAG_SUBMIT;
+			if ($type === self::TYPE_SUBMIT) $flags |= self::FLAG_SUBMIT;
 			
-			if (array_key_exists('validate', $item)) return self::Validating($item['name'], $item['value'], $item['validate'], $flags);
-			
-			if (array_key_exists('fixed', $item) && $item['fixed']) return self::Fixed ($item['name'], $item['value'], $flags);
-			
-			return new self($item['name'], $item['value'], $flags);
+			if (!is_null($validate)) return self::Validating ($name, $item['value'], $validate, $flags);						
+			else return new self($name, $item['value'], $flags);
 		}, $data);
 	}
 	
