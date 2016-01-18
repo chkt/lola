@@ -6,40 +6,64 @@ namespace chkt\log;
 
 class Colorizer {
 	
-	static private $_ANSI_FORMAT = [
-		'f-black'   => 30,
-		'f-white'   => 37,
-		'f-red'     => 31,
-		'f-yellow'  => 33,
-		'f-green'   => 32,
-		'f-cyan'    => 36,
-		'f-blue'    => 34,
-		'f-magenta' => 35,
-		'b-black'   => 40,
-		'b-white'   => 47,
-		'b-red'     => 41,
-		'b-yellow'  => 43,
-		'b-green'   => 42,
-		'b-cyan'    => 46,
-		'b-blue'    => 44,
-		'b-magenta' => 45,
-		'bright'    => 1,
-		'faint'     => 2,
-		'italic'    => 3,
-		'underline' => 4,
-		'blink'     => 5,
-	];
+	const F_BLACK = 30;
+	const F_WHITE = 37;
+	const F_RED = 31;
+	const F_YELLOW = 33;
+	const F_GREEN = 32;
+	const F_CYAN = 36;
+	const F_BLUE = 34;
+	const F_MAGENTA = 35;
+	const B_BLACK = 40;
+	const B_WHITE = 47;
+	const B_RED = 41;
+	const B_YELLOW = 43;
+	const B_GREEN = 42;
+	const B_CYAN = 46;
+	const B_BLUE = 44;
+	const B_MAGENTA = 45;
+	const MOD_BRIGHT = 1;
+	const MOD_FAINT = 2;
+	const MOD_ITALIC = 3;
+	const MOD_UNDERLINE = 4;
+	const MOD_BLINK = 5;
 	
 	
-	static public function encode($str) {
+	static public function isCode($code) {
+		return in_array($code, [
+			self::F_BLACK,
+			self::F_WHITE,
+			self::F_RED,
+			self::F_YELLOW,
+			self::F_GREEN,
+			self::F_CYAN,
+			self::F_BLUE,
+			self::F_MAGENTA,
+			self::B_BLACK,
+			self::B_WHITE,
+			self::B_RED,
+			self::B_YELLOW,
+			self::B_GREEN,
+			self::B_CYAN,
+			self::B_BLUE,
+			self::B_MAGENTA,
+			self::MOD_BRIGHT,
+			self::MOD_FAINT,
+			self::MOD_ITALIC,
+			self::MOD_UNDERLINE,
+			self::MOD_BLINK
+		]);
+	}
+	
+	
+	static public function encode($str, Array $formats) {
 		$res = '';
-		$escape = '';
-		$formats = func_get_args();
+		$escape = false;
 		
 		foreach($formats as $format) {
-			if (!array_key_exists($format, self::$_ANSI_FORMAT)) continue;
+			if (!self::isCode($format)) continue;
 			
-			$res .= "\033[" . self::$_ANSI_FORMAT[$format] . 'm';
+			$res .= "\033[" . $format . 'm';
 			$escape = true;
 		}
 		
