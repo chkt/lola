@@ -139,7 +139,7 @@ implements IField
 		return [
 			'type' => 'multi',
 			'name' => $this->_name,
-			'value' => $this->_stateNow[$this->_key0] ? $this->_key0 : '',
+			'value' => $this->_statesNow[$this->_key0] ? $this->_key0 : '',
 			'values' => array_filter($this->_statesNow, function($name, $set) {
 				return [
 					'name' => $name,
