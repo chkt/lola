@@ -2,7 +2,8 @@
 
 namespace chkt\input;
 
-use \chkt\input\Field;
+use chkt\input\IField;
+use chkt\input\Field;
 
 
 
@@ -20,6 +21,26 @@ class Processor {
 	const STATE_UNMODIFIED = 0x3;
 	const STATE_INVALID = 0xa;
 	const STATE_VALID = 0xf;
+	
+	
+	
+	static public function Fields(Array $data) {
+		return new Processor(array_map(function($item) {
+			if (!array_key_exists(Field::KEY_NAME, $item)) throw new \ErrorException();
+			
+			$name = $item[Field::KEY_NAME];
+			$type = array_key_exists(Field::KEY_TYPE, $item) ? $item[Field::KEY_TYPE] : '';
+			$validate = array_key_exists(Field::KEY_VALIDATE, $item) ? $item[Field::KEY_VALIDATE] : null;
+			$flags = 0x0;
+			
+			if ($type === Selection::TYPE_SWITCHES) return new Selection($name, $item['values']);
+			
+			if ($type === Field::TYPE_SUBMIT) $flags |= Field::FLAG_SUBMIT;
+			
+			if (!is_null($validate)) return Field::Validating ($name, $item['value'], $validate, $flags);						
+			else return new Field($name, $item['value'], $flags);
+		}, $data));
+	}
 	
 	
 	
@@ -90,7 +111,7 @@ class Processor {
 		$ownSubmit =& $this->_submit;
 		
 		foreach($fields as $field) {
-			if (!($field instanceof Field)) throw new \ErrorException();
+			if (!($field instanceof IField)) throw new \ErrorException();
 			
 			$name = $field->getName();
 			$ownField[$name] = $field;
