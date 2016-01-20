@@ -48,8 +48,10 @@ class Injector {
 					else return $this->_locator->using('service')->using($item['id']);
 					
 				case self::TYPE_FACTORY :
-					if (!array_key_exists('dependencies', $item)) return $this->process($item['function']);
-					else return $this->process($item['function'], $item['dependencies']);
+					if (!array_key_exists('dependencies', $item)) $res =  $this->process($item['function']);
+					else $res =  $this->process($item['function'], $item['dependencies']);
+					
+					return $res;
 					
 				case self::TYPE_ARGUMENT :
 					return $item['data'];
