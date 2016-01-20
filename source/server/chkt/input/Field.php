@@ -2,9 +2,12 @@
 
 namespace chkt\input;
 
+use chkt\input\IField;
 
 
-class Field {
+
+final class Field
+implements IField {
 	
 	const VERSION = '0.0.6';
 	
@@ -26,23 +29,6 @@ class Field {
 		$target->_validate = $cb;
 		
 		return $target;
-	}
-	
-	
-	static public function fromArray(Array $data) {
-		return array_map(function($item) {
-			if (!array_key_exists(self::KEY_NAME, $item)) throw new \ErrorException();
-			
-			$name = $item[self::KEY_NAME];
-			$type = array_key_exists(self::KEY_TYPE, $item) ? $item[self::KEY_TYPE] : '';
-			$validate = array_key_exists(self::KEY_VALIDATE, $item) ? $item[self::KEY_VALIDATE] : null;
-			$flags = 0x0;
-			
-			if ($type === self::TYPE_SUBMIT) $flags |= self::FLAG_SUBMIT;
-			
-			if (!is_null($validate)) return self::Validating ($name, $item['value'], $validate, $flags);						
-			else return new self($name, $item['value'], $flags);
-		}, $data);
 	}
 	
 	
@@ -97,10 +83,31 @@ class Field {
 	}
 	
 	
+	public function getValues(Array $filter = null) {
+		return [ $this->_name => $this->_valueNow ];
+	}
+	
+	public function setValues(Array $values) {
+		foreach ($values as $name => $state) {
+			if ($name !== $this->_name) {
+				$this->_invalid = 1;
+				
+				continue;
+			}
+			
+			$this->_valueNow = $state;
+		}
+		
+		return $this;
+	}
+	
+	
 	public function getData() {
 		return [
+			'type' => 'single',
 			'name' => $this->_name,
 			'value' => $this->_valueNow,
+			'values' => [ $this->_name => $this->_valueNow ],
 			'changed' => $this->_valueNow !== $this->_valueFirst,
 			'valid' => !$this->_invalid,
 			'validity' => $this->_invalid
@@ -112,10 +119,20 @@ class Field {
 		return empty($this->_valueNow);
 	}
 	
+	public function isNonEmpty() {
+		return !empty($this->_valueNow);
+	}
+	
+	
 	public function isInitial() {
 		return $this->_valueFirst === $this->_valueNow;
 	}
+	
+	public function isChanged() {
+		return $this->_valueFirst !== $this->_valueNow;
+	}
 
+	
 	public function isValidating() {
 		return $this->_validating;
 	}
@@ -127,6 +144,10 @@ class Field {
 	
 	public function isSubmit() {
 		return $this->_flags & self::FLAG_SUBMIT;
+	}
+	
+	public function isMultiple() {
+		return false;
 	}
 	
 	
