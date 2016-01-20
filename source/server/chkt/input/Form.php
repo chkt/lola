@@ -4,7 +4,6 @@ namespace chkt\input;
 
 use chkt\inject\IInjectable;
 
-use chkt\input\Field;
 use chkt\input\Processor;
 
 use chkt\http\HttpRequest;
@@ -15,7 +14,7 @@ class Form
 implements IInjectable
 {
 	
-	const VERSION = '0.1.0';
+	const VERSION = '0.1.1';
 	
 	
 	
@@ -29,7 +28,7 @@ implements IInjectable
 	
 	
 	public function __construct(Array $fields, Callable $cb = null) {
-		$processor = new Processor(Field::fromArray($fields));
+		$processor = Processor::Fields($fields);
 		$processor->setValidationCallback($cb);
 		
 		$this->_processor = $processor;
