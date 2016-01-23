@@ -2,6 +2,8 @@
 
 namespace chkt\model;
 
+use chkt\model\IResourceQuery;
+
 
 
 interface IResource {
@@ -18,7 +20,7 @@ interface IResource {
 	
 	public function create(Array $data);
 	
-	public function read(Array $map);
+	public function read(IResourceQuery $query);
 	
 	public function update();
 	
