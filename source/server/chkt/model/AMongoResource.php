@@ -9,7 +9,9 @@ use MongoDB\BSON\ObjectID;
 
 
 
-abstract class AMongoResource implements IResource {
+abstract class AMongoResource
+implements IResource
+{
 	
 	const VERSION = '0.1.0';
 	
@@ -103,12 +105,10 @@ abstract class AMongoResource implements IResource {
 		return $this;
 	}
 	
-	public function read(Array $map) {		
-		$query = [];
+	public function read(IResourceQuery $query) {
+		if (!($query instanceof AMongoResourceQuery)) throw new \ErrorException();
 		
-		foreach ($map as $key => $value) $query[$key] = [ '$eq' => $value ];
-		
-		$this->_read($query);
+		$this->_read($query->getQuery());
 		
 		return $this;
 	}
@@ -117,7 +117,7 @@ abstract class AMongoResource implements IResource {
 		if ($this->_life !== self::STATE_LIVE) throw new \ErrorException();
 		
 		if (!$this->_dirty) return $this;
-		
+
 		$this->_collection->replaceOne([
 			'_id' => [ '$eq' => $this->_data['_id']]
 		], $this->_data);
