@@ -13,14 +13,15 @@ abstract class AMongoResource
 implements IResource
 {
 	
-	const VERSION = '0.1.0';
+	const VERSION = '0.1.2';
 	
 	const STATE_NEW = 1;
 	const STATE_LIVE = 2;
 	const STATE_DEAD = 3;
 	
 	
-	static private function _getDefaultDeserialization() {
+	
+	static public function getDefaultDeserialization() {
 		return [
 			'root' => 'array',
 			'document' => 'array',
@@ -42,21 +43,32 @@ implements IResource
 	protected $_dirty = false;
 	protected $_life = 0;
 	
+	protected $_updateCb = null;
+	protected $_deleteCb = null;
 	
-	public function __construct(Collection $collection) {
+	
+	public function __construct(Collection $collection = null) {
 		$this->_collection = $collection;
-		$this->_deserialize = static::_getDefaultDeserialization();
+		$this->_deserialize = static::getDefaultDeserialization();
 		
 		$this->_data = null;
 		$this->_dirty = false;
 		$this->_life = self::STATE_NEW;
+		
+		$this->_update = null;
+		$this->_delete = null;
 	}
 	
 	
 	protected function _read(Array $query) {
-		if ($this->_life !== self::STATE_NEW) throw new \ErrorException();
+		if (
+			$this->_life !== self::STATE_NEW ||
+			is_null($this->_collection)
+		) throw new \ErrorException();
 		
 		$this->_life = self::STATE_DEAD;
+		$this->_updateCb = [$this, '_update'];
+		$this->_deleteCb = [$this, '_delete'];
 		
 		$data = $this->_collection->findOne($query, [
 			'typeMap' => $this->_deserialize
@@ -66,6 +78,18 @@ implements IResource
 			$this->_data = $data;
 			$this->_life = self::STATE_LIVE;
 		}
+	}
+	
+	private function _update() {
+		$this->_collection->replaceOne([
+			'_id' => [ '$eq' => $this->_data['_id']]
+		], $this->_data);
+	}
+	
+	private function _delete() {
+		$this->_collection->deleteOne([
+			'_id' => [ '$eq' => $this->_data['_id']]
+		]);
 	}
 	
 	
@@ -93,7 +117,10 @@ implements IResource
 	
 	
 	public function create(Array $data) {
-		if ($this->_life !== self::STATE_NEW) throw new \ErrorException();
+		if (
+			$this->_life !== self::STATE_NEW ||
+			is_null($this->_collection)
+		) throw new \ErrorException();
 		
 		$ret = $this->_collection->insertOne($data);
 		$data['_id'] = $ret->getInsertedId();
@@ -101,6 +128,22 @@ implements IResource
 		$this->_data = $data;
 		$this->_life = self::STATE_LIVE;
 		$this->_dirty = false;
+		
+		$this->_updateCb = [$this, '_update'];
+		$this->_deleteCb = [$this, 'delete'];
+		
+		return $this;
+	}
+	
+	public function proxy(Array& $data, Callable $update, Callable $delete) {
+		if ($this->_life !== self::STATE_NEW) throw new \ErrorException();
+		
+		$this->_data =& $data;
+		$this->_life = self::STATE_LIVE;
+		$this->_dirty = false;
+		
+		$this->_updateCb = $update;
+		$this->_deleteCb = $delete;
 		
 		return $this;
 	}
@@ -118,9 +161,7 @@ implements IResource
 		
 		if (!$this->_dirty) return $this;
 
-		$this->_collection->replaceOne([
-			'_id' => [ '$eq' => $this->_data['_id']]
-		], $this->_data);
+		call_user_func($this->_updateCb);
 		
 		$this->_dirty = false;
 		
@@ -128,13 +169,12 @@ implements IResource
 	}
 	
 	public function delete() {
-		if (!$this->_life !== self::STATE_LIVE) throw new \ErrorException();
+		if ($this->_life !== self::STATE_LIVE) throw new \ErrorException();
 		
-		$this->_collection->deleteOne([
-			'_id' => [ '$eq' => $this->_data['_id']]
-		]);
+		call_user_func($this->_deleteCb);
 		
-		$this->_data = null;
+		unset($this->_data);
+		
 		$this->_dirty = false;
 		$this->_life = self::STATE_DEAD;
 		
