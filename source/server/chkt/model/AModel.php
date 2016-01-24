@@ -8,7 +8,7 @@ use chkt\model\IResource;
 
 abstract class AModel {
 	
-	const VERSION = '0.1.1';
+	const VERSION = '0.1.2';
 	
 	
 	
@@ -38,6 +38,12 @@ abstract class AModel {
 		if ($this->_update) $this->_resource
 			->setData($data)
 			->update();
+		
+		return $this;
+	}
+	
+	protected function _deleteResource() {
+		$this->_resource->delete();
 		
 		return $this;
 	}
