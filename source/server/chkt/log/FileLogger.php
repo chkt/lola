@@ -34,7 +34,10 @@ class FileLogger implements IInjectable, ILogger {
 		ILogger::TAG_ERROR_ARG_VAL => [],
 		ILogger::TAG_STACK => [Colorizer::F_RED, Colorizer::MOD_BRIGHT],
 		ILogger::TAG_STACK_FILE => [Colorizer::F_BLUE],
-		ILogger::TAG_STACK_LINE => []
+		ILogger::TAG_STACK_LINE => [],
+		ILogger::TAG_KEY => [],
+		ILogger::TAG_VALUE => [Colorizer::F_GREEN],
+		ILogger::TAG_REPORTER => [Colorizer::F_MAGENTA, Colorizer::MOD_BRIGHT]
 	];
 	
 	
@@ -228,6 +231,23 @@ class FileLogger implements IInjectable, ILogger {
 			->logRequest($ctrl->useRequest())
 			->logClient()
 			->logReply($ctrl->useReply());
+	}
+	
+	
+	public function logStats($label, Array $stats) {
+		if (!is_string($label) || empty($label)) throw new TypeError();
+		
+		$tags = [
+			self::_createTag(ILogger::TAG_TYPE, 'i'),
+			self::_createTag(ILogger::TAG_REPORTER, $label)
+		];
+		
+		foreach ($stats as $name => $value) {
+			$tags[] = self::_createTag(ILogger::TAG_KEY, $name);
+			$tags[] = self::_createTag(ILogger::TAG_VALUE, $value);
+		}
+		
+		return $this->logTags($tags);
 	}
 	
 	
