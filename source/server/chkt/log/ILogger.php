@@ -42,6 +42,10 @@ interface ILogger {
 	const TAG_STACK_FILE = 18;
 	const TAG_STACK_LINE = 19;
 	
+	const TAG_REPORTER = 22;
+	const TAG_KEY = 20;
+	const TAG_VALUE = 21;
+	
 	
 	
 	public function log($str);
@@ -55,6 +59,8 @@ interface ILogger {
 	public function logReply(HttpReply $reply, $stackOffset = self::STACK_IGNORE);
 	
 	public function logCtrlState(AReplyController $ctrl);
+	
+	public function logStats($label, Array $stats);
 	
 	public function logException(\Exception $ex, $stack = true, $deep = true);
 }
