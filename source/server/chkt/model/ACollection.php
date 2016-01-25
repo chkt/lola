@@ -57,7 +57,11 @@ abstract class ACollection {
 	public function& useIndex($index) {
 		if (!is_int($index) || $index < 0) throw new \ErrorException();
 		
-		if ($index > $this->_length - 1) return null;
+		if ($index > $this->_length - 1) {
+			$null = null;
+			
+			return $null;
+		}
 		
 		$this->_cursor = $index;
 		
