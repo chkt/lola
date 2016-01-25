@@ -73,7 +73,11 @@ abstract class ACollection {
 		
 		$cursor = $this->_cursor + $offset;
 		
-		if ($cursor < 0 || $cursor > $this->_length - 1) return null;
+		if ($cursor < 0 || $cursor > $this->_length - 1)  {
+			$null = null;
+			
+			return $null;
+		}
 		
 		$this->_cursor = $cursor;
 		
