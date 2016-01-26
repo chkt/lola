@@ -136,13 +136,13 @@ implements IResourceCollection
 			return array_key_exists($key, $state) && $state[$key] === 'delete';
 		}, ARRAY_FILTER_USE_KEY);
 		
-		foreach ($update as $document) $this->_collection->replaceOne([
-			'_id' => [ '$eq' => $document['_id']]
-		], $document);
-		
 		foreach ($delete as $document) $this->_collection->deleteOne([
 			'_id' => [ '$eq' => $document['_id']]
 		]);
+		
+		foreach ($update as $document) $this->_collection->replaceOne([
+			'_id' => [ '$eq' => $document['_id']]
+		], $document);
 		
 		return $this;
 	}
