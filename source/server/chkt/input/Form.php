@@ -40,6 +40,8 @@ implements IInjectable
 		
 		$data = $request->getPayload();
 		
+		if (!is_array($data)) error_log('Unexpected form payload: ' . print_r($data, true));
+		
 		$this->_processor->validate($data);
 		
 		return $this->_processor->getState() === Processor::STATE_VALID;
