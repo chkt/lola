@@ -199,12 +199,12 @@ class FileLogger implements IInjectable, ILogger {
 		
 		$ua = HttpRequest::originClientUA();
 		
-		if (!empty($ua)) $tags[] = self::_createTag (ILogger::TAG_CLIENT_UA, $ua);
+		if (!empty($ua)) $tags[] = self::_createTag(ILogger::TAG_CLIENT_UA, $ua);
 		
 		if (
 			$ip === self::IP_ALWAYS ||
 			$ip === self::IP_OR_UA && empty($ua)
-		) $tags[] = self::_createTag('[' . HttpRequest::originClientIP() . ']', ILogger::TAG_CLIENT_IP);
+		) $tags[] = self::_createTag(ILogger::TAG_CLIENT_IP, '[' . HttpRequest::originClientIP() . ']');
 		
 		return $this->logTags($tags);
 	}
