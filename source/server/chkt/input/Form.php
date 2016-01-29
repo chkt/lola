@@ -14,7 +14,7 @@ class Form
 implements IInjectable
 {
 	
-	const VERSION = '0.1.1';
+	const VERSION = '0.1.2';
 	
 	
 	
@@ -24,13 +24,17 @@ implements IInjectable
 	
 	
 	
+	protected $_id = '';
 	protected $_processor = null;
 	
 	
-	public function __construct(Array $fields, Callable $cb = null) {
+	public function __construct($id, Array $fields, Callable $cb = null) {
+		if (!is_string($id) || empty($id)) throw new ErrorException();
+		
 		$processor = Processor::Fields($fields);
 		$processor->setValidationCallback($cb);
 		
+		$this->_id = $id;
 		$this->_processor = $processor;
 	}
 	
@@ -57,6 +61,12 @@ implements IInjectable
 	
 	
 	public function getData() {
-		return $this->_processor->getData();
+		$res = $this->_processor->getData();
+		
+		$res['id'] = $this->_id;
+		
+		foreach ($res['field'] as & $field) $field['qname'] = $this->_id . '.' . $field['name'];
+			
+		return $res;
 	}
 }
