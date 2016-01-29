@@ -35,8 +35,8 @@ class FileLogger implements IInjectable, ILogger {
 		ILogger::TAG_STACK => [Colorizer::F_RED, Colorizer::MOD_BRIGHT],
 		ILogger::TAG_STACK_FILE => [Colorizer::F_BLUE],
 		ILogger::TAG_STACK_LINE => [],
-		ILogger::TAG_KEY => [],
-		ILogger::TAG_VALUE => [Colorizer::F_GREEN],
+		ILogger::TAG_KEY => [Colorizer::F_BLUE, Colorizer::MOD_BRIGHT],
+		ILogger::TAG_VALUE => [],
 		ILogger::TAG_REPORTER => [Colorizer::F_MAGENTA, Colorizer::MOD_BRIGHT]
 	];
 	
