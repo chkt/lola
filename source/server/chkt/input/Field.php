@@ -95,8 +95,16 @@ implements IField {
 				continue;
 			}
 			
-			$this->_valueNow = $state;
+			$this->setValue((string) $state);
 		}
+		
+		return $this;
+	}
+	
+	public function mapValues(Array $values) {
+		if (!empty(array_diff($values, (array) $this->_name))) $this->_invalid = 1;
+		
+		$this->setValue(in_array($this->_name, $values) ? (string) true : '');
 		
 		return $this;
 	}

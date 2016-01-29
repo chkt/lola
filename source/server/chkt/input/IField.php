@@ -37,6 +37,8 @@ interface IField {
 	
 	public function setValues(Array $values);
 	
+	public function mapValues(Array $values);
+	
 	
 	public function getData();
 	

@@ -10,7 +10,7 @@ final class Selection
 implements IField
 {
 	
-	const VERSION = '0.1.1';
+	const VERSION = '0.1.2';
 	
 	const TYPE_SWITCHES = 'switches';
 	
@@ -127,6 +127,29 @@ implements IField
 			
 			if ($soon === $now) continue;
 
+			$states[$name] = $soon;
+			$this->_set += $soon ? 1 : -1;
+			$this->_changed += $soon !== $was ? 1 : -1;
+		}
+		
+		return $this;
+	}
+	
+	public function mapValues(Array $values) {
+		$states =& $this->_statesNow;
+		$keys = array_keys($states);
+		
+		if (!empty(array_diff($values, $keys))) $this->_invalid = 1;
+		
+		foreach ($keys as $name) {
+			if (in_array($name, $values)) $soon = true;
+			else $soon = false;
+			
+			$now = $states[$name];
+			$was = $this->_statesFirst[$name];
+			
+			if ($soon === $now) continue;
+			
 			$states[$name] = $soon;
 			$this->_set += $soon ? 1 : -1;
 			$this->_changed += $soon !== $was ? 1 : -1;
