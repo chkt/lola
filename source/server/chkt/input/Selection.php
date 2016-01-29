@@ -38,7 +38,7 @@ implements IField
 		) throw new \ErrorException();
 		
 		foreach ($states as $state) {
-			if (!is_bool($state)) throw new ErrorException();
+			if (!is_bool($state)) throw new \ErrorException();
 			
 			$set += $state ? 1 : 0;
 		}
