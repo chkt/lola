@@ -156,8 +156,9 @@ class Processor {
 		$initial = true;
 		$valid = true;
 		
-		foreach($this->_field as $name => $field) {
-			$field->setValue(array_key_exists($name, $data) ? $data[$name] : '');
+		foreach($this->_field as $name => $field) {			
+			if ($field->isMultiple()) $field->mapValues(array_key_exists($name, $data) ? $data[$name] : []);
+			else $field->setValue(array_key_exists($name, $data) ? $data[$name] : '');
 			
 			$initial = $initial && $field->isInitial();
 			$valid = $valid && $field->isValid();
