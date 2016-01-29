@@ -96,6 +96,10 @@ class Processor {
 		return $this->useField($name)->getValue();
 	}
 	
+	public function getValues($name) {
+		return $this->useField($name)->getValues();
+	}
+	
 	
 	public function getValidationCallback() {
 		return $this->_validate;
