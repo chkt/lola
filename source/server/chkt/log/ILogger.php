@@ -54,7 +54,7 @@ interface ILogger {
 	
 	public function logRequest(HttpRequest $request, $stackOffset = self::STACK_IGNORE);
 	
-	public function logClient($ip = self::IP_OR_UA);
+	public function logClient(HttpRequest $request, $ip = self::IP_OR_UA);
 	
 	public function logReply(HttpReply $reply, $stackOffset = self::STACK_IGNORE);
 	
