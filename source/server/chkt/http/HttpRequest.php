@@ -720,4 +720,25 @@ class HttpRequest {
 		
 		return $this;
 	}
+	
+	
+	/**
+	 * Gets the request client ip
+	 * @return string
+	 */
+	public function getClientIP() {
+		$property = $this->_property;
+		
+		return array_key_exists('clientIP', $property) ? $property['clientIP'] : self::originClientIP();
+	}
+	
+	/**
+	 * Gets the request client user agent string
+	 * @return string
+	 */
+	public function getClientUA() {
+		$property = $this->_property;
+		
+		return array_key_exists('clientUA', $property) ? $property['clientUA'] : self::originClientUA();
+	}
 }
