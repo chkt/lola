@@ -13,7 +13,12 @@ use chkt\http\HttpReply;
 
 
 
-class FileLogger implements IInjectable, ILogger {	
+class FileLogger
+implements IInjectable, ILogger
+{
+
+	const VERSION = '0.1.2';
+	
 	
 	static $_map = [
 		ILogger::TAG_TYPE => [Colorizer::F_MAGENTA, Colorizer::MOD_BRIGHT],
@@ -61,6 +66,51 @@ class FileLogger implements IInjectable, ILogger {
 		else if (is_object($value)) return get_class($value);
 		else if (is_array($value)) return 'Array';
 		else return (string) $value;
+	}
+	
+	
+	static protected function _buildRequest(HttpRequest $request, $stackOffset = self::STACK_IGNORE) {
+		$tags = [
+			self::_createTag(ILogger::TAG_TYPE, '<'),
+			self::_createTag(ILogger::TAG_MESSAGE, $request->getMethod()),
+			self::_createTag(ILogger::TAG_URL_PATH, $request->getPath())
+		];
+		
+		if ($stackOffset !== self::STACK_IGNORE) $tags = array_merge($tags, self::_buildStackOrigin($stackOffset + 1));
+		
+		return $tags;
+	}
+	
+	static protected function _buildReply(HttpReply $reply, $stackOffset = self::STACK_IGNORE) {
+		$tags = [
+			self::_createTag(ILogger::TAG_TYPE, '>'),
+			self::_createTag(ILogger::TAG_MESSAGE, $reply->getCodeMessage())
+		];
+		
+		if ($reply->isRedirect()) {
+			$tags[] = self::_createTag(ILogger::TAG_VOID, 'REDIRECT');
+			$tags[] = self::_createTag(ILogger::TAG_URL_PATH, $reply->getRedirectTarget());
+		}
+		
+		if ($stackOffset !== self::STACK_IGNORE) $tags = array_merge($tags, self::_buildStackOrigin ($stackOffset + 1));
+		
+		return $tags;
+	}
+	
+	
+	static protected function _buildClient(HttpRequest $request, $ip = self::IP_OR_UA) {
+		$tags = [ self::_createTag(ILogger::TAG_TYPE, '~') ];
+		
+		$ua = $request->getClientUA();
+		
+		if (!empty($ua)) $tags[] = self::_createTag(ILogger::TAG_CLIENT_UA, $ua);
+		
+		if (
+			$ip === self::IP_ALWAYS ||
+			$ip === self::IP_OR_UA && empty($ua)
+		) $tags[] = self::_createTag(ILogger::TAG_CLIENT_IP, '[' . $request->getClientIP() . ']');
+		
+		return $tags;
 	}
 	
 	
@@ -183,54 +233,25 @@ class FileLogger implements IInjectable, ILogger {
 	
 	
 	public function logRequest(HttpRequest $request, $stackOffset = self::STACK_IGNORE) {		
-		$tags = [
-			self::_createTag(ILogger::TAG_TYPE, '<'),
-			self::_createTag(ILogger::TAG_MESSAGE, $request->getMethod()),
-			self::_createTag(ILogger::TAG_URL_PATH, $request->getPath())
-		];
-		
-		if ($stackOffset !== self::STACK_IGNORE) $tags = array_merge($tags, self::_buildStackOrigin($stackOffset + 1));
-		
-		return $this->logTags($tags);
+		return $this->logTags(self::_buildRequest($request, $stackOffset));
 	}
 	
-	public function logClient($ip = self::IP_OR_UA) {
-		$tags = [ self::_createTag(ILogger::TAG_TYPE, '~') ];
-		
-		$ua = HttpRequest::originClientUA();
-		
-		if (!empty($ua)) $tags[] = self::_createTag(ILogger::TAG_CLIENT_UA, $ua);
-		
-		if (
-			$ip === self::IP_ALWAYS ||
-			$ip === self::IP_OR_UA && empty($ua)
-		) $tags[] = self::_createTag(ILogger::TAG_CLIENT_IP, '[' . HttpRequest::originClientIP() . ']');
-		
-		return $this->logTags($tags);
+	public function logClient(HttpRequest $request, $ip = self::IP_OR_UA) {
+		return $this->logTags(self::_buildClient($request, $ip));
 	}
 	
 	public function logReply(HttpReply $reply, $stackOffset = self::STACK_IGNORE) {
-		$tags = [
-			self::_createTag(ILogger::TAG_TYPE, '>'),
-			self::_createTag(ILogger::TAG_MESSAGE, $reply->getCodeMessage())
-		];
-		
-		if ($reply->isRedirect()) {
-			$tags[] = self::_createTag(ILogger::TAG_VOID, 'REDIRECT');
-			$tags[] = self::_createTag(ILogger::TAG_URL_PATH, $reply->getRedirectTarget());
-		}
-		
-		if ($stackOffset !== self::STACK_IGNORE) $tags = array_merge($tags, self::_buildStackOrigin ($stackOffset + 1));
-		
-		return $this->logTags($tags);
+		return $this->logTags(self::_buildReply($reply, $stackOffset));
 	}
 	
 	
 	public function logCtrlState(AReplyController $ctrl) {
+		$tags = $this->_buildRequest($ctrl->useRequest());
+		$tags = array_merge($tags, $this->_buildReply($ctrl->useReply()));
+		
 		return $this
-			->logRequest($ctrl->useRequest())
-			->logClient()
-			->logReply($ctrl->useReply());
+			->logTags($tags)
+			->logTags(self::_buildClient($ctrl->useRequest()));
 	}
 	
 	
