@@ -40,16 +40,9 @@ implements IInjectable
 	
 	
 	public function validate(HttpRequest $request) {
-		if ($request->getMethod() === HttpRequest::METHOD_GET) return false;
+		if (!$request->hasPayload()) return false;
 		
-		$data = $request->getPayload();
-		
-		if (!is_array($data)) error_log(
-			'Unexpected form payload: ' . 
-			print_r($request->getBody(), true) . ' ' .
-			$request->originMethod () . ' ' . $request->originPath() . ' ' . $request->originMime () . ' ' .
-			$request->originClientUA() . ' '
-		);
+		$data = $request->hasValidPayload() ? $request->getPayload() : [];
 		
 		$this->_processor->validate($data);
 		
