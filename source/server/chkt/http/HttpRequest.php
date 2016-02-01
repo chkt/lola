@@ -681,10 +681,49 @@ class HttpRequest {
 		return $this;
 	}
 	
+	
+	/**
+	 * Returns true is the request body has a structured representation, false otherwise
+	 * @return boolean
+	 */
+	public function hasPayload() {
+		$property = $this->_property;
+		
+		if (array_key_exists('payload', $property)) return true;
+		
+		$mime = $this->getMime();
+		
+		switch ($mime) {
+			case HttpRequest::MIME_FORM :
+			case HttpRequest::MIME_JSON :
+				return !empty($this->getBody());
+			default : return false;
+		}
+	}
+	
+	/**
+	 * Returns true if the request body has a intact structured representation, false otherwise
+	 * @return boolean
+	 */
+	public function hasValidPayload() {
+		if (!$this->hasPayload()) return false;
+		
+		try {
+			$this->getPayload();
+		}
+		catch (\Exception $ex) {
+			return false;
+		}
+		
+		return true;
+	}
+	
+	
 	/**
 	 * Returns a structured representation of the request body of the instance if possible,
 	 * the raw request body otherwise
-	 * @return mixed
+	 * @return array
+	 * @throws \ErrorException if the request has no valid mime-type
 	 */
 	public function getPayload() {
 		$property =& $this->_property;
@@ -705,17 +744,16 @@ class HttpRequest {
 			case HttpRequest::MIME_JSON : 
 				return json_decode($body, true);
 				
-			default :
-				return $body;
+			default : throw new \ErrorException();
 		}
 	}
 	
 	/**
 	 * Sets the structured representation of the request body of the instance
-	 * @param mixed $payload
+	 * @param array $payload
 	 * @return HttpRequest
 	 */
-	public function setPayload($payload) {
+	public function setPayload(Array $payload) {
 		$this->_property['payload'] = $payload;
 		
 		return $this;
