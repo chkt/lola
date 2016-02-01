@@ -47,7 +47,7 @@ implements IInjectable
 		if (!is_array($data)) error_log(
 			'Unexpected form payload: ' . 
 			print_r($request->getBody(), true) . ' ' .
-			$request->originMethod () . ' ' . $request->originMime () . ' ' .
+			$request->originMethod () . ' ' . $request->originPath() . ' ' . $request->originMime () . ' ' .
 			$request->originClientUA() . ' '
 		);
 		
