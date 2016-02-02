@@ -21,9 +21,17 @@ class HttpRequest {
 	const PROTOCOL_HTTPS = 'https';
 	
 	/**
+	 * The options method
+	 */
+	const METHOD_OPTIONS = 'OPTIONS';
+	/**
 	 * The get method
 	 */
 	const METHOD_GET    = 'GET';
+	/**
+	 * The head method
+	 */
+	const METHOD_HEAD = 'HEAD';
 	/**
 	 * The post method
 	 */
@@ -362,7 +370,9 @@ class HttpRequest {
 			self::METHOD_POST,
 			self::METHOD_PUT,
 			self::METHOD_PATCH,
-			self::METHOD_DELETE
+			self::METHOD_DELETE,
+			self::METHOD_HEAD,
+			self::METHOD_OPTIONS
 		]);
 	}
 	
