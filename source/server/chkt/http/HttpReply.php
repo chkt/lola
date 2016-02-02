@@ -245,11 +245,11 @@ class HttpReply {
 	}
 	
 	
-	public function getHeaders() {
+	public function& getHeaders() {
 		return $this->_header;
 	}
 	
-	public function &useCookies() {
+	public function& useCookies() {
 		if (is_null($this->_cookie)) $this->_cookie = new Cookie();
 		
 		return $this->_cookie;
