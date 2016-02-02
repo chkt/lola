@@ -136,6 +136,15 @@ class Route implements IInjectable {
 		
 		return $this;
 	}
+
+	/**
+	 * Returns true if route parameter $name exists, false otherwise
+	 * @param string $name
+	 * @return bool
+	 */
+	public function hasParam($name) {		
+		return $this->_param->hasItem($name);
+	}
 	
 	/**
 	 * Gets a route parameter
@@ -154,7 +163,6 @@ class Route implements IInjectable {
 	public function getParams(Array $names = null) {
 		return $this->_param->getItems($names);
 	}
-	
 	
 	/**
 	 * Gets a reference to the route params
