@@ -197,6 +197,15 @@ class Route implements IInjectable {
 	}
 	
 	/**
+	 * Returns true if route identity datum $name exists, false otherwise
+	 * @param string $name
+	 * @return bool
+	 */
+	public function hasRouteDatum($name) {
+		return $this->_data->hasItem($name);
+	}
+	
+	/**
 	 * Gets a route identity datum
 	 * @param string $name The data name
 	 * @return mixed
