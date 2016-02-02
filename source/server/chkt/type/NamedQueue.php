@@ -6,7 +6,7 @@ namespace chkt\type;
 
 class NamedQueue {
 	
-	const VERSION = '0.0.8';
+	const VERSION = '0.1.3';
 	
 	
 	
@@ -17,9 +17,11 @@ class NamedQueue {
 	/**
 	 * Creates a new instance
 	 */
-	public function __construct() {
+	public function __construct(Array $callbacks = null) {
 		$this->_keys = [];
 		$this->_cbs = [];
+		
+		if (!is_null($callbacks)) $this->appendMany($callbacks);
 	}
 	
 	
@@ -40,6 +42,32 @@ class NamedQueue {
 		if (!is_string($name) || empty($name)) throw new \ErrorException();
 		
 		return in_array($this->_keys, $name);
+	}
+	
+	public function get($name) {
+		if (!is_string($name) || empty($name)) throw new \ErrorException();
+		
+		$index = array_search($name, $this->_keys);
+		
+		if ($index === false) throw new \ErrorException();
+		
+		return $this->_cbs[$index];
+	}
+	
+	public function getMany(Array $names = []) {
+		if (empty($names)) return array_combine($this->_keys, $this->_cbs);
+		
+		$res = [];
+		
+		foreach($names as $name) {
+			$index = array_search($name, $this->_keys);
+			
+			if ($index === false) throw new \ErrorException();
+			
+			$res[$name] = $this->_cbs[$index];
+		}
+		
+		return $res;
 	}
 	
 	
@@ -69,6 +97,39 @@ class NamedQueue {
 	}
 	
 	/**
+	 * Inserts $callbacks before the callback named $before
+	 * @param array $callbacks The callbacks
+	 * @param string $before The target identifier
+	 * @return NamedQueue
+	 * @throws \ErrorException if $before is not a nonempty string or is a registered name
+	 * @throws \ErrorException if any $callbacks key is a registered name
+	 * @throws \ErrorException if any $callbacks value is not a callable
+	 */
+	public function insertMany(Array $callbacks, $before) {
+		if (!is_string($before) ||empty($before)) throw new \ErrorException();
+		
+		$keys = $this->_keys;
+		$index = array_search($before, $keys);
+		
+		if ($index === false) throw new \ErrorException();
+		
+		$names = [];
+		$cbs = [];
+		
+		foreach ($callbacks as $name => $cb) {
+			if (in_array($name, $keys) || !is_callable($cb)) throw new \ErrorException();
+			
+			$names[] = $name;
+			$cbs[] = $cb;
+		}
+		
+		array_splice($this->_keys, $index, 0, ...$names);
+		array_splice($this->_cbs, $index, 0, ...$cbs);
+		
+		return $this;
+	}
+	
+	/**
 	 * Appends $cb
 	 * @param string $name The callback identifier
 	 * @param callable $cb The callback function
@@ -80,6 +141,33 @@ class NamedQueue {
 		
 		$this->_keys[] = $name;
 		$this->_cbs[] = $cb;
+		
+		return $this;
+	}
+	
+	/**
+	 * Appends $callbacks
+	 * @param array $callbacks The callbacks
+	 * @return NamedQueue
+	 * @throws \ErrorException if any array key is a registered name
+	 * @throws \ErrorException if any array value is not a callable
+	 */
+	public function appendMany(Array $callbacks) {
+		$keys = $this->_keys;
+		$cbs = $this->_cbs;
+		
+		foreach ($callbacks as $name => $cb) {
+			if (
+				in_array($name, $keys) ||
+				!is_callable($cb)
+			) throw new \ErrorException();
+			
+			$keys[] = $name;
+			$cbs[] = $cb;
+		}
+		
+		$this->_keys = $keys;
+		$this->_cbs = $cbs;
 		
 		return $this;
 	}
