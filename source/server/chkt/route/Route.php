@@ -100,7 +100,7 @@ class Route implements IInjectable {
 		
 		$this->_locator =& $locator;
 		
-		$this->_param = new Collection(array_key_exists('param', $config) ? $config['param'] : []);
+		$this->_param = new Collection(array_key_exists('params', $config) ? $config['params'] : []);
 		$this->_data = new Collection(array_key_exists('data', $config) ? $config['data'] : []);
 		
 		$this->_ctrlName = $ctrl;

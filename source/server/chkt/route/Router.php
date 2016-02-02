@@ -510,7 +510,7 @@ class Router implements IInjectable {
 			if (!self::_matchRoute($rseg, $pseg, $rparam)) continue;
 			
 			return $this->_injector->produce('\\chkt\\route\\Route', [
-				'param' => array_merge($param, $rparam),
+				'params' => array_merge($param, $rparam),
 				'data' => $this->_getHash($r, $path),
 				'ctrl' => $this->_ctrl[$r],
 				'action' => $this->_action[$r],
