@@ -22,8 +22,10 @@ abstract class ACollectionController extends AReplyController {
 	
 	public function __construct() {
 		$this
-			->setResolveTransform(function(Route $route) {
-				$request = $this->useRequest();
+			->useRequestProcessor()
+			->append('resolve', function(AReplyController& $ctrl) {
+				$route =& $ctrl->useRoute();
+				$request =& $ctrl->useRequest();
 
 				$mime = $request->getPreferedAcceptMime([
 					HttpRequest::MIME_JSON
@@ -32,15 +34,20 @@ abstract class ACollectionController extends AReplyController {
 				if (empty($mime)) return 'unavailable';
 				
 				switch($request->getMethod()) {
-					case HttpRequest::METHOD_GET : return 'read';
-					case HttpRequest::METHOD_PUT : return 'create';
-					default : return 'unavailable';
+					case HttpRequest::METHOD_GET : return $route->setAction('read');
+					case HttpRequest::METHOD_PUT : return $route->setAction('create');
+					default : return $route->setAction('unavailable');
 				}
-			})
+			});
+			
+		$this
 			->useReplyProcessor()
-			->append('view', function(Route $route, HttpReply& $reply) {
-				$reply
-					->setContent(json_encode($route->useActionResult()->popItem()))
+			->append('view', function(AReplyController& $ctrl) {
+				$json = $ctrl->useRoute()->useActionResult()->popItem();
+				
+				$ctrl
+					->useReply()
+					->setContent(json_encode($json))
 					->setMime(HttpReply::MIME_JSON);
 			});
 	}

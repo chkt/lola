@@ -19,8 +19,10 @@ abstract class AItemController extends AReplyController {
 	
 	public function __construct() {
 		$this
-			->setResolveTransform(function(Route $route) {
-				$request = $this->useRequest();
+			->useRequestProcessor()
+			->append('resolve', function(AReplyController &$ctrl) {
+				$route =& $ctrl->useRoute();
+				$request =& $ctrl->useRequest();
 				
 				$mime = $request->getPreferedAcceptMime([
 					HttpRequest::MIME_JSON
@@ -29,17 +31,22 @@ abstract class AItemController extends AReplyController {
 				if (empty($mime)) return 'unavailable';
 				
 				switch($request->getMethod()) {
-					case $request::METHOD_GET : return 'read';
-					case $request::METHOD_PUT : return 'create';
-					case $request::METHOD_PATCH : return 'update';
-					case $request::METHOD_DELETE : return 'delete';
-					default : return 'unavailable';
+					case $request::METHOD_GET : return $route->setAction('read');
+					case $request::METHOD_PUT : return $route->setAction('create');
+					case $request::METHOD_PATCH : return $route->setAction('update');
+					case $request::METHOD_DELETE : return $route->setAction('delete');
+					default : $route->setAction('unavailable');
 				}
-			})
+			});
+			
+		$this
 			->useReplyProcessor()
-			->append('view', function(Route $route, HttpReply& $reply) {
-				$reply
-					->setContent(json_encode($route->useActionResult()->popItem()))
+			->append('view', function(AReplyController& $ctrl) {
+				$json = $ctrl->useRoute()->useActionResult()->popItem();
+				
+				$ctrl
+					->useReply()
+					->setContent(json_encode($json))
 					->setMime(HttpReply::MIME_JSON);
 			});
 	}
