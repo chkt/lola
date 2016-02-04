@@ -9,12 +9,14 @@ use chkt\route\RouteCanceledException;
 
 
 
-abstract class AController implements IInjectable {
+abstract class AController
+implements IInjectable
+{
 	
 	/**
 	 * The version string
 	 */
-	const VERSION = '0.1.0';
+	const VERSION = '0.1.3';
 	
 	
 	/**
@@ -33,7 +35,7 @@ abstract class AController implements IInjectable {
 	 * @return string
 	 * @throws \ErrorException if <code>$path</code> is not a <code>String</code>
 	 */
-	static protected function _pathToCamel($path) {
+	static public function pathToCamel($path) {
 		if (!is_string($path)) throw new \ErrorException();
 		
 		$segs = array_map(function($item) {
@@ -49,19 +51,11 @@ abstract class AController implements IInjectable {
 	 * @return string
 	 * @throws \ErrorException if <code>$path</code> is not a <code>String</code>
 	 */
-	static protected function _pathToSnake($path) {
+	static public function pathToSnake($path) {
 		if (!is_string($path)) throw new \ErrorException();
 		
 		return strtolower(str_replace('/', '_', $path));
 	}
-	
-	
-	
-	/**
-	 * The resolveAction transform
-	 * @var Callable|null
-	 */
-	private $_resolveTransform = null;
 	
 	
 	/**
@@ -83,17 +77,6 @@ abstract class AController implements IInjectable {
 	
 	
 	/**
-	 * Sets the resolve action transform 
-	 * @param Callable $transform The transform function
-	 * @return AController
-	 */
-	public function setResolveTransform(Callable $transform) {
-		$this->_resolveTransform = $transform;
-		
-		return $this;
-	}
-	
-	/**
 	 * Enters the action of the instance referenced by $route
 	 * @param Route& $route The associated route
 	 * @return mixed
@@ -105,24 +88,6 @@ abstract class AController implements IInjectable {
 		if (!method_exists($this, $action)) $action = 'defaultAction';
 		
 		return $this->$action($route);
-	}
-	
-	
-	/**
-	 * The resolve action of the controller
-	 * @param Route& $route The associated route
-	 * @return mixed
-	 */
-	public function resolveAction(Route& $route) {
-		$action = 'default';
-		
-		if (is_callable($this->_resolveTransform)) {
-			$ret = call_user_func($this->_resolveTransform, $route);
-			
-			if (is_string($ret)) $action = $ret;
-		}
-		
-		return $this->_reenter($action, $route);
 	}
 	
 	
