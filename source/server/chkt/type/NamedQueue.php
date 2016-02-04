@@ -205,7 +205,8 @@ class NamedQueue {
 		
 		if ($index === false) throw new \ErrorException();
 		
-		array_splice($this->_keys, $index, 1, $cb);
+		array_splice($this->_keys, $index, 1, $name);
+		array_splice($this->_cbs, $index, 1, $cb);
 		
 		return $this;
 	}
