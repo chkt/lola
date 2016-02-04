@@ -8,8 +8,7 @@ use chkt\route\Route;
 use chkt\http\HttpRequest;
 use chkt\http\HttpReply;
 
-use chkt\ctrl\RequestProcessor;
-use chkt\ctrl\ReplyProcessor;
+use chkt\ctrl\ControllerProcessor;
 
 
 
@@ -18,7 +17,7 @@ abstract class AReplyController extends AController {
 	/**
 	 * The version string
 	 */
-	const VERSION = '0.0.9';
+	const VERSION = '0.1.3';
 	
 	
 	
@@ -114,7 +113,7 @@ abstract class AReplyController extends AController {
 	 * @return RequestProcessor
 	 */
 	public function& useRequestProcessor() {
-		if (is_null($this->_requestProcessor)) $this->_requestProcessor = new RequestProcessor();
+		if (is_null($this->_requestProcessor)) $this->_requestProcessor = new ControllerProcessor();
 		
 		return $this->_requestProcessor;
 	}
@@ -124,7 +123,7 @@ abstract class AReplyController extends AController {
 	 * @param RequestProcessor $processor
 	 * @return AReplyController
 	 */
-	public function setRequestProcessor(RequestProcessor $processor) {
+	public function setRequestProcessor(ControllerProcessor $processor) {
 		$this->_requestProcessor = $processor;
 		
 		return $this;
@@ -136,7 +135,7 @@ abstract class AReplyController extends AController {
 	 * @return ReplyProcessor
 	 */
 	public function& useReplyProcessor() {
-		if (is_null($this->_replyProcessor)) $this->_replyProcessor = new ReplyProcessor();
+		if (is_null($this->_replyProcessor)) $this->_replyProcessor = new ControllerProcessor();
 		
 		return $this->_replyProcessor;
 	}
@@ -146,7 +145,7 @@ abstract class AReplyController extends AController {
 	 * @param ReplyProcessor $processor
 	 * @return AReplyController
 	 */
-	public function setReplyProcessor(ReplyProcessor $processor) {
+	public function setReplyProcessor(ControllerProcessor $processor) {
 		$this->_replyProcessor = $processor;
 		
 		return $this;
@@ -160,16 +159,13 @@ abstract class AReplyController extends AController {
 	public function enter(Route& $route) {
 		$this->_route =& $route;
 		
-		if (!is_null($this->_requestProcessor)) $this->useRequestProcessor()->process($this->useRequest(), $route);
+		if (!is_null($this->_requestProcessor)) $this->useRequestProcessor()->process($this);
 		
 		$ret = parent::enter($route);
 		
 		if (isset($ret) && !is_null($ret)) $route->useActionResult()->pushItem($ret);
 		
-		$reply =& $this->useReply();
-		
-		$this->useReplyProcessor()->process($route, $reply);
-		
-		$reply->send();
+		$this->useReplyProcessor()->process($this);
+		$this->useReply()->send();
 	}
 }
