@@ -29,6 +29,10 @@ implements IResource
 		];
 	}
 	
+	static public function getDefaultSorting() {
+		return [ '_id' => 1 ];
+	}
+	
 	
 	static public function isValidId($id) {
 		return $id instanceof ObjectID;
@@ -38,6 +42,7 @@ implements IResource
 	
 	protected $_collection = null;
 	protected $_deserialize = null;
+	protected $_sort = null;
 	
 	protected $_data = null;
 	protected $_dirty = false;
@@ -50,6 +55,7 @@ implements IResource
 	public function __construct(Collection $collection = null) {
 		$this->_collection = $collection;
 		$this->_deserialize = static::getDefaultDeserialization();
+		$this->_sort = static::getDefaultSorting();
 		
 		$this->_data = null;
 		$this->_dirty = false;
@@ -71,7 +77,8 @@ implements IResource
 		$this->_deleteCb = [$this, '_delete'];
 		
 		$data = $this->_collection->findOne($query, [
-			'typeMap' => $this->_deserialize
+			'typeMap' => $this->_deserialize,
+			'sort' => $this->_sort
 		]);
 		
 		if (!is_null($data)) {
