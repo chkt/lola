@@ -25,6 +25,7 @@ implements IResourceCollection
 	
 	protected $_collection = null;
 	protected $_deserialize = null;
+	protected $_sort = null;
 	protected $_factory = null;
 	
 	protected $_data = null;
@@ -40,6 +41,7 @@ implements IResourceCollection
 	public function __construct(Collection $collection, Callable $resourceFactory) {		
 		$this->_collection = $collection;
 		$this->_deserialize = AMongoResource::getDefaultDeserialization();
+		$this->_sort = AMongoResource::getDefaultSorting();
 		$this->_factory = $resourceFactory;
 		
 		$this->_data = null;
@@ -100,7 +102,7 @@ implements IResourceCollection
 		
 		$cursor = $this->_collection->find($query->getQuery(), [
 			'typeMap' => $this->_deserialize,
-			'sort' => [ '_id' => 1 ],
+			'sort' => $this->_sort,
 			'limit' => $limit,
 			'skip' => $offset
 		]);
