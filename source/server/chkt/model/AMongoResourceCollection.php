@@ -100,12 +100,15 @@ implements IResourceCollection
 		
 		$this->_life = self::STATE_DEAD;
 		
-		$cursor = $this->_collection->find($query->getQuery(), [
+		$options = [
 			'typeMap' => $this->_deserialize,
 			'sort' => $this->_sort,
 			'limit' => $limit,
 			'skip' => $offset
-		]);
+		];
+		
+		if ($query->isMatchingQuery()) $cursor = $this->_collection->find($query->getQuery(), $options);
+		else $cursor = $this->_collection->aggregate($query->getQuery(), $options);
 		
 		if (!is_null($cursor)) {
 			$data = $cursor->toArray();
