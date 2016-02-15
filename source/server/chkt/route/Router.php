@@ -267,7 +267,7 @@ class Router implements IInjectable {
 	 * @return array
 	 */
 	private function _getHash($index, $path = '') {
-		if (!empty($this->_hash[$index])) return $this->_hash[$index];
+		if (!empty($this->_hash[$index])) return array_merge($this->_hash[$index], [ 'path' => $path ]);
 		
 		$res = [];
 		parse_str($this->_data[$index], $res);
