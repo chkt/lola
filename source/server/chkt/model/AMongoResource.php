@@ -35,7 +35,17 @@ implements IResource
 	
 	
 	static public function isValidId($id) {
-		return $id instanceof ObjectID;
+		if ($id instanceof ObjectId) return true;
+		else if (!is_string($id)) return false;
+		
+		try {
+			new ObjectId($id);
+			
+			return true;
+		} 
+		catch (Exception $ex) {}
+		
+		return false;
 	}
 	
 	
