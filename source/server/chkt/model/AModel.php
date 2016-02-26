@@ -8,10 +8,10 @@ use chkt\model\IResource;
 
 abstract class AModel {
 	
-	const VERSION = '0.1.2';
+	const VERSION = '0.1.3';
 	
 	
-	
+		
 	private $_resource = null;
 	private $_data = null;
 	
@@ -46,6 +46,16 @@ abstract class AModel {
 		$this->_resource->delete();
 		
 		return $this;
+	}
+	
+	
+	protected function _getProjection(Callable $fn, Array $props = []) {
+		$data =& $this->_useResource();
+		$res = [];
+		
+		foreach ($props as $prop) $res[$prop] = $fn($data, $prop);
+		
+		return $res;
 	}
 	
 	
