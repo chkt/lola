@@ -10,7 +10,7 @@ abstract class AMongoResourceQuery
 implements IResourceQuery
 {
 	
-	const VERSION = '0.1.3';
+	const VERSION = '0.1.4';
 	
 	const MODE_NONE = 0;
 	const MODE_MATCHING = 1;
@@ -18,7 +18,7 @@ implements IResourceQuery
 	
 	
 	
-	protected $_require = null;
+	private $_require = null;
 	
 	protected $_query = null;
 	protected $_queryMode = 0;
@@ -32,10 +32,10 @@ implements IResourceQuery
 	}
 	
 	
-	abstract protected function _buildQuery();
+	abstract protected function _buildQuery(Array $require, Array& $match, Array& $aggregate);
 	
 	
-	
+		
 	public function getRequirements() {
 		return $this->_require;
 	}
@@ -55,7 +55,23 @@ implements IResourceQuery
 	
 	
 	public function getQuery() {
-		if (is_null($this->_query)) $this->_query = $this->_buildQuery();
+		if (is_null($this->_query)) {
+			$match = [];
+			$aggregate = [];
+			
+			$this->_buildQuery($this->_require, $match, $aggregate);
+			
+			if (!empty($aggregate)) {
+				if (!empty($match)) array_unshift($aggregate, [ '$match' => $match ]);
+				
+				$this->_query = $aggregate;
+				$this->_queryMode = self::MODE_AGGREGATION;
+			}
+			else {
+				$this->_query = $match;
+				$this->_queryMode = self::MODE_MATCHING;
+			}
+		}
 		
 		return $this->_query;
 	}
