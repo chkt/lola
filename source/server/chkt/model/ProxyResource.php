@@ -21,15 +21,17 @@ implements IResource
 	protected $_dirty = false;
 	protected $_life = 0;
 	
+	protected $_create = null;
 	protected $_update = null;
 	protected $_delete = null;
 	
 	
-	public function __construct(Callable $update = null, Callable $delete = null) {		
+	public function __construct(Callable $create = null, Callable $update = null, Callable $delete = null) {		
 		$this->_data = null;
 		$this->_dirty = false;
 		$this->_life = self::STATE_NEW;
 		
+		$this->_create = $create;
 		$this->_update = $update;
 		$this->_delete = $delete;
 	}
@@ -61,9 +63,11 @@ implements IResource
 	public function create(Array $data) {
 		if ($this->_life !== self::STATE_NEW) throw new \ErrorException();
 		
-		$this->_data =& $data;
+		$this->_data = $data;
 		$this->_life = self::STATE_LIVE;
 		$this->_dirty = false;
+		
+		if (!is_null($this->_create)) call_user_func($this->_create, $data);
 		
 		return $this;
 	}
