@@ -123,8 +123,8 @@ class NamedQueue {
 			$cbs[] = $cb;
 		}
 		
-		array_splice($this->_keys, $index, 0, ...$names);
-		array_splice($this->_cbs, $index, 0, ...$cbs);
+		array_splice($this->_keys, $index, 0, $names);
+		array_splice($this->_cbs, $index, 0, $cbs);
 		
 		return $this;
 	}
