@@ -14,11 +14,13 @@ implements IField {
 	const KEY_TYPE = 'type';
 	const KEY_NAME = 'name';
 	const KEY_VALUE = 'value';
+	const KEY_IMMUTABLE = 'immutable';
 	const KEY_VALIDATE = 'validate';
 	
 	const TYPE_SUBMIT = 'submit';
 	
 	const FLAG_SUBMIT = 0x1;
+	const FLAG_IMMUTABLE = 0x2;
 	
 	
 	
@@ -38,7 +40,8 @@ implements IField {
 	
 	protected $_valueFirst = '';
 	protected $_valueNow = '';
-		
+	
+	protected $_immutable = false;
 	protected $_validating = false;
 	protected $_invalid = 0;
 	protected $_validate = null;
@@ -56,7 +59,8 @@ implements IField {
 		
 		$this->_valueFirst = $value;
 		$this->_valueNow = $value;
-				
+		
+		$this->_immutable = (bool) ($flags &= self::FLAG_IMMUTABLE);
 		$this->_validating = false;
 		$this->_invalid = 0;
 		$this->_validate = null;
@@ -74,10 +78,12 @@ implements IField {
 	
 	public function setValue($value) {
 		if (!is_string($value)) throw new \ErrorException();
-				
-		if ($this->_validating) $this->_invalid = (int) call_user_func($this->_validate, $value, $this->_valueFirst);
 		
-		$this->_valueNow = $value;
+		if (!$this->_immutable) {
+			if ($this->_validating) $this->_invalid = (int) call_user_func($this->_validate, $value, $this->_valueFirst);
+
+			$this->_valueNow = $value;
+		}
 		
 		return $this;
 	}
@@ -117,6 +123,7 @@ implements IField {
 			'value' => $this->_valueNow,
 			'values' => [ $this->_name => $this->_valueNow ],
 			'changed' => $this->_valueNow !== $this->_valueFirst,
+			'mutable' => !$this->_immutable,
 			'valid' => !$this->_invalid,
 			'validity' => $this->_invalid
 		];
@@ -140,6 +147,10 @@ implements IField {
 		return $this->_valueFirst !== $this->_valueNow;
 	}
 
+	
+	public function isMutable() {
+		return !$this->_immutable;
+	}	
 	
 	public function isValidating() {
 		return $this->_validating;

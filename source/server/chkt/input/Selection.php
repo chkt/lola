@@ -76,6 +76,10 @@ implements IField
 		return $this->_invalid === 0;
 	}
 	
+	public function isMutable() {
+		return true;
+	}
+	
 	public function isValidating() {
 		return true;
 	}
@@ -170,6 +174,7 @@ implements IField
 				];
 			}, ARRAY_FILTER_USE_BOTH),
 			'changed' => $this->_changed !== 0,
+			'mutable' => true,
 			'valid' => $this->_invalid === 0,
 			'validity' => $this->_invalid
 		];
