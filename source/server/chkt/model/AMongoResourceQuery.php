@@ -32,6 +32,12 @@ implements IResourceQuery
 	}
 	
 	
+	protected function _matchGroup(Array $conditions, $op = '$and') {
+		if (count($conditions) === 1) return $conditions[0];
+		else return [ $op => $conditions ];
+	}
+	
+	
 	abstract protected function _buildQuery(Array $require, Array& $match, Array& $aggregate);
 	
 	
