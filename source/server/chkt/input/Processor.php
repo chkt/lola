@@ -36,6 +36,7 @@ class Processor {
 			if ($type === Selection::TYPE_SWITCHES) return new Selection($name, $item['values']);
 			
 			if ($type === Field::TYPE_SUBMIT) $flags |= Field::FLAG_SUBMIT;
+			if (array_key_exists(Field::KEY_IMMUTABLE, $item) && $item[Field::KEY_IMMUTABLE]) $flags |= Field::FLAG_IMMUTABLE;
 			
 			if (!is_null($validate)) return Field::Validating ($name, $item['value'], $validate, $flags);						
 			else return new Field($name, $item['value'], $flags);

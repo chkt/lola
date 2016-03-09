@@ -35,7 +35,7 @@ implements IResource
 	
 	
 	static public function isValidId($id) {
-		if ($id instanceof ObjectId) return true;
+		if ($id instanceof ObjectID) return true;
 		else if (!is_string($id)) return false;
 		
 		try {
@@ -76,7 +76,7 @@ implements IResource
 	}
 	
 	
-	protected function _read(Array $query) {
+	protected function _read(Array $query, $aggregate = false) {
 		if (
 			$this->_life !== self::STATE_NEW ||
 			is_null($this->_collection)
@@ -86,7 +86,17 @@ implements IResource
 		$this->_updateCb = [$this, '_update'];
 		$this->_deleteCb = [$this, '_delete'];
 		
-		$data = $this->_collection->findOne($query, [
+		if ($aggregate) {
+			$items = $this->_collection->aggregate($query, [
+				'typeMap' => $this->_deserialize,
+				'limit' => 1,
+				'sort' => $this->_sort
+			])->toArray();
+			
+			if (empty($items)) $data = null;
+			else $data = $items[0];
+		}
+		else $data = $this->_collection->findOne($query, [
 			'typeMap' => $this->_deserialize,
 			'sort' => $this->_sort
 		]);
@@ -168,7 +178,7 @@ implements IResource
 	public function read(IResourceQuery $query) {
 		if (!($query instanceof AMongoResourceQuery)) throw new \ErrorException();
 		
-		$this->_read($query->getQuery());
+		$this->_read($query->getQuery(), $query->isAggregationQuery());
 		
 		return $this;
 	}

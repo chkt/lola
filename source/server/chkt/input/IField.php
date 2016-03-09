@@ -16,6 +16,8 @@ interface IField {
 	public function isNonEmpty();
 	
 	
+	public function isMutable();
+	
 	public function isValidating();
 	
 	public function isValid();
