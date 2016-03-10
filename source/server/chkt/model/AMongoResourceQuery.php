@@ -56,19 +56,22 @@ implements IResourceQuery
 	
 	public function getQuery() {
 		if (is_null($this->_query)) {
-			$match = [];
+			$matches = [];
 			$aggregate = [];
 			
-			$this->_buildQuery($this->_require, $match, $aggregate);
+			$this->_buildQuery($this->_require, $matches, $aggregate);
+			
+			$hasMatches = !empty($matches);
+			$match = $hasMatches ? [ '$and' => $matches ] : [];
 			
 			if (!empty($aggregate)) {
-				if (!empty($match)) array_unshift($aggregate, [ '$match' => [ '$and' => $match ]]);
+				if ($hasMatches) array_unshift($aggregate, [ '$match' => $match]);
 				
 				$this->_query = $aggregate;
 				$this->_queryMode = self::MODE_AGGREGATION;
 			}
 			else {
-				$this->_query = [ '$and' => $match ];
+				$this->_query = $match;
 				$this->_queryMode = self::MODE_MATCHING;
 			}
 		}
