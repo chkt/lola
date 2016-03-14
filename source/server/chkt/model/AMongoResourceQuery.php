@@ -32,12 +32,6 @@ implements IResourceQuery
 	}
 	
 	
-	protected function _matchGroup(Array $conditions, $op = '$and') {
-		if (count($conditions) === 1) return $conditions[0];
-		else return [ $op => $conditions ];
-	}
-	
-	
 	abstract protected function _buildQuery(Array $require, Array& $match, Array& $aggregate);
 	
 	
@@ -62,13 +56,16 @@ implements IResourceQuery
 	
 	public function getQuery() {
 		if (is_null($this->_query)) {
-			$match = [];
+			$matches = [];
 			$aggregate = [];
 			
-			$this->_buildQuery($this->_require, $match, $aggregate);
+			$this->_buildQuery($this->_require, $matches, $aggregate);
+			
+			$hasMatches = !empty($matches);
+			$match = $hasMatches ? [ '$and' => $matches ] : [];
 			
 			if (!empty($aggregate)) {
-				if (!empty($match)) array_unshift($aggregate, [ '$match' => $match ]);
+				if ($hasMatches) array_unshift($aggregate, [ '$match' => $match]);
 				
 				$this->_query = $aggregate;
 				$this->_queryMode = self::MODE_AGGREGATION;
