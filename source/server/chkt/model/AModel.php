@@ -8,7 +8,7 @@ use chkt\model\IResource;
 
 abstract class AModel {
 	
-	const VERSION = '0.1.3';
+	const VERSION = '0.1.5';
 	
 	
 		
@@ -30,6 +30,18 @@ abstract class AModel {
 		if (is_null($this->_data)) $this->_data = $this->_resource->getData();
 		
 		return $this->_data;
+	}
+	
+	public function _setResourceProperty($name, $value) {
+		if (!is_string($name) || empty($name)) throw new \ErrorException();
+		
+		$data = $this->_data;
+		
+		if ($data[$name] === $value) return $this;
+		
+		$data[$name] = $value;
+		
+		return $this->_updateResource($data);
 	}
 		
 	protected function _updateResource(Array $data) {
