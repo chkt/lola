@@ -9,6 +9,11 @@ use chkt\engine\NoPathException;
 class StateEngine 
 {
 	
+	const VERSION = '0.1.5';
+	
+	
+	
+	
 	private $_states = null;
 	
 	
