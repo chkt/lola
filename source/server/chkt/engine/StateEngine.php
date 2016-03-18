@@ -2,6 +2,8 @@
 
 namespace chkt\engine;
 
+use chkt\engine\NoPathException;
+
 
 
 class StateEngine 
@@ -81,7 +83,7 @@ class StateEngine
 			}
 		}
 		
-		throw new \ErrorException();
+		throw new NoPathException();
 	}
 	
 	
