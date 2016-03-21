@@ -6,7 +6,7 @@ namespace chkt\type;
 
 class NamedQueue {
 	
-	const VERSION = '0.1.3';
+	const VERSION = '0.1.5';
 	
 	
 	
@@ -207,6 +207,62 @@ class NamedQueue {
 		
 		array_splice($this->_keys, $index, 1, $name);
 		array_splice($this->_cbs, $index, 1, $cb);
+		
+		return $this;
+	}
+	
+	
+	public function merge(...$queues) {
+		$keys = $this->_keys;
+		$cbs = $this->_cbs;
+		
+		foreach ($queues as $queue) {
+			if (!($queue instanceof NamedQueue)) throw new \ErrorException();
+			
+			$qKeys = $queue->_keys;
+			$qCbs = $queue->_cbs;
+			
+			foreach ($qKeys as $qIndex => $name) {
+				$cb = $qCbs[$qIndex];
+				
+				$index = array_search($name, $keys);
+				
+				if ($index === false) {
+					$keys[] = $name;
+					$cbs[] = $cb;
+				}
+				else {
+					array_splice($keys, $index, 1, $name);
+					array_splice($cbs, $index, 1, $cb);
+				}
+			}
+		}
+		
+		$this->_keys = $keys;
+		$this->_cbs = $cbs;
+		
+		return $this;
+	}
+	
+	public function filter(Array $names) {
+		$refKeys = $this->_keys;
+		$refCbs = $this->_cbs;
+		$keys = [];
+		$cbs = [];
+		
+		foreach ($names as $key => $name) {
+			if (is_int($key)) $key = $name;
+			
+			$index = array_search($key, $refKeys);
+			
+			if ($index === false) throw new \ErrorException();
+			
+			$keys[] = $name;
+			$cbs[] = $refCbs[$index];
+		}
+		
+		$this->_keys = $keys;
+		$this->_cbs = $cbs;
 		
 		return $this;
 	}
