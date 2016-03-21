@@ -58,7 +58,7 @@ final class ProxyResourceDriver
 		return $this;
 	}
 	
-	public function disassociate(AModel& $model, ProxyResource& $resource) {
+	public function disassociate(AModel& $model) {
 		$key = array_search($model, $this->_models);
 		
 		if ($key === false) throw new \ErrorException();
