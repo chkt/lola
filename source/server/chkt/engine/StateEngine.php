@@ -27,6 +27,36 @@ class StateEngine
 	}
 	
 	
+	public function getWeightOfState($state) {
+		if (!is_string($state) || empty($state)) throw new \ErrorException();
+		
+		$states =& $this->_states;
+		
+		return array_key_exists($state, $states) && array_key_exists('weight', $states[$state]) ? $states[$state]['weight'] : -1;
+	}
+	
+	
+	public function getMappedNameOfState($state) {
+		if (!is_string($state) || empty($state)) throw new \ErrorException();
+		
+		$states =& $this->_states;
+		
+		return array_key_exists($state, $states) && array_key_exists('map', $states[$state]) ? $states[$state]['map'] : '';
+	}
+	
+	public function getStateOfMappedName($name) {
+		if (!is_string($name) || empty($name)) throw new \ErrorException();
+		
+		$states =& $this->_states;
+		
+		foreach ($states as $state => $data) {
+			if (array_key_exists('map', $data) && $data['map'] === $name) return $state;
+		}
+		
+		return '';
+	}
+	
+	
 	private function _buildPath(Array $origin, $target) {		
 		while (array_key_exists($target, $origin)) {
 			$res[] = $target;
@@ -77,7 +107,7 @@ class StateEngine
 			foreach ($states[$current]['transition'] as $name => $action) {
 				if (array_key_exists($name, $closedSet)) continue;
 				
-				$score = $gScore[$current] + abs($states[$name]['weight'] - $states[$current]['weight']);
+				$score = $gScore[$current] + abs($states[$name]['weight'] - $states[$current]['weight']) + 0.1;
 				
 				if (!array_key_exists($name, $openSet)) $openSet[] = $name;
 				else if ($score >= $gScore[$name]) continue;
@@ -107,14 +137,14 @@ class StateEngine
 		$states = $this->_states;
 		$current = $states[$model->getState()];
 		$model->setState($state);
-			
+		
 		if (array_key_exists('exit', $current)) $this->enter($current['exit'], $model);
 
 		$action = $current['transition'][$state];
 
 		if (!empty($action)) $this->enter($action, $model);
 
-		$next = $states[$action];
+		$next = $states[$state];
 
 		if (array_key_exists('enter', $next)) $this->enter($next['enter'], $model);
 		
