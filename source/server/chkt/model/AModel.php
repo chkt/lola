@@ -32,7 +32,7 @@ abstract class AModel {
 		return $this->_data;
 	}
 	
-	public function _setResourceProperty($name, $value) {
+	protected function _setResourceProperty($name, $value) {
 		if (!is_string($name) || empty($name)) throw new \ErrorException();
 		
 		$data = $this->_useResource();
