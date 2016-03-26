@@ -28,7 +28,7 @@ class Injector {
 	}
 	
 	
-	private function _resolveFactory(Array $factory) {
+	private function& _resolveFactory(Array $factory) {
 		if (array_key_exists('factory', $factory)) {
 			$config = array_key_exists('config', $factory) ? $factory['config'] : [];
 			
@@ -45,8 +45,9 @@ class Injector {
 		}
 		else if (array_key_exists('function', $factory)) {
 			$deps = array_key_exists('dependencies', $factory) ? $factory['dependencies'] : [];
+			$res = $this->process($factory['function'], $deps);
 			
-			return $this->process($factory['function'], $deps);
+			return $res;
 		}
 		else throw new \ErrorException('INJ: malformed factory');
 	}
