@@ -9,16 +9,22 @@ use chkt\engine\NoPathException;
 class StateEngine 
 {
 	
-	const VERSION = '0.1.5';
+	const VERSION = '0.1.6';
 	
 	
 	
 	
 	private $_states = null;
 	
+	private $_defaultCost = 1.0;
 	
-	public function __construct(Array $states) {
+	
+	public function __construct(Array $states, $defaultPathCost = 1.0) {
+		if (!is_float($defaultPathCost) || $defaultPathCost < 1.0) throw new \ErrorException();
+		
 		$this->_states = $states;
+		
+		$this->_defaultCost = $defaultPathCost;
 	}
 	
 	
@@ -107,7 +113,8 @@ class StateEngine
 			foreach ($states[$current]['transition'] as $name => $action) {
 				if (array_key_exists($name, $closedSet)) continue;
 				
-				$score = $gScore[$current] + abs($states[$name]['weight'] - $states[$current]['weight']) + 0.1;
+				$cost = array_key_exists('cost', $states[$name]) && $states[$name]['cost'] >= 1.0 ? $states[$name]['cost'] : $this->_defaultCost;
+				$score = $gScore[$current] + abs($states[$name]['weight'] - $states[$current]['weight']) * $cost;
 				
 				if (!array_key_exists($name, $openSet)) $openSet[] = $name;
 				else if ($score >= $gScore[$name]) continue;
