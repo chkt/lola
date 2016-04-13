@@ -39,9 +39,11 @@ class Injector {
 			
 			if (!($ins instanceof IDependencyFactory)) throw new \ErrorException('INJ: not a factory');
 			
-			return $ins
+			$res = $ins
 				->setConfig($config)
 				->produce();
+			
+			return $res;
 		}
 		else if (array_key_exists('function', $factory)) {
 			$deps = array_key_exists('dependencies', $factory) ? $factory['dependencies'] : [];
