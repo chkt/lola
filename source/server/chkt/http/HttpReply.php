@@ -22,6 +22,9 @@ class HttpReply {
 	const CODE_NOT_VALID = 400;
 	const CODE_NOT_AUTHENTICATED = 403;
 	
+	const CODE_ERROR = 500;
+	const CODE_UNAVAILABLE = 503;
+	
 	const MIME_PLAIN = 'text/plain';
 	const MIME_HTML  = 'text/html';
 	const MIME_XML   = 'application/xml';

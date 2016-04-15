@@ -4,6 +4,8 @@ namespace chkt\model;
 
 use chkt\model\IResource;
 
+use chkt\model\ProxyResourceDriver;
+
 
 
 class ProxyResource
@@ -21,19 +23,15 @@ implements IResource
 	protected $_dirty = false;
 	protected $_life = 0;
 	
-	protected $_create = null;
-	protected $_update = null;
-	protected $_delete = null;
+	protected $_driver = null;
 	
 	
-	public function __construct(Callable $create = null, Callable $update = null, Callable $delete = null) {		
+	public function __construct(ProxyResourceDriver& $driver) {		
 		$this->_data = null;
 		$this->_dirty = false;
 		$this->_life = self::STATE_NEW;
 		
-		$this->_create = $create;
-		$this->_update = $update;
-		$this->_delete = $delete;
+		$this->_driver =& $driver;
 	}
 	
 	
@@ -67,7 +65,7 @@ implements IResource
 		$this->_life = self::STATE_LIVE;
 		$this->_dirty = false;
 		
-		if (!is_null($this->_create)) call_user_func($this->_create, $data);
+		$this->_driver->dispatch($this, ProxyResourceDriver::ACTION_CREATE);
 		
 		return $this;
 	}
@@ -77,24 +75,24 @@ implements IResource
 	}
 	
 	public function update() {
-		if ($this->_life !== self::STATE_LIVE || is_null($this->_update)) throw new \ErrorException();
+		if ($this->_life !== self::STATE_LIVE) throw new \ErrorException();
 		
 		if (!$this->_dirty) return $this;
 		
-		call_user_func($this->_update, $this->_data);
-		
 		$this->_dirty = false;
+		
+		$this->_driver->dispatch($this, ProxyResourceDriver::ACTION_UPDATE);
 		
 		return $this;
 	}
 	
 	public function delete() {
-		if ($this->_life !== self::STATE_LIVE || is_null($this->_delete)) throw new \ErrorException();
-		
-		call_user_func($this->_delete, $this->_data);
-		
+		if ($this->_life !== self::STATE_LIVE) throw new \ErrorException();
+				
 		$this->_dirty = false;
 		$this->_life = self::STATE_DEAD;
+		
+		$this->_driver->dispatch($this, ProxyResourceDriver::ACTION_DELETE);
 		
 		return $this;
 	}

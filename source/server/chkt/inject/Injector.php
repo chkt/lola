@@ -8,7 +8,7 @@ use chkt\prov\ProviderProvider;
 
 class Injector {
 	
-	const VERSION = '0.1.1';
+	const VERSION = '0.1.4';
 	
 	const TYPE_INJECTOR = 'injector';
 	const TYPE_LOCATOR = 'locator';
@@ -25,6 +25,33 @@ class Injector {
 	public function __construct(ProviderProvider& $locator, Array $resolve = []) {		
 		$this->_locator =& $locator;
 		$this->_resolve = $resolve;
+	}
+	
+	
+	private function& _resolveFactory(Array $factory) {
+		if (array_key_exists('factory', $factory)) {
+			$config = array_key_exists('config', $factory) ? $factory['config'] : [];
+			
+			$ins =& $this
+				->_locator
+				->using('class')
+				->using($factory['factory']);
+			
+			if (!($ins instanceof IDependencyFactory)) throw new \ErrorException('INJ: not a factory');
+			
+			$res = $ins
+				->setConfig($config)
+				->produce();
+			
+			return $res;
+		}
+		else if (array_key_exists('function', $factory)) {
+			$deps = array_key_exists('dependencies', $factory) ? $factory['dependencies'] : [];
+			$res = $this->process($factory['function'], $deps);
+			
+			return $res;
+		}
+		else throw new \ErrorException('INJ: malformed factory');
 	}
 	
 	
@@ -47,12 +74,7 @@ class Injector {
 					if (!array_key_exists('id', $item)) return $this->_locator->using('service');
 					else return $this->_locator->using('service')->using($item['id']);
 					
-				case self::TYPE_FACTORY :
-					if (!array_key_exists('dependencies', $item)) $res =  $this->process($item['function']);
-					else $res =  $this->process($item['function'], $item['dependencies']);
-					
-					return $res;
-					
+				case self::TYPE_FACTORY : return $this->_resolveFactory($item);
 				case self::TYPE_ARGUMENT :
 					return $item['data'];
 					

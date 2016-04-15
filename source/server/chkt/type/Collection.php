@@ -6,7 +6,7 @@ namespace chkt\type;
 
 class Collection {
 	
-	const VERSION = '0.1.0';
+	const VERSION = '0.1.6';
 	
 	
 	
@@ -83,6 +83,18 @@ class Collection {
 		if (!is_string($name) || empty($name)) throw new \ErrorException();
 		
 		return array_key_exists($name, $this->_items) ? $this->_items[$name] : null;
+	}
+	
+	/**
+	 * Returns a reference to item $name
+	 * @param string $name
+	 * @return mixed
+	 * @throws \ErrorException if $name is not a nonempty string
+	 */
+	public function& useItem($name) {
+		if (!is_string($name) || empty($name)) throw new \ErrorException();
+		
+		return array_key_exists($name, $this->_items) ? $this->_items[$name] : ($null = null);
 	}
 	
 	/**
