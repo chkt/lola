@@ -78,7 +78,7 @@ class StateEngine
 		$score = PHP_INT_MAX;
 		
 		foreach ($openSet as $index => $item) {
-			if ($fScore[$name] >= $score) continue;
+			if ($fScore[$item] >= $score) continue;
 			
 			$name = $item;
 			$pos = $index;
@@ -171,14 +171,19 @@ class StateEngine
 		$path = $this->_getPath($model->getState(), $next);
 		$model->deferUpdates();
 		
-		for ($i = 0, $state = $path[0]; !is_null($state); $state = $path[++$i]) {
+		for ($i = 0, $l = count($path); $i < $l; $i += 1) {
+			$state = $path[$i];
+			
 			$this->_transition($model, $state);
 			
 			if (
-				is_null($path[$i + 1]) &&
+				$i === $l - 1 &&
 				array_key_exists('transition', $current) && count($current['transition'] !== 1) &&
 				array_key_exists('forward', $current) && $current['forward'] === true
-			) $path[] = array_keys($current['transition'])[0];
+			) {
+				$path[] = array_keys($current['transition'])[0];
+				$l += 1;
+			}
 		}		
 		
 		$model->update();
