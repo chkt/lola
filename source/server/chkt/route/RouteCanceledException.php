@@ -1,6 +1,6 @@
 <?php
 
-namespace chkt\route;
+namespace lola\route;
 
 
 

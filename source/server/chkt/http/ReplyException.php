@@ -1,8 +1,8 @@
 <?php
 
-namespace chkt\http;
+namespace lola\http;
 
-use chkt\http\HttpReply;
+use lola\http\HttpReply;
 
 
 

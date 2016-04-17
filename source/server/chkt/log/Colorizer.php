@@ -1,6 +1,6 @@
 <?php
 
-namespace chkt\log;
+namespace lola\log;
 
 
 

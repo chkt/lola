@@ -1,8 +1,8 @@
 <?php
 
-namespace chkt\model;
+namespace lola\model;
 
-use \chkt\type\TInjectable;
+use \lola\type\TInjectable;
 
 
 

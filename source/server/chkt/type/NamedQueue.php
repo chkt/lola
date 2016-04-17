@@ -1,6 +1,6 @@
 <?php
 
-namespace chkt\type;
+namespace lola\type;
 
 
 

@@ -1,8 +1,8 @@
 <?php
 
-namespace chkt\prov;
+namespace lola\prov;
 
-use chkt\prov\SimpleProviderResolver;
+use lola\prov\SimpleProviderResolver;
 
 
 

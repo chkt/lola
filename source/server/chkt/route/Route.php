@@ -1,12 +1,12 @@
 <?php
 
-namespace chkt\route;
+namespace lola\route;
 
-use chkt\inject\IInjectable;
-use chkt\prov\ProviderProvider;
+use lola\inject\IInjectable;
+use lola\prov\ProviderProvider;
 
-use chkt\type\Collection;
-use chkt\type\Stack;
+use lola\type\Collection;
+use lola\type\Stack;
 
 
 

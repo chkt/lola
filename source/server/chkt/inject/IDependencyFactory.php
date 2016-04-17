@@ -1,8 +1,8 @@
 <?php
 
-namespace chkt\inject;
+namespace lola\inject;
 
-use chkt\inject\IInjectable;
+use lola\inject\IInjectable;
 
 
 

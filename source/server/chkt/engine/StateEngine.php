@@ -1,8 +1,8 @@
 <?php
 
-namespace chkt\engine;
+namespace lola\engine;
 
-use chkt\engine\NoPathException;
+use lola\engine\NoPathException;
 
 
 

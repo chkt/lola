@@ -1,8 +1,8 @@
 <?php
 
-namespace chkt\model;
+namespace lola\model;
 
-use chkt\model\IResourceCollection;
+use lola\model\IResourceCollection;
 
 
 

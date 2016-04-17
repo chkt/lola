@@ -1,11 +1,11 @@
 <?php
 
-namespace chkt\app;
+namespace lola\app;
 
-use \chkt\app\TAppBase;
-use \chkt\app\TAppFile;
-use \chkt\inject\TAppInjector;
-use \chkt\prov\TAppLocator;
+use \lola\app\TAppBase;
+use \lola\app\TAppFile;
+use \lola\inject\TAppInjector;
+use \lola\prov\TAppLocator;
 
 
 

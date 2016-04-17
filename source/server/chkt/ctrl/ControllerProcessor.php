@@ -1,8 +1,8 @@
 <?php
 
-namespace chkt\ctrl;
+namespace lola\ctrl;
 
-use chkt\type\NamedQueue;
+use lola\type\NamedQueue;
 
 
 

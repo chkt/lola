@@ -1,8 +1,8 @@
 <?php
 
-namespace chkt\app;
+namespace lola\app;
 
-use \chkt\prov\MongoDBProvider;
+use \lola\prov\MongoDBProvider;
 
 
 

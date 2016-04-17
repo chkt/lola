@@ -1,8 +1,8 @@
 <?php
 
-namespace chkt\model;
+namespace lola\model;
 
-use chkt\model\IResource;
+use lola\model\IResource;
 
 use MongoDB\Collection;
 use MongoDB\BSON\ObjectID;

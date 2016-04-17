@@ -1,9 +1,9 @@
 <?php
 
-namespace chkt\http;
+namespace lola\http;
 
-use chkt\http\HttpReply;
-use chkt\http\ReplyException;
+use lola\http\HttpReply;
+use lola\http\ReplyException;
 
 
 

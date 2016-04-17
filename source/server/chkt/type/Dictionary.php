@@ -1,8 +1,8 @@
 <?php
 
-namespace chkt\type;
+namespace lola\type;
 
-use chkt\type\TDictionary;
+use lola\type\TDictionary;
 
 
 

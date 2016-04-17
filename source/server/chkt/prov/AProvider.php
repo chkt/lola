@@ -1,9 +1,9 @@
 <?php
 
-namespace chkt\prov;
+namespace lola\prov;
 
-use \chkt\prov\IProviderResolver;
-use \chkt\prov\SimpleProviderResolver;
+use \lola\prov\IProviderResolver;
+use \lola\prov\SimpleProviderResolver;
 
 
 

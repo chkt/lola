@@ -1,11 +1,11 @@
 <?php
 
-namespace chkt\route;
+namespace lola\route;
 
-use chkt\inject\IInjectable;
-use chkt\inject\Injector;
+use lola\inject\IInjectable;
+use lola\inject\Injector;
 
-use chkt\route\RouteCanceledException;
+use lola\route\RouteCanceledException;
 
 
 
@@ -415,7 +415,7 @@ class Router implements IInjectable {
 	 * @return Router
 	 */
 	public function defineAndEnter($ctrl, $action, $view, array $params = [], array $data = []) {
-		$route = $this->_injector->produce('\\chkt\\route\\Route', [
+		$route = $this->_injector->produce('\\lola\\route\\Route', [
 			'ctrl' => $ctrl,
 			'action' => $action,
 			'view' => $view,
@@ -447,7 +447,7 @@ class Router implements IInjectable {
 		$index = $list[0];
 		$path = self::_expandPath($this->_getSegs($index), $params);
 		
-		return $this->_injector->produce('\\chkt\\route\\Route', [
+		return $this->_injector->produce('\\lola\\route\\Route', [
 			'params' => $params,
 			'data' => $this->_getHash($index, $path),
 			'ctrl' => $this->_ctrl[$index],
@@ -473,7 +473,7 @@ class Router implements IInjectable {
 		foreach ($list as $index) {
 			$path = self::_expandPath($this->_getSegs($index), $params);
 			
-			$res[] = $this->_injector->produce('\\chkt\\route\\Route', [
+			$res[] = $this->_injector->produce('\\lola\\route\\Route', [
 				'params' => $params,
 				'data' => $this->_getHash($index, $path),
 				'ctrl' => $this->_ctrl[$index],
@@ -509,7 +509,7 @@ class Router implements IInjectable {
 			
 			if (!self::_matchRoute($rseg, $pseg, $rparam)) continue;
 			
-			return $this->_injector->produce('\\chkt\\route\\Route', [
+			return $this->_injector->produce('\\lola\\route\\Route', [
 				'params' => array_merge($param, $rparam),
 				'data' => $this->_getHash($r, $path),
 				'ctrl' => $this->_ctrl[$r],

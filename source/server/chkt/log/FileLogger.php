@@ -1,15 +1,15 @@
 <?php
 
-namespace chkt\log;
+namespace lola\log;
 
-use chkt\inject\IInjectable;
-use chkt\log\ILogger;
+use lola\inject\IInjectable;
+use lola\log\ILogger;
 
-use chkt\log\Colorizer;
+use lola\log\Colorizer;
 
-use chkt\ctrl\AReplyController;
-use chkt\http\HttpRequest;
-use chkt\http\HttpReply;
+use lola\ctrl\AReplyController;
+use lola\http\HttpRequest;
+use lola\http\HttpReply;
 
 
 

@@ -1,11 +1,11 @@
 <?php
 
-namespace chkt\ctrl;
+namespace lola\ctrl;
 
-use chkt\inject\IInjectable;
+use lola\inject\IInjectable;
 
-use chkt\route\Route;
-use chkt\route\RouteCanceledException;
+use lola\route\Route;
+use lola\route\RouteCanceledException;
 
 
 

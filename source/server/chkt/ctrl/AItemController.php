@@ -1,13 +1,13 @@
 <?php
 
-namespace chkt\ctrl;
+namespace lola\ctrl;
 
-use chkt\ctrl\AReplyController;
+use lola\ctrl\AReplyController;
 
-use chkt\route\Route;
+use lola\route\Route;
 
-use \chkt\http\HttpRequest;
-use \chkt\http\HttpReply;
+use \lola\http\HttpRequest;
+use \lola\http\HttpReply;
 
 
 

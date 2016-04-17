@@ -1,8 +1,8 @@
 <?php
 
-namespace chkt\input;
+namespace lola\input;
 
-use chkt\input\ValidationException;
+use lola\input\ValidationException;
 
 
 

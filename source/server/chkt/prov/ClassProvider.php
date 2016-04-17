@@ -1,10 +1,10 @@
 <?php
 
-namespace chkt\prov;
+namespace lola\prov;
 
-use chkt\prov\AProvider;
-use chkt\inject\Injector;
-use chkt\inject\IInjectable;
+use lola\prov\AProvider;
+use lola\inject\Injector;
+use lola\inject\IInjectable;
 
 
 

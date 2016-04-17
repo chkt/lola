@@ -1,6 +1,6 @@
 <?php
 
-namespace chkt\app;
+namespace lola\app;
 
 
 

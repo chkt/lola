@@ -1,12 +1,12 @@
 <?php
 
-namespace chkt\inject;
+namespace lola\inject;
 
-use chkt\inject\Injector;
+use lola\inject\Injector;
 
 //REVIEW due to a bug in PHP we cannot use the same trait multiple times
 //Until the fix we have to magically assume the existance of methods
-//use chkt\prov\TAppLocator;
+//use lola\prov\TAppLocator;
 
 
 

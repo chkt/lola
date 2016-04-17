@@ -1,11 +1,11 @@
 <?php
 
-namespace chkt\app;
+namespace lola\app;
 
 //REVIEW due to a bug in PHP we cannot use the same trait multiple times
 //Until the fix we have to magically assume the existance of methods
-//use \chkt\app\TAppBase;
-//use \chkt\app\TAppFile;
+//use \lola\app\TAppBase;
+//use \lola\app\TAppFile;
 
 
 

@@ -1,11 +1,11 @@
 <?php
 
-namespace chkt\model;
+namespace lola\model;
 
-use chkt\inject\IDependencyFactory;
-use chkt\inject\Injector;
+use lola\inject\IDependencyFactory;
+use lola\inject\Injector;
 
-use chkt\model\IResource;
+use lola\model\IResource;
 
 
 

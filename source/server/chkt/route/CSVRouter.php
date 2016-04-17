@@ -1,9 +1,9 @@
 <?php
 
-namespace chkt\route;
+namespace lola\route;
 
-use chkt\route\Router;
-use chkt\inject\Injector;
+use lola\route\Router;
+use lola\inject\Injector;
 
 
 

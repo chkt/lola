@@ -1,6 +1,6 @@
 <?php
 
-namespace chkt\prov;
+namespace lola\prov;
 
 
 

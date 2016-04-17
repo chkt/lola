@@ -1,10 +1,10 @@
 <?php
 
-namespace chkt\route;
+namespace lola\route;
 
 //REVIEW due to a bug in PHP we cannot use the same trait multiple times
 //Until the fix we have to magically assume the existance of methods
-//use chkt\inject\TAppInjector;
+//use lola\inject\TAppInjector;
 
 
 
@@ -17,7 +17,7 @@ trait TAppRouter {
 	
 	
 	public function& createRouter($path) {
-		$this->_tRouter = $this->useInjector()->produce('\\chkt\\route\\CSVRouter', [
+		$this->_tRouter = $this->useInjector()->produce('\\lola\\route\\CSVRouter', [
 			'path' => $path
 		]);
 		

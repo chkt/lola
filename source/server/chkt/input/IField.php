@@ -1,6 +1,6 @@
 <?php
 
-namespace chkt\input;
+namespace lola\input;
 
 
 

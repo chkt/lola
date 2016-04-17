@@ -1,6 +1,6 @@
 <?php
 
-namespace chkt\inject;
+namespace lola\inject;
 
 
 

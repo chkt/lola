@@ -1,9 +1,9 @@
 <?php
 
-namespace chkt\input;
+namespace lola\input;
 
-use chkt\input\IField;
-use chkt\input\Field;
+use lola\input\IField;
+use lola\input\Field;
 
 
 

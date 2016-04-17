@@ -1,14 +1,14 @@
 <?php
 
-namespace chkt\ctrl;
+namespace lola\ctrl;
 
-use chkt\ctrl\AController;
-use chkt\route\Route;
+use lola\ctrl\AController;
+use lola\route\Route;
 
-use chkt\http\HttpRequest;
-use chkt\http\HttpReply;
+use lola\http\HttpRequest;
+use lola\http\HttpReply;
 
-use chkt\ctrl\ControllerProcessor;
+use lola\ctrl\ControllerProcessor;
 
 
 

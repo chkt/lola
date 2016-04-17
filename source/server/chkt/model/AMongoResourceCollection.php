@@ -1,13 +1,13 @@
 <?php
 
-namespace chkt\model;
+namespace lola\model;
 
-use chkt\model\IResourceCollection;
-use chkt\model\AMongoResource;
+use lola\model\IResourceCollection;
+use lola\model\AMongoResource;
 
 use MongoDB\Collection;
-use chkt\model\IResourceQuery;
-use chkt\model\AMongoResourceQuery;
+use lola\model\IResourceQuery;
+use lola\model\AMongoResourceQuery;
 
 
 

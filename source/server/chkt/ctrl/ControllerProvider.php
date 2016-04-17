@@ -1,13 +1,13 @@
 <?php
 
-namespace chkt\ctrl;
+namespace lola\ctrl;
 
-use chkt\prov\AProvider;
+use lola\prov\AProvider;
 
-use chkt\inject\Injector;
-use chkt\inject\IInjectable;
+use lola\inject\Injector;
+use lola\inject\IInjectable;
 
-use chkt\prov\StackProviderResolver;
+use lola\prov\StackProviderResolver;
 
 
 

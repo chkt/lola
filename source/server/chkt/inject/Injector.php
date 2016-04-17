@@ -1,8 +1,8 @@
 <?php
 
-namespace chkt\inject;
+namespace lola\inject;
 
-use chkt\prov\ProviderProvider;
+use lola\prov\ProviderProvider;
 
 
 
@@ -92,7 +92,7 @@ class Injector {
 		
 		$class = new \ReflectionClass($className);
 		
-		if (!$class->implementsInterface('\\chkt\\inject\\IInjectable')) throw new \ErrorException();
+		if (!$class->implementsInterface('\\lola\\inject\\IInjectable')) throw new \ErrorException();
 		
 		$deps = call_user_func([$className, 'getDependencyConfig'], $params);
 		$args = $this->_resolveDependencies($deps);

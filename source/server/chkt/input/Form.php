@@ -1,12 +1,12 @@
 <?php
 
-namespace chkt\input;
+namespace lola\input;
 
-use chkt\inject\IInjectable;
+use lola\inject\IInjectable;
 
-use chkt\input\Processor;
+use lola\input\Processor;
 
-use chkt\http\HttpRequest;
+use lola\http\HttpRequest;
 
 
 

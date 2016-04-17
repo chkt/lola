@@ -1,10 +1,10 @@
 <?php
 
-namespace chkt\prov;
+namespace lola\prov;
 
-use chkt\prov\AProvider;
+use lola\prov\AProvider;
 
-use chkt\app\IApp;
+use lola\app\IApp;
 
 
 

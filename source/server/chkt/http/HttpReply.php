@@ -1,9 +1,9 @@
 <?php
 
-namespace chkt\http;
+namespace lola\http;
 
-use chkt\type\Dictionary;
-use chkt\http\Cookie;
+use lola\type\Dictionary;
+use lola\http\Cookie;
 
 
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace chkt\http;
+namespace lola\http;
 
 
 
