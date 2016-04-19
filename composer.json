@@ -4,7 +4,13 @@
 	"version" : "0.1.6",
 	"license" : "MIT",
 	
-	"keywords" : "Framework, MVC, Services, Providers, Dependency Injection",
+	"keywords" : [
+		"Framework",
+		"MVC",
+		"Service",
+		"Provider",
+		"Dependency Injection"
+	],
 	
 	"authors" : [{
 		"name" : "Christoph Kettelhoit",
