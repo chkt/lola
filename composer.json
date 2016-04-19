@@ -19,7 +19,7 @@
 		"role" : "Developer"
 	}],
 
-	"namespace" : {
+	"autoload" : {
 		"psr-4" : {
 			"lola\\" : "source/"
 		}
