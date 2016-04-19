@@ -1,0 +1,21 @@
+{
+	"name" : "chkt/lola",
+	"description" : "Micro MVC Framework, Services, Providers, Dependency Injection",
+	"version" : "0.1.6",
+	"license" : "MIT",
+	
+	"keywords" : "Framework, MVC, Services, Providers, Dependency Injection",
+	
+	"authors" : [{
+		"name" : "Christoph Kettelhoit",
+		"email" : "ck@christoph-kettelhoit.de",
+		"homepage" : "christoph-kettelhoit.de",
+		"role" : "Developer"
+	}],
+
+	"namespace" : {
+		"psr-4" : {
+			"lola\\" : "source/"
+		}
+	}
+}
