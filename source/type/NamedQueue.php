@@ -6,7 +6,7 @@ namespace lola\type;
 
 class NamedQueue {
 	
-	const VERSION = '0.1.5';
+	const VERSION = '0.1.7';
 	
 	
 	
@@ -41,7 +41,7 @@ class NamedQueue {
 	public function has($name) {
 		if (!is_string($name) || empty($name)) throw new \ErrorException();
 		
-		return in_array($this->_keys, $name);
+		return in_array($name, $this->_keys);
 	}
 	
 	public function get($name) {
