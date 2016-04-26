@@ -178,7 +178,7 @@ class StateEngine
 			
 			if (
 				$i === $l - 1 &&
-				array_key_exists('transition', $current) && count($current['transition'] !== 1) &&
+				array_key_exists('transition', $current) && count($current['transition']) === 1 &&
 				array_key_exists('forward', $current) && $current['forward'] === true
 			) {
 				$path[] = array_keys($current['transition'])[0];
