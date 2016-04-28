@@ -22,13 +22,13 @@ extends AModel
 	protected function _updateResource(array $data) {
 		if (!is_null($this->_interceptor)) $this->_update->process($data);
 		
-		parent::_updateResource($data);		
+		return parent::_updateResource($data);		
 	}
 	
 	protected function _deleteResource() {
 		if (!is_null($this->_interceptor)) $this->_delete->process();
 		
-		parent::_deleteResource();
+		return parent::_deleteResource();
 	}
 	
 	
