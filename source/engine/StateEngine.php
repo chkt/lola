@@ -165,23 +165,24 @@ class StateEngine
 			!$this->isValidState($next)
 		) throw new \ErrorException();
 		
-		$states = $this->_states;
-		$current = $states[ $model->getState() ];
-		
+		$states = $this->_states;		
 		$path = $this->_getPath($model->getState(), $next);
+		
 		$model->deferUpdates();
 		
 		for ($i = 0, $l = count($path); $i < $l; $i += 1) {
-			$state = $path[$i];
+			$stateId = $path[$i];
 			
-			$this->_transition($model, $state);
+			$this->_transition($model, $stateId);
+			
+			$state = $states[ $stateId ]; 
 			
 			if (
 				$i === $l - 1 &&
-				array_key_exists('transition', $current) && count($current['transition']) === 1 &&
-				array_key_exists('forward', $current) && $current['forward'] === true
+				array_key_exists('transition', $state) && count($state['transition']) === 1 &&
+				array_key_exists('forward', $state) && $state['forward'] === true
 			) {
-				$path[] = array_keys($current['transition'])[0];
+				$path[] = array_keys($state['transition'])[0];
 				$l += 1;
 			}
 		}		
