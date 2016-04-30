@@ -125,7 +125,7 @@ class StateEngine
 			}
 		}
 		
-		throw new NoPathException();
+		throw new NoPathException($source, $target);
 	}
 	
 	
@@ -142,7 +142,7 @@ class StateEngine
 	
 	private function _transition(AStateEngineModel& $model, $state) {
 		$states = $this->_states;
-		$current = $states[$model->getState()];
+		$current = $states[ $model->getState() ];
 		$model->setState($state);
 		
 		if (array_key_exists('exit', $current)) $this->enter($current['exit'], $model);
@@ -150,7 +150,7 @@ class StateEngine
 		$action = $current['transition'][$state];
 
 		if (!empty($action)) $this->enter($action, $model);
-
+		
 		$next = $states[$state];
 
 		if (array_key_exists('enter', $next)) $this->enter($next['enter'], $model);
