@@ -94,7 +94,10 @@ class Collection {
 	public function& useItem($name) {
 		if (!is_string($name) || empty($name)) throw new \ErrorException();
 		
-		return array_key_exists($name, $this->_items) ? $this->_items[$name] : ($null = null);
+		if (array_key_exists($name, $this->_items)) $res =& $this->_items[$name];
+		else $res = null;
+		
+		return $res;
 	}
 	
 	/**
