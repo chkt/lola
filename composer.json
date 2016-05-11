@@ -1,12 +1,14 @@
 {
 	"name" : "chkt/lola",
 	"description" : "Micro MVC Framework, Services, Providers, Dependency Injection",
-	"version" : "0.1.7",
 	"license" : "MIT",
 	
 	"keywords" : [
 		"Framework",
 		"MVC",
+		"Model",
+		"View",
+		"Controller",
 		"Service",
 		"Provider",
 		"Dependency Injection"
