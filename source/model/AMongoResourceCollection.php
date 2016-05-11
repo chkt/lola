@@ -26,7 +26,7 @@ implements IResourceCollection
 	protected $_collection = null;
 	protected $_deserialize = null;
 	protected $_sort = null;
-	protected $_factory = null;
+	protected $_driver = null;
 	
 	protected $_data = null;
 	protected $_resource = null;
@@ -38,11 +38,11 @@ implements IResourceCollection
 	protected $_life = 0;
 	
 	
-	public function __construct(Collection $collection, Callable $resourceFactory) {		
+	public function __construct(Collection $collection) {		
 		$this->_collection = $collection;
 		$this->_deserialize = AMongoResource::getDefaultDeserialization();
 		$this->_sort = AMongoResource::getDefaultSorting();
-		$this->_factory = $resourceFactory;
+		$this->_driver = new ProxyResourceDriver();
 		
 		$this->_data = null;
 		$this->_resource = null;
@@ -56,26 +56,26 @@ implements IResourceCollection
 	
 	
 	private function& _produceResource($index) {
-		$ins = call_user_func($this->_factory);
+		$ins = new ProxyResource($this->_driver);
 		
-		$ins->proxy(
-				$this->_data[$index],
-				function() use ($index) {
-					$state =& $this->_update;
-
-					if (!array_key_exists($index, $state)) {
-						$this->_updateNum += 1;
-						$state[$index] = 'update';
-					}
-				}, 
-				function () use ($index) {
-					$state =& $this->_update;
-					
-					if (!array_key_exists($index, $state)) $this->_updateNum += 1;
-					
-					$this->_update[$index] = 'delete';
-				}
-			);
+		$ins->create($this->_data[$index]);
+		
+		$this->_driver->addUpdateListener($ins, function(array $data) use ($index) {
+			$state =& $this->_update;
+			
+			if (!array_key_exists($index, $state)) $this->_updateNum += 1;
+			
+			$this->_data[$index] = $data;
+			$state[$index] = 'update';
+		});
+		
+		$this->_driver->addDeleteListener($ins, function() use ($index) {
+			$state =& $this->_update;
+			
+			if (!array_key_exists($index, $state)) $this->_updateNum += 1;
+			
+			$state[$index] = 'delete';
+		});
 			
 		return $ins;
 	}
