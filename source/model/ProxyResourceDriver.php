@@ -2,126 +2,124 @@
 
 namespace lola\model;
 
+use lola\model\ProxyResource;
+use lola\model\ProxyResourceQueue;
+
 
 
 final class ProxyResourceDriver
 {
 	
-	const VERSION = '0.1.4';
-	
-	const ACTION_CREATE = 'create';
-	const ACTION_UPDATE = 'update';
-	const ACTION_DELETE = 'delete';
+	const VERSION = '0.1.8';
 	
 	
+	private $_resource = null;
 	
-	static public function isValidAction($action) {
-		return in_array($action, [
-			self::ACTION_CREATE,
-			self::ACTION_UPDATE,
-			self::ACTION_DELETE
-		]);
-	}
-	
-	
-	
-	private $_models = null;
-	private $_resources = null;
-	
-	private $_callbacks = null;
+	private $_create = null;
+	private $_update = null;
+	private $_delete = null;
 	
 	
 	public function __construct() {
-		$this->_models = [];
-		$this->_resources = [];
+		$this->_resource = [];
 		
-		$this->_callbacks = [];
+		$this->_create = [];
+		$this->_update = [];
+		$this->_delete = [];
 	}
 	
 	
-	public function getData(AModel $model) {
-		$key = array_search($model, $this->_models);
+	public function register(
+		ProxyResource $resource,
+		ProxyResourceQueue& $create,
+		ProxyResourceQueue& $update,
+		ProxyResourceQueue& $delete
+	) {
+		$this->_resource[] = $resource;
 		
-		if ($key === false) throw new \ErrorException();
-		
-		return $this->_resources[$key]->getData();
+		$this->_create[] =& $create;
+		$this->_update[] =& $update;
+		$this->_delete[] =& $delete;
 	}
 	
 	
-	public function associate(AModel& $model, ProxyResource& $resource) {
-		if (array_search($model, $this->_models) !== false) throw new \ErrorException();
-		
-		$this->_models[] = $model;
-		$this->_resources[] = $resource;
-		$this->_callbacks[] = [];
-		
-		return $this;
+	public function hasResource(ProxyResource $resource) {
+		return array_search($resource, $this->_resource) !== false;
 	}
 	
-	public function disassociate(AModel& $model) {
-		$key = array_search($model, $this->_models);
-		
-		if ($key === false) throw new \ErrorException();
-		
-		unset($this->_models[$key]);
-		unset($this->_resources[$key]);
-		unset($this->_callbacks[$key]);
-		
-		return $this;
-	}
-	
-	
-	public function addListener(AModel& $model, $action, Callable $fn) {
-		if (!self::isValidAction($action)) throw new \ErrorException();
-		
-		$key = array_search($model, $this->_models);
-		
-		if ($key === false) throw new \ErrorException();
-		
-		$callbacks =& $this->_callbacks[$key];
-		
-		if (!array_key_exists($action, $callbacks)) $callbacks[$action] = [];
-		
-		$callbacks[$action][] = $fn;
-		
-		return $this;
-	}
-	
-	public function removeListener(AModel& $model, $action, Callable $fn) {
-		if (!self::isValidAction($action)) throw new \ErrorException();
-		
-		$key = array_search($model, $this->_models);
-		
-		if ($key === false) throw new \ErrorException();
-		
-		$callbacks =& $this->_callbacks[$key];
-		
-		if (!array_key_exists($action, $callbacks)) throw new \ErrorException();
-		
-		$index = array_search($fn, $callbacks[$key]);
+	private function _getResourceIndex(ProxyResource $resource) {
+		$index = array_search($resource, $this->_resource);
 		
 		if ($index === false) throw new \ErrorException();
 		
-		unset($callbacks[$key][$index]);
+		return $index;
+	}
+	
+	
+	public function hasCreateListener(ProxyResource $resource, callable $cb) {
+		$index = $this->_getResourceIndex($resource);
 		
-		if (empty($callbacks[$key])) unset($callbacks[$key]);
+		return $this->_create[$index]->has($cb);
+	}
+	
+	public function addCreateListener(ProxyResource $resource, callable $cb) {
+		$index = $this->_getResourceIndex($resource);
+		
+		$this->_create[$index]->append($cb);
+		
+		return $this;
+	}
+	
+	public function removeCreateListener(ProxyResource $resource, callable $cb) {
+		$index = $this->_getResourceIndex($resource);
+		
+		$this->_create[$index]->remove($cb);
 		
 		return $this;
 	}
 	
 	
-	public function dispatch(ProxyResource& $resource, $action) {
-		if (!self::isValidAction($action)) throw new \ErrorException();
+	public function hasUpdateListener(ProxyResource $resource, callable $cb) {
+		$index = $this->_getResourceIndex($resource);
 		
-		foreach ($this->_resources as $key => $item) {
-			if ($item !== $resource) continue;
-			
-			$callbacks =& $this->_callbacks[$key];
-			
-			if (!array_key_exists($action, $callbacks)) continue;
-			
-			foreach ($callbacks[$action] as $cb) call_user_func($cb, $item->getData(), $action);
-		}
+		return $this->_update[$index]->has($cb);
+	}
+	
+	public function addUpdateListener(ProxyResource $resource, callable $cb) {
+		$index = $this->_getResourceIndex($resource);
+		
+		$this->_update[$index]->append($cb);
+		
+		return $this;
+	}
+	
+	public function removeUpdateListener(ProxyResource $resource, callable $cb) {
+		$index = $this->_getResourceIndex($resource);
+		
+		$this->_update[$index]->remove($cb);
+		
+		return $this;
+	}
+	
+	
+	public function hasDeleteListener(ProxyResource $resource, callable $cb) {
+		$index = $this->_getResourceIndex($resource);
+		
+		return $this->_delete[$index]->has($cb);
+	}
+	
+	public function addDeleteListener(ProxyResource $resource, callable $cb) {
+		$index = $this->_getResourceIndex($resource);
+		
+		$this->_delete[$index]->append($cb);
+		
+		return $this;
+	}
+	
+	public function removeDeleteListener(ProxyResource $resource, callable $cb) {
+		$index = $this->_getResourceIndex($resource);
+		
+		$this->_delete[$index]->append($cb);
 		
 		return $this;
 	}

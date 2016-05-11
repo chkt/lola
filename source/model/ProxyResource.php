@@ -11,7 +11,7 @@ use lola\model\ProxyResourceDriver;
 class ProxyResource
 implements IResource
 {
-	const VERSION = '0.1.4';
+	const VERSION = '0.1.8';
 	
 	const STATE_NEW = 1;
 	const STATE_LIVE = 2;
@@ -23,7 +23,9 @@ implements IResource
 	protected $_dirty = false;
 	protected $_life = 0;
 	
-	protected $_driver = null;
+	protected $_create = null;
+	protected $_update = null;
+	protected $_delete = null;
 	
 	
 	public function __construct(ProxyResourceDriver& $driver) {		
@@ -31,7 +33,16 @@ implements IResource
 		$this->_dirty = false;
 		$this->_life = self::STATE_NEW;
 		
-		$this->_driver =& $driver;
+		$this->_create = new ProxyResourceQueue();
+		$this->_update = new ProxyResourceQueue();
+		$this->_delete = new ProxyResourceQueue();
+		
+		$driver->register(
+			$this,
+			$this->_create,
+			$this->_update,
+			$this->_delete
+		);
 	}
 	
 	
@@ -65,7 +76,7 @@ implements IResource
 		$this->_life = self::STATE_LIVE;
 		$this->_dirty = false;
 		
-		$this->_driver->dispatch($this, ProxyResourceDriver::ACTION_CREATE);
+		$this->_create->process($data);
 		
 		return $this;
 	}
@@ -80,8 +91,8 @@ implements IResource
 		if (!$this->_dirty) return $this;
 		
 		$this->_dirty = false;
-		
-		$this->_driver->dispatch($this, ProxyResourceDriver::ACTION_UPDATE);
+
+		$this->_update->process($this->_data);
 		
 		return $this;
 	}
@@ -91,8 +102,8 @@ implements IResource
 				
 		$this->_dirty = false;
 		$this->_life = self::STATE_DEAD;
-		
-		$this->_driver->dispatch($this, ProxyResourceDriver::ACTION_DELETE);
+
+		$this->_delete->process();
 		
 		return $this;
 	}
