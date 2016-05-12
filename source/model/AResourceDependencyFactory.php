@@ -13,6 +13,8 @@ abstract class AResourceDependencyFactory
 implements IDependencyFactory
 {
 	
+	const VERSION = '0.2.1';
+	
 	const MODE_NONE = 0;
 	const MODE_CREATE = 1;
 	const MODE_READ = 2;
@@ -97,14 +99,19 @@ implements IDependencyFactory
 	}
 	
 	
-	public function produce() {
+	public function& produce() {
 		if (!is_null($this->_instance)) return $this->_instance;
 		
-		switch ($this->_mode) {
-			case self::MODE_PASS : return $this->_produceProxy();
-			case self::MODE_READ : return $this->_produceRead();
-			case self::MODE_CREATE : return $this->_produceCreate();
-			default : throw new \ErrorException();
-		}
+		$mode = $this->_mode;
+		$instance = null;
+		
+		if ($mode === self::MODE_PASS) $instance = $this->_produceProxy();
+		else if ($mode === self::MODE_READ) $instance = $this->_produceRead();
+		else if ($mode === self::MODE_CREATE) $instance = $this->_produceCreate();
+		else throw new \ErrorException();
+		
+		$this->_instance =& $instance;
+		
+		return $instance;
 	}
 }
