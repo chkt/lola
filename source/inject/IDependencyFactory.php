@@ -11,5 +11,5 @@ extends IInjectable
 {
 	public function setConfig(Array $config);
 	
-	public function produce();
+	public function& produce();
 }
