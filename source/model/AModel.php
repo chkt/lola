@@ -8,7 +8,7 @@ use lola\model\IResource;
 
 abstract class AModel {
 	
-	const VERSION = '0.1.5';
+	const VERSION = '0.2.1';
 	
 	
 		
@@ -32,18 +32,46 @@ abstract class AModel {
 		return $this->_data;
 	}
 	
+	
+	private function& _useProperty(array& $data, $key) {
+		$segs = explode('.', $key);
+		
+		foreach ($segs as $seg) {
+			if (!is_array($data) || !array_key_exists($seg, $data)) throw new \ErrorException();
+			
+			$data =& $data[$seg];
+		}
+		
+		return $data;
+	}
+	
+	
+	protected function& _useResourceProperty($key) {
+		if (!is_string($key) || empty($key)) throw new \ErrorException();
+		
+		return $this->_useProperty($this->_useResource(), $key);
+	}
+	
 	protected function _setResourceProperty($name, $value) {
 		if (!is_string($name) || empty($name)) throw new \ErrorException();
 		
 		$data = $this->_useResource();
+		$prop =& $this->_useProperty($data, $name);
 		
-		if ($data[$name] === $value) return $this;
+		if ($prop === $value) return $this;
 		
-		$data[$name] = $value;
+		$prop = $value;
+
+		if ($this->_update) $this->_resource
+			->setData($data)
+			->update();
 		
-		return $this->_updateResource($data);
+		return $this;
 	}
-		
+
+	/**
+	 * DEPRECATED
+	 */
 	protected function _updateResource(Array $data) {
 		$this->_data = $data;
 		
