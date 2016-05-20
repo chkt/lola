@@ -55,7 +55,7 @@ abstract class AModel {
 	protected function _setResourceProperty($name, $value) {
 		if (!is_string($name) || empty($name)) throw new \ErrorException();
 		
-		$data = $this->_useResource();
+		$data =& $this->_useResource();
 		$prop =& $this->_useProperty($data, $name);
 		
 		if ($prop === $value) return $this;
