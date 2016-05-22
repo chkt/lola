@@ -23,7 +23,4 @@ interface IIterateable {
 	public function& usePrev();
 	
 	public function& useNext();
-	
-	
-	public function& useItems();
 }
