@@ -129,7 +129,7 @@ class StateEngine
 	}
 	
 	
-	public function enter($action, AStateEngineModel& $model) {
+	public function enter($action, IStateEngineModel& $model) {
 		if (!is_string($action) || empty($action)) throw new \ErrorException();
 		
 		$action .= 'Action';
@@ -140,7 +140,7 @@ class StateEngine
 	}
 	
 	
-	private function _transition(AStateEngineModel& $model, $state) {
+	private function _transition(IStateEngineModel& $model, $state) {
 		$states = $this->_states;
 		$current = $states[ $model->getState() ];
 		$model->setState($state);
@@ -159,13 +159,13 @@ class StateEngine
 	}
 	
 	
-	public function transition(AStateEngineModel& $model, $next) {
+	public function transition(IStateEngineModel& $model, $next) {
 		if (
 			!$this->isValidState($model->getState()) ||
 			!$this->isValidState($next)
 		) throw new \ErrorException();
 		
-		$states = $this->_states;		
+		$states = $this->_states;
 		$path = $this->_getPath($model->getState(), $next);
 		
 		$model->deferUpdates();
