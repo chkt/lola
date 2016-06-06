@@ -2,16 +2,21 @@
 
 namespace lola\model;
 
+use lola\model\IModel;
 use lola\model\IResource;
 
+use lola\model\NoPropertyException;
 
 
-abstract class AModel {
+
+abstract class AModel
+implements IModel
+{
 	
 	const VERSION = '0.2.1';
 	
 	
-		
+	
 	private $_resource = null;
 	private $_data = null;
 	
@@ -34,10 +39,17 @@ abstract class AModel {
 	
 	
 	private function& _useProperty(array& $data, $key) {
-		$segs = explode('.', $key);
+		$segs = explode('.', $key);		
 		
-		foreach ($segs as $seg) {
-			if (!is_array($data) || !array_key_exists($seg, $data)) throw new \ErrorException();
+		for ($i = 0, $l = count($segs); $i < $l; $i += 1) {
+			$seg = $segs[$i];
+			
+			if (strlen($seg) === 0) throw new \ErrorException('INVSEG:' . $key);
+			
+			if (ctype_digit($seg)) $seg = (int) $seg;
+			
+			if (!is_array($data)) throw new \ErrorException('INVPROP:' . $key);
+			else if (!array_key_exists($seg, $data)) throw new NoPropertyException($data, array_slice($segs, $i));
 			
 			$data =& $data[$seg];
 		}
@@ -45,6 +57,19 @@ abstract class AModel {
 		return $data;
 	}
 	
+	
+	protected function _hasResourceProperty($key) {
+		if (!is_string($key) || empty($key)) throw new \ErrorException();
+		
+		try {
+			$this->_useProperty($this->_useResource(), $key);
+		}
+		catch (NoPropertyException $ex) {
+			return false;
+		}
+		
+		return true;
+	}
 	
 	protected function& _useResourceProperty($key) {
 		if (!is_string($key) || empty($key)) throw new \ErrorException();
@@ -55,28 +80,66 @@ abstract class AModel {
 	protected function _setResourceProperty($name, $value) {
 		if (!is_string($name) || empty($name)) throw new \ErrorException();
 		
-		$data =& $this->_useResource();
-		$prop =& $this->_useProperty($data, $name);
+		$prop =& $this->_useProperty($this->_useResource(), $name);
 		
 		if ($prop === $value) return $this;
 		
 		$prop = $value;
 
-		if ($this->_update) $this->_resource
-			->setData($data)
-			->update();
+		if ($this->_update) $this->_updateResource();
 		
 		return $this;
 	}
-
-	/**
-	 * DEPRECATED
-	 */
-	protected function _updateResource(Array $data) {
-		$this->_data = $data;
+	
+	protected function _addResourceProperty($name, $value) {
+		if (!is_string($name) || empty($name)) throw new \ErrorException();
 		
-		if ($this->_update) $this->_resource
-			->setData($data)
+		try {
+			$this->_useProperty($this->_useResource(), $name);
+			
+			throw new \ErrorException('HASPROP:' . $name);
+		}
+		catch (NoPropertyException $ex) {
+			$prop =& $ex->useResolvedProperty();
+			$path = $ex->getMissingPath();
+		}
+		
+		foreach ($path as $seg) {
+			$prop[$seg] = [];
+			$prop =& $prop[$seg];
+		}
+		
+		$prop = $value;
+		
+		if ($this->_update) $this->_updateResource();
+		
+		return $this;
+	}
+	
+	protected function _removeResourceProperty($name) {
+		if (!is_string($name) || empty($name)) throw new \ErrorException();
+		
+		$index = strrpos($name, '.');
+		
+		if ($index === false) unset($this->_useResource()[$name]);
+		else {
+			$path = substr($name, 0, $index);
+			$prop = substr($name, $index + 1);
+			
+			if (empty($prop)) throw new \ErrorException('INVSEG');
+			
+			unset($this->_useProperty($this->_useResource(), $path)[$prop]);
+		}
+		
+		if ($this->_update) $this->_updateResource();
+		
+		return $this;
+	}
+	
+	
+	protected function _updateResource() {		
+		if (!is_null($this->_data)) $this->_resource
+			->setData($this->_data)
 			->update();
 		
 		return $this;
@@ -104,6 +167,15 @@ abstract class AModel {
 	}
 	
 	
+	public function wasCreated() {
+		return $this->_resource->wasCreated();
+	}
+	
+	public function wasRead() {
+		return $this->_resource->wasRead();
+	}
+	
+	
 	public function deferUpdates() {
 		$this->_update = false;
 		
@@ -111,9 +183,7 @@ abstract class AModel {
 	}
 	
 	public function update() {
-		$this->_resource
-			->setData($this->_data)
-			->update();
+		$this->_updateResource();
 		
 		$this->_update = true;
 		
