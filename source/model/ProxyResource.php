@@ -11,17 +11,14 @@ use lola\model\ProxyResourceDriver;
 class ProxyResource
 implements IResource
 {
-	const VERSION = '0.1.8';
-	
-	const STATE_NEW = 1;
-	const STATE_LIVE = 2;
-	const STATE_DEAD = 3;
+	const VERSION = '0.2.1';
 	
 	
 	
 	protected $_data = null;
 	protected $_dirty = false;
 	protected $_life = 0;
+	protected $_ops = 0;
 	
 	protected $_create = null;
 	protected $_update = null;
@@ -32,6 +29,7 @@ implements IResource
 		$this->_data = null;
 		$this->_dirty = false;
 		$this->_life = self::STATE_NEW;
+		$this->_ops = self::OP_NONE;
 		
 		$this->_create = new ProxyResourceQueue();
 		$this->_update = new ProxyResourceQueue();
@@ -55,6 +53,23 @@ implements IResource
 	}
 	
 	
+	public function wasCreated() {
+		return $this->_ops & self::OP_CREATE;
+	}
+	
+	public function wasRead() {
+		return false;
+	}
+	
+	public function wasUpdated() {
+		return $this->_ops & self::OP_UPDATE;
+	}
+	
+	public function wasDeleted() {
+		return $this->_ops & self::OP_DELETE;
+	}
+	
+	
 	public function getData() {
 		return $this->_data;
 	}
@@ -74,6 +89,7 @@ implements IResource
 		
 		$this->_data = $data;
 		$this->_life = self::STATE_LIVE;
+		$this->_ops = self::OP_CREATE;
 		$this->_dirty = false;
 		
 		$this->_create->process($data);
@@ -91,6 +107,7 @@ implements IResource
 		if (!$this->_dirty) return $this;
 		
 		$this->_dirty = false;
+		$this->_ops |= self::OP_UPDATE;
 
 		$this->_update->process($this->_data);
 		
@@ -102,6 +119,7 @@ implements IResource
 				
 		$this->_dirty = false;
 		$this->_life = self::STATE_DEAD;
+		$this->_ops |= self::OP_DELETE;
 
 		$this->_delete->process();
 		

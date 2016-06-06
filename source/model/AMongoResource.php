@@ -15,10 +15,6 @@ implements IResource
 	
 	const VERSION = '0.1.2';
 	
-	const STATE_NEW = 1;
-	const STATE_LIVE = 2;
-	const STATE_DEAD = 3;
-	
 	
 	
 	static public function getDefaultDeserialization() {
@@ -56,8 +52,10 @@ implements IResource
 	
 	protected $_data = null;
 	protected $_dirty = false;
-	protected $_life = 0;
 	
+	protected $_life = 0;
+	protected $_ops = 0;
+		
 	
 	public function __construct(Collection $collection = null) {
 		$this->_collection = $collection;
@@ -66,7 +64,9 @@ implements IResource
 		
 		$this->_data = null;
 		$this->_dirty = false;
+		
 		$this->_life = self::STATE_NEW;
+		$this->_ops = self::OP_NONE;
 	}
 	
 	
@@ -77,6 +77,7 @@ implements IResource
 		) throw new \ErrorException();
 		
 		$this->_life = self::STATE_DEAD;
+		$this->_ops = self::OP_READ;
 		
 		if ($aggregate) {
 			$items = $this->_collection->aggregate($query, [
@@ -109,6 +110,23 @@ implements IResource
 	}
 	
 	
+	public function wasCreated() {
+		return $this->_ops & self::OP_CREATE;
+	}
+	
+	public function wasRead() {
+		return $this->_ops & self::OP_READ;
+	}
+	
+	public function wasUpdated() {
+		return $this->_ops & self::OP_UPDATE;
+	}
+	
+	public function wasDeleted() {
+		return $this->_ops & self::OP_DELETE;
+	}
+	
+	
 	public function getData() {
 		return $this->_data;
 	}
@@ -128,6 +146,9 @@ implements IResource
 			$this->_life !== self::STATE_NEW ||
 			is_null($this->_collection)
 		) throw new \ErrorException();
+		
+		$this->_life = self::STATE_DEAD;
+		$this->_ops = self::OP_CREATE;
 		
 		$ret = $this->_collection->insertOne($data);
 		$data['_id'] = $ret->getInsertedId();
@@ -151,7 +172,9 @@ implements IResource
 		if ($this->_life !== self::STATE_LIVE) throw new \ErrorException();
 		
 		if (!$this->_dirty) return $this;
-
+		
+		$this->_ops |= self::OP_UPDATE;
+		
 		$this->_collection->replaceOne([
 			'_id' => [ '$eq' => $this->_data['_id']]
 		], $this->_data);		
@@ -163,6 +186,8 @@ implements IResource
 	
 	public function delete() {
 		if ($this->_life !== self::STATE_LIVE) throw new \ErrorException();
+		
+		$this->_ops |= self::OP_DELETE;
 		
 		$this->_collection->deleteOne([
 			'_id' => [ '$eq' => $this->_data['_id']]
