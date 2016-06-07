@@ -59,7 +59,7 @@ implements IDependencyFactory
 		
 		return $this->_injector
 			->produce($this->_resource)
-			->read(new $this->_query($map, $offset, $limit));
+			->read(new $this->_query($map), $offset, $limit);
 	}
 	
 	protected function _produceProxy() {
