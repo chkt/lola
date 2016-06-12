@@ -8,56 +8,21 @@ use lola\input\ValidationException;
 
 class Validator {
 	
-	const VERSION = '0.1.4';
+	const VERSION = '0.2.3';
 	
 	const STATE_NEW = 0;
 	const STATE_VALID = 1;
 	const STATE_INVALID = 2;
 	
-	const T_EMPTY = 0;
-	const T_INVALID = 4;
-	const V_VALUES = 1;
-	const V_TRUE = 2;
-	const V_TYPE = 3;
+	const TYPE = 0;
+	const TYPE_NULL = 1;
+	const TYPE_INT = 2;
+	const TYPE_UINT = 3;
 	
-	const TYPE_STRING_NONEMPTY = 1;
+	const TEST_TRUE = 4;
+	const SET_DEFAULT = 5;
+	const SET_VALUE = 6;
 	
-	
-	
-	static private function _validateValues($val, Array $list) {
-		return in_array($val, $list) ? $val : new ValidationException();
-	}
-	
-	static private function _validateFunction($val, Callable $fn, $compare = true) {
-		return call_user_func($fn, $val) === $compare ? $val : new ValidationException();
-	}
-	
-	static private function _validateType($val, $type) {
-		switch ($type) {
-			case self::TYPE_STRING_NONEMPTY :
-				return is_string($val) && !empty($val) ? $val : new ValidationException();
-				
-			default : throw new \ErrorException();
-		}
-	}
-	
-	
-	static private function _validateRule($value, $rule, $op) {
-		$map = [
-			self::V_TRUE => '_validateFunction',
-			self::V_TYPE => '_validateType',
-			self::V_VALUES => '_validateValues'
-		];
-		
-		if (!array_key_exists($rule, $map)) throw new \ErrorException();
-		
-		$method = $map[$rule];
-		$res = self::$method($value, $op);
-		
-		if ($res instanceof ValidationException) throw $res;
-		
-		return $res;
-	}
 	
 	
 	
@@ -71,36 +36,129 @@ class Validator {
 	}
 	
 	
-	public function isValid() {
-		return $this->_state !== self::STATE_INVALID;
+	private function _validateNull($value, $test = true) {		
+		if (is_null($value) !== $test) throw new ValidationException($value);
+		
+		return $value;
 	}
 	
+	private function _validateInt($value, $test = true) {
+		if (is_int($value) !== $test) throw new ValidationException($value);
+		
+		return $value;
+	}
 	
-	public function validate($value, Array $rules) {
-		foreach ($rules as $rule => $op) {
-			try {
-				$value = self::_validateRule($value, $rule, $op);
-			}
-			catch (ValidationException $ex) {
-				if (array_key_exists(self::V_DEFAULT_INVALID, $rules)) $value = $rules[self::V_DEFAULT_INVALID];
-				else {
-					$this->_state = self::STATE_INVALID;
-					$this->_exception = $ex;
-				}
-				
-				break;
-			}
-		}
+	private function _validateUint($value, $test = true) {
+		if ((is_int($value) && $value >= 0) !== $test) throw new ValidationException($value);
 		
 		return $value;
 	}
 	
 	
-	public function validateProperty(Array $source, $prop, Array $rules) {
+	private function _validateTest($value, callable $fn, $test = true) {
+		if (call_user_func($fn, $value) !== $test) throw new ValidationException($value);
 		
+		return $value;
 	}
 	
-	public function validateProperties(Array $source, Array $props) {
+	
+	private function _castNull($value) {
+		return null;
+	}
+	
+	private function _castInt($value) {
+		return $this->_validateInt((int) $value);
+	}
+	
+	private function _castUint($value) {		
+		return $this->_validateUint((int) $value);
+	}
+	
+	private function _getCastTransform($type) {
+		$map = [
+			self::TYPE_NULL => '_castNull',
+			self::TYPE_INT => '_castInt',
+			self::TYPE_UINT => '_castUint'
+		];
+		
+		if (!array_key_exists($type, $map)) throw new \ErrorException();
+		
+		return $map[$type];
+	}
+	
+	
+	private function _setDefault($value, $default) {
+		if (!is_null($this->_exception)) {
+			$this->_exception = null;
+			
+			$value = $default;
+		}
+		
+		return $value;
+	}
+	
+	private function _setValue($value) {
+		$this->_exception = null;
+		
+		return $value;
+	}
+	
+	
+	private function _validateRule($value, $rule, $condition) {
+		switch ($rule) {
+			case self::TYPE :
+				$fn = $this->_getCastTransform($condition);
+				
+				return $this->$fn($value);
+				
+			case self::TYPE_NULL :
+				return $this->_validateNull($value, $condition);
+				
+			case self::TYPE_INT :
+				return $this->_validateInt($value, $condition);
+				
+			case self::TYPE_UINT :
+				return $this->_validateUInt($value, $condition);
+				
+			case self::SET_DEFAULT :
+				return $this->_setDefault($value, $condition);
+				
+			case self::SET_VALUE :
+				return $this->_setValue($condition);
+				
+			case self::TEST_TRUE :
+				return $this->_validateTest($value, $condition);
+				
+			default : throw new \ErrorException();
+		}
+	}
+	
+	
+	public function isValid() {
+		return $this->_state !== self::STATE_INVALID;
+	}
+	
+	
+	public function validate($value, array $rules) {
+		$except =& $this->_exception;
+		$res = $value;
+		
+		foreach ($rules as $rule => $condition) {
+			try {
+				$res = $this->_validateRule($res, $rule, $condition);
+			}
+			catch (ValidationException $ex) {
+				$except = is_null($except) ? $ex : $except;
+			}
+		}
+		
+		if (!is_null($except)) {
+			$this->_state = self::STATE_INVALID;
+			$res = $value;
+		}
+		else $this->_state = self::STATE_VALID;
+		
+		return $res;
 	}
 	
 	
