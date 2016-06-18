@@ -272,7 +272,7 @@ class Router implements IInjectable {
 		$res = [];
 		parse_str($this->_data[$index], $res);
 		
-		if (!array_key_exists('id'  , $res)) $res['id']   = substr($this->_tree[$index], strrpos($this->_tree[$index], '|') + 1);
+		if (!array_key_exists('key', $res)) $res['key'] = $this->_tree[$index];
 		if (!array_key_exists('path', $res)) $res['path'] = $path;
 		
 		$this->_hash[$index] = $res;
@@ -299,10 +299,8 @@ class Router implements IInjectable {
 			if ($rlen < $flen) continue;
 			
 			for ($i = 0; $i < $rlen; ++$i) {				
-				$select = explode(',', $rtree[$i]);
-				
 				if ($i < $flen) {
-					if (in_array($ftree[$i], $select)) continue;
+					if ($ftree[$i] === $rtree[$i]) continue;
 					else continue 2;
 				}
 				
