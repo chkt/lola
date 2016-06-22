@@ -5,6 +5,7 @@ namespace lola\route;
 use lola\inject\IInjectable;
 use lola\inject\Injector;
 
+use lola\type\Collection;
 use lola\route\RouteCanceledException;
 
 
@@ -14,7 +15,7 @@ class Router implements IInjectable {
 	/**
 	 * The version string
 	 */
-	const VERSION = '0.1.0';
+	const VERSION = '0.2.3';
 	
 	
 	/**
@@ -90,6 +91,12 @@ class Router implements IInjectable {
 	 * @var array
 	 */
 	protected $_returnStack = null;
+	
+	/**
+	 *The default route param collection
+	 * @var \lola\type\Collection|null
+	 */
+	private $_routeParam = null;
 	
 	
 	/**
@@ -250,6 +257,17 @@ class Router implements IInjectable {
 	
 	
 	/**
+	 * Returns the default route param collection
+	 * @return \lola\type\Collection
+	 */
+	protected function& _useRouteParams() {
+		if (is_null($this->_routeParam)) $this->_routeParam = new Collection();
+		
+		return $this->_routeParam;
+	}
+	
+	
+	/**
 	 * Returns the <code>Array</code> of segments referenced by <code>$index</code>
 	 * @param uint $index The route index
 	 * @return array
@@ -274,6 +292,8 @@ class Router implements IInjectable {
 		
 		if (!array_key_exists('key', $res)) $res['key'] = $this->_tree[$index];
 		if (!array_key_exists('path', $res)) $res['path'] = $path;
+		
+		if (!is_null($this->_routeParam)) $res = array_merge($res, $this->_useRouteParams()->getItems());
 		
 		$this->_hash[$index] = $res;
 		
@@ -335,6 +355,39 @@ class Router implements IInjectable {
 	
 		$this->_routeStack  = [];
 		$this->_returnStack = [];
+		
+		$this->_routeParam = null;
+	}
+	
+	
+	/**
+	 * Returns true if the router has the default route param named $key, false otherwise
+	 * @param string $key The property name
+	 * @return boolean
+	 */
+	public function hasRouteParam($key) {
+		return $this->_useRouteParams()->hasItem($key);
+	}
+	
+	/**
+	 * Returns the default route param named $key if it exists, null otherwise
+	 * @param string $key The property name
+	 * @return mixed
+	 */
+	public function getRouteParam($key) {
+		return $this->_useRouteParams()->getItem($key);
+	}
+	
+	/**
+	 * Sets the default route param named $key
+	 * @param type $key The property name
+	 * @param type $value The property value
+	 * @return \lola\route\Router
+	 */
+	public function setRouteParam($key, $value) {
+		$this->_useRouteParams()->setItem($key, $value);
+		
+		return $this;
 	}
 	
 	
