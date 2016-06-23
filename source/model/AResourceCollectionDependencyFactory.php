@@ -54,12 +54,13 @@ implements IDependencyFactory
 		$config = $this->_config;		
 		
 		$map = array_key_exists('map', $config) ? $config['map'] : [];
+		$order = array_key_exists('order', $config) ? $config['order'] : [];
 		$offset = array_key_exists('limit', $config) ? $config['limit'] : 10;
 		$limit = array_key_exists('offset', $config) ? $config['offset'] : 0;
-		
+
 		return $this->_injector
 			->produce($this->_resource)
-			->read(new $this->_query($map), $offset, $limit);
+			->read(new $this->_query($map, $order), $offset, $limit);
 	}
 	
 	protected function _produceProxy() {
