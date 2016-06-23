@@ -186,7 +186,7 @@ class Router implements IInjectable {
 		if ($flag & 0xC) $name = substr($name, 0, strlen($name) - 1);
 				
 		if (
-			!empty($pseg) && 
+			strlen($pseg) !== 0 && 
 			($index === 0 || in_array($pseg, explode(',', substr($rseg, 0, $index))))
 		) $flag |= 0x1;
 		
