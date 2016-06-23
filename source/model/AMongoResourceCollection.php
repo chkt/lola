@@ -25,7 +25,6 @@ implements IResourceCollection
 	
 	protected $_collection = null;
 	protected $_deserialize = null;
-	protected $_sort = null;
 	protected $_driver = null;
 	
 	protected $_data = null;
@@ -41,7 +40,6 @@ implements IResourceCollection
 	public function __construct(Collection $collection) {		
 		$this->_collection = $collection;
 		$this->_deserialize = AMongoResource::getDefaultDeserialization();
-		$this->_sort = AMongoResource::getDefaultSorting();
 		$this->_driver = new ProxyResourceDriver();
 		
 		$this->_data = null;
@@ -102,7 +100,7 @@ implements IResourceCollection
 		
 		$options = [
 			'typeMap' => $this->_deserialize,
-			'sort' => $this->_sort,
+			'sort' => $query->getSorting(),
 			'limit' => $limit,
 			'skip' => $offset
 		];
