@@ -22,6 +22,7 @@ interface ILogger {
 	const TAG_TYPE = 1;
 	const TAG_MESSAGE = 5;
 	const TAG_VOID = 8;
+	const TAG_NEWLINE = 30;
 	
 	const TAG_URL_PATH = 2;
 	const TAG_SOURCE_FILE = 3;
@@ -42,6 +43,14 @@ interface ILogger {
 	const TAG_STACK_FILE = 18;
 	const TAG_STACK_LINE = 19;
 	
+	const TAG_PROPERTY_TYPE = 23;
+	const TAG_PROPERTY_KEY = 24;
+	const TAG_PROPERTY_VALUE = 25;
+	const TAG_PROPERTY_SEPARATOR = 28;
+	const TAG_PROPERTY_TERMINATOR = 29;
+	const TAG_SCOPE_OPEN = 26;
+	const TAG_SCOPE_CLOSE = 27;
+	
 	const TAG_REPORTER = 22;
 	const TAG_KEY = 20;
 	const TAG_VALUE = 21;
@@ -61,6 +70,8 @@ interface ILogger {
 	public function logCtrlState(AReplyController $ctrl);
 	
 	public function logStats($label, Array $stats);
+	
+	public function logObject($obj, $depth = 1, $stackOffset = self::STACK_IGNORE);
 	
 	public function logException(\Exception $ex, $stack = true, $deep = true);
 }
