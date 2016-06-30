@@ -6,6 +6,7 @@ use lola\inject\IInjectable;
 use lola\log\ILogger;
 
 use lola\log\Colorizer;
+use lola\log\Formater;
 
 use lola\ctrl\AReplyController;
 use lola\http\HttpRequest;
@@ -24,6 +25,7 @@ implements IInjectable, ILogger
 		ILogger::TAG_TYPE => [Colorizer::F_MAGENTA, Colorizer::MOD_BRIGHT],
 		ILogger::TAG_MESSAGE => [Colorizer::MOD_BRIGHT],
 		ILogger::TAG_VOID => [],
+		ILogger::TAG_NEWLINE => [],
 		ILogger::TAG_URL_PATH => [Colorizer::F_GREEN, Colorizer::MOD_BRIGHT],
 		ILogger::TAG_SOURCE_FILE => [Colorizer::F_BLUE, Colorizer::MOD_BRIGHT],
 		ILogger::TAG_SOURCE_LINE => [],
@@ -40,6 +42,13 @@ implements IInjectable, ILogger
 		ILogger::TAG_STACK => [Colorizer::F_RED, Colorizer::MOD_BRIGHT],
 		ILogger::TAG_STACK_FILE => [Colorizer::F_BLUE],
 		ILogger::TAG_STACK_LINE => [],
+		ILogger::TAG_PROPERTY_TYPE => [Colorizer::MOD_BRIGHT],
+		ILogger::TAG_PROPERTY_KEY => [Colorizer::F_BLUE, Colorizer::MOD_BRIGHT],
+		ILogger::TAG_PROPERTY_VALUE => [Colorizer::F_GREEN],
+		ILogger::TAG_PROPERTY_SEPARATOR => [],
+		ILogger::TAG_PROPERTY_TERMINATOR => [],
+		ILogger::TAG_SCOPE_OPEN => [],
+		ILogger::TAG_SCOPE_CLOSE => [],
 		ILogger::TAG_KEY => [Colorizer::F_BLUE, Colorizer::MOD_BRIGHT],
 		ILogger::TAG_VALUE => [],
 		ILogger::TAG_REPORTER => [Colorizer::F_MAGENTA, Colorizer::MOD_BRIGHT]
@@ -64,7 +73,7 @@ implements IInjectable, ILogger
 		else if (is_callable($value)) return 'callable';
 		else if (is_string($value)) return "'$value'";
 		else if (is_object($value)) return get_class($value);
-		else if (is_array($value)) return 'Array';
+		else if (is_array($value)) return 'array';
 		else return (string) $value;
 	}
 	
@@ -111,6 +120,59 @@ implements IInjectable, ILogger
 		) $tags[] = self::_createTag(ILogger::TAG_CLIENT_IP, '[' . $request->getClientIP() . ']');
 		
 		return $tags;
+	}
+	
+	
+	static protected function _buildObject($obj, $depth = 0) {		
+		$tags = [
+			self::_createTag(self::TAG_PROPERTY_TYPE, get_class($obj)),
+			self::_createTag(self::TAG_SCOPE_OPEN, '{'),
+			self::_createTag(self::TAG_NEWLINE, PHP_EOL)
+		];
+		
+		$cast = (array) $obj;
+		
+		foreach ($cast as $prop => $value) {
+			$segs = explode("\0", $prop);
+			$key = $segs[count($segs) - 1];
+			
+			$tags[] = self::_createTag(self::TAG_PROPERTY_KEY, $key);
+			$tags[] = self::_createTag(self::TAG_PROPERTY_SEPARATOR, ':');
+			$tags = array_merge($tags, self::_buildValue($value, $depth - 1));
+			$tags[] = self::_createTag(self::TAG_PROPERTY_TERMINATOR, ',');
+			$tags[] = self::_createTag(self::TAG_NEWLINE, PHP_EOL);
+		}
+		
+		$tags[] = self::_createTag(self::TAG_SCOPE_CLOSE, '}');
+		
+		return $tags;
+	}
+	
+	static protected function _buildArray(array $arr, $depth = 0) {
+		$tags = [
+			self::_createTag(self::TAG_SCOPE_OPEN, '['),
+			self::_createTag(self::TAG_NEWLINE, PHP_EOL)
+		];
+		
+		foreach ($arr as $key => $value) {
+			$tags[] = self::_createTag(self::TAG_PROPERTY_KEY, $key);
+			$tags[] = self::_createTag(self::TAG_PROPERTY_SEPARATOR, '=>');
+			$tags = array_merge($tags, self::_buildValue($value, $depth - 1));
+			$tags[] = self::_createTag(self::TAG_PROPERTY_TERMINATOR, ',');
+			$tags[] = self::_createTag(self::TAG_NEWLINE, PHP_EOL);
+		}
+		
+		$tags[] = self::_createTag(self::TAG_SCOPE_CLOSE, ']');
+		
+		return $tags;
+	}
+	
+	static protected function _buildValue($value, $depth = 0) {
+		$type = is_object($value) ? 'o' : (is_array($value) ? 'a' : 's');
+		
+		if ($depth === 0 || $type === 's') return [ self::_createTag(self::TAG_PROPERTY_VALUE, self::_valueToString($value)) ];
+		else if ($type === 'o') return self::_buildObject($value, $depth);
+		else return self::_buildArray($value, $depth);
 	}
 	
 	
@@ -219,16 +281,21 @@ implements IInjectable, ILogger
 	}
 	
 	public function logTags(Array $message) {
-		$items = [];
+		$formater = new Formater();
 		
-		foreach ($message as $token) {
-			$type = $token[ILogger::TOKEN_TYPE];
-			$content = $token[ILogger::TOKEN_CONTENT];
+		$prevType = $message[0][ILogger::TOKEN_TYPE];
+		$res = Colorizer::encode($message[0][ILogger::TOKEN_CONTENT], self::$_map[$prevType]);
+
+		for ($i = 1, $l = count($message); $i < $l; $i += 1) {
+			$currentType = $message[$i][ILogger::TOKEN_TYPE];
+			$currentContent = $message[$i][ILogger::TOKEN_CONTENT];
 			
-			$items[] = Colorizer::encode($content, self::$_map[$type]);
+			$res .= $formater->apply($prevType, $currentType) . Colorizer::encode($currentContent, self::$_map[$currentType]);
+			
+			$prevType = $currentType;
 		}
 		
-		return $this->log(implode(' ', $items));
+		return $this->log($res);
 	}
 	
 	
@@ -256,7 +323,7 @@ implements IInjectable, ILogger
 	
 	
 	public function logStats($label, Array $stats) {
-		if (!is_string($label) || empty($label)) throw new TypeError();
+		if (!is_string($label) || empty($label)) throw new \ErrorException();
 		
 		$tags = [
 			self::_createTag(ILogger::TAG_TYPE, 'i'),
@@ -267,6 +334,19 @@ implements IInjectable, ILogger
 			$tags[] = self::_createTag(ILogger::TAG_KEY, $name);
 			$tags[] = self::_createTag(ILogger::TAG_VALUE, $value);
 		}
+		
+		return $this->logTags($tags);
+	}
+	
+	
+	public function logObject($obj, $depth = 1, $stackOffset = self::STACK_IGNORE) {
+		if (!is_int($depth) || $depth < 0) throw new \ErrorException();
+		
+		$tags[] = self::_createTag(self::TAG_TYPE, '@');
+		
+		if ($stackOffset !== self::STACK_IGNORE) $tags = array_merge($tags, self::_buildStackOrigin($stackOffset + 1));
+		
+		$tags = array_merge($tags, self::_buildValue($obj, $depth));
 		
 		return $this->logTags($tags);
 	}
