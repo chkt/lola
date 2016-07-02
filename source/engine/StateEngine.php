@@ -9,20 +9,26 @@ use lola\engine\NoPathException;
 class StateEngine 
 {
 	
-	const VERSION = '0.1.6';
+	const VERSION = '0.2.4';
 	
 	
 	
 	
 	private $_states = null;
 	
+	private $_models = null;
+	private $_targets = null;
+	
 	private $_defaultCost = 1.0;
 	
 	
-	public function __construct(Array $states, $defaultPathCost = 1.0) {
+	public function __construct(array $states, $defaultPathCost = 1.0) {
 		if (!is_float($defaultPathCost) || $defaultPathCost < 1.0) throw new \ErrorException();
 		
 		$this->_states = $states;
+		
+		$this->_models = [];
+		$this->_targets = [];
 		
 		$this->_defaultCost = $defaultPathCost;
 	}
@@ -63,7 +69,9 @@ class StateEngine
 	}
 	
 	
-	private function _buildPath(Array $origin, $target) {		
+	private function _buildPath(array $origin, $target) {
+		$res = [];
+		
 		while (array_key_exists($target, $origin)) {
 			$res[] = $target;
 			$target = $origin[$target];
@@ -72,7 +80,7 @@ class StateEngine
 		return array_reverse($res);
 	}
 	
-	private function _spliceNext(Array& $openSet, Array $fScore) {
+	private function _spliceNext(array& $openSet, array $fScore) {
 		$name = '';
 		$pos = 0;
 		$score = PHP_INT_MAX;
@@ -92,6 +100,7 @@ class StateEngine
 	
 	private function _getPath($source, $target) {
 		$states = $this->_states;
+		$targetWeight = $states[$target]['weight'];
 		
 		$closedSet = [];
 		$openSet = [ $source ];
@@ -100,28 +109,40 @@ class StateEngine
 		
 		$gScore = [ $source => 0 ];
 		$fScore = [ $source => abs($states[$target]['weight'] - $states[$source]['weight']) ];
+		$steps = [ $source => 0 ];
 		
 		while (!empty($openSet)) {
 			$current = $this->_spliceNext($openSet, $fScore);
+			$currentState = $states[$current];
+			$currentWeight = $currentState['weight'];
 			
 			if ($current === $target) return $this->_buildPath($shortPath, $target);
 			
 			$closedSet[] = $current;
 			
-			if (!array_key_exists('transition', $states[$current])) continue;
+			if (
+				!array_key_exists('transition', $currentState) ||
+				array_key_exists('follow', $currentState) && $currentState['follow'] === false
+			) continue;
 			
-			foreach ($states[$current]['transition'] as $name => $action) {
-				if (array_key_exists($name, $closedSet)) continue;
+			$currentStep = $steps[$current];
+			$decay = 2 - 1 * pow(M_E, -0.1 * $currentStep); 
+			
+			foreach ($currentState['transition'] as $next => $action) {
+				if (array_key_exists($next, $closedSet)) continue;
 				
-				$cost = array_key_exists('cost', $states[$name]) && $states[$name]['cost'] >= 1.0 ? $states[$name]['cost'] : $this->_defaultCost;
-				$score = $gScore[$current] + abs($states[$name]['weight'] - $states[$current]['weight']) * $cost;
+				$nextState = $states[$next];
+				$nextWeight = $nextState['weight'];
+				$cost = array_key_exists('cost', $nextState) && $nextState['cost'] >= 1.0 ? $nextState['cost'] : $this->_defaultCost;
+				$score = $gScore[$current] + abs($nextWeight - $currentWeight) * $cost * $decay;
 				
-				if (!array_key_exists($name, $openSet)) $openSet[] = $name;
-				else if ($score >= $gScore[$name]) continue;
+				if (!array_key_exists($next, $openSet)) $openSet[] = $next;
+				else if ($score >= $gScore[$next]) continue;
 				
-				$shortPath[$name] = $current;
-				$gScore[$name] = $score;
-				$fScore[$name] = $score + abs($states[$target]['weight'] - $states[$name]['weight']);
+				$shortPath[$next] = $current;
+				$gScore[$next] = $score;
+				$fScore[$next] = $score + abs($targetWeight - $nextWeight);
+				$steps[$next] = $currentStep + 1;
 			}
 		}
 		
@@ -159,24 +180,16 @@ class StateEngine
 	}
 	
 	
-	public function transition(IStateEngineModel& $model, $next) {
-		if (
-			!$this->isValidState($model->getState()) ||
-			!$this->isValidState($next)
-		) throw new \ErrorException();
-		
+	private function _resolvePath(IStateEngineModel& $model, $path) {
 		$states = $this->_states;
-		$path = $this->_getPath($model->getState(), $next);
-		
-		$model->deferUpdates();
 		
 		for ($i = 0, $l = count($path); $i < $l; $i += 1) {
 			$stateId = $path[$i];
-			
+
 			$this->_transition($model, $stateId);
-			
+
 			$state = $states[ $stateId ]; 
-			
+
 			if (
 				$i === $l - 1 &&
 				array_key_exists('transition', $state) && count($state['transition']) === 1 &&
@@ -185,9 +198,47 @@ class StateEngine
 				$path[] = array_keys($state['transition'])[0];
 				$l += 1;
 			}
-		}		
+		}
+	}
+	
+	private function _processModel(IStateEngineModel& $model, array $queue) {
+		$model->deferUpdates();
+		
+		while(count($queue) !== 0) {
+			$path = $this->_getPath($model->getState(), array_shift($queue));
+			$this->_resolvePath($model, $path);
+		}
 		
 		$model->update();
+	}
+	
+	
+	public function transition(IStateEngineModel& $model, $next) {
+		if (
+			!$this->isValidState($model->getState()) ||
+			!$this->isValidState($next)
+		) throw new \ErrorException();
+		
+		$models =& $this->_models;
+		$targets =& $this->_targets;
+		
+		$index = array_search($model, $models);
+		
+		if ($index === false) {
+			$index = count($models);
+			$models[] = $model;
+			$targets[] = [];
+		}
+		
+		$queue =& $targets[$index];
+		$queue[] = $next;
+		
+		if (count($queue) === 1) {
+			$this->_processModel($model, $queue);
+			
+			array_splice($models, $index, 1);
+			array_splice($targets, $index, 1);
+		}
 		
 		return $this;
 	}
