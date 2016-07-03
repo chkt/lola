@@ -85,7 +85,7 @@ implements IModel
 	
 	
 	protected function _getProjection(Callable $fn, Array $props = []) {
-		$data =& $this->_useResource()->toArray();
+		$data = $this->_useResource()->toArray();
 		$res = [];
 		
 		foreach ($props as $prop) $res[$prop] = $fn($data, $prop);
