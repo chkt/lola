@@ -5,15 +5,13 @@ namespace lola\model;
 use lola\model\IModel;
 use lola\model\IResource;
 
-use lola\model\NoPropertyException;
-
 
 
 abstract class AModel
 implements IModel
 {
 	
-	const VERSION = '0.2.1';
+	const VERSION = '0.2.4';
 	
 	
 	
@@ -38,98 +36,32 @@ implements IModel
 	}
 	
 	
-	private function& _useProperty(array& $data, $key) {
-		$segs = explode('.', $key);		
-		
-		for ($i = 0, $l = count($segs); $i < $l; $i += 1) {
-			$seg = $segs[$i];
-			
-			if (strlen($seg) === 0) throw new \ErrorException('INVSEG:' . $key);
-			
-			if (ctype_digit($seg)) $seg = (int) $seg;
-			
-			if (!is_array($data)) throw new \ErrorException('INVPROP:' . $key);
-			else if (!array_key_exists($seg, $data)) throw new NoPropertyException($data, array_slice($segs, $i));
-			
-			$data =& $data[$seg];
-		}
-		
-		return $data;
-	}
-	
-	
 	protected function _hasResourceProperty($key) {
-		if (!is_string($key) || empty($key)) throw new \ErrorException();
-		
-		try {
-			$this->_useProperty($this->_useResource(), $key);
-		}
-		catch (NoPropertyException $ex) {
-			return false;
-		}
-		
-		return true;
+		return $this->_useResource()->hasItem($key);
 	}
 	
 	protected function& _useResourceProperty($key) {
-		if (!is_string($key) || empty($key)) throw new \ErrorException();
-		
-		return $this->_useProperty($this->_useResource(), $key);
+		return $this->_useResource()->useItem($key);
 	}
 	
-	protected function _setResourceProperty($name, $value) {
-		if (!is_string($name) || empty($name)) throw new \ErrorException();
-		
-		$prop =& $this->_useProperty($this->_useResource(), $name);
-		
-		if ($prop === $value) return $this;
-		
-		$prop = $value;
+	protected function _setResourceProperty($key, $value) {
+		$this->_useResource()->setItem($key, $value);
 
 		if ($this->_update) $this->_updateResource();
 		
 		return $this;
 	}
 	
-	protected function _addResourceProperty($name, $value) {
-		if (!is_string($name) || empty($name)) throw new \ErrorException();
-		
-		try {
-			$this->_useProperty($this->_useResource(), $name);
-			
-			throw new \ErrorException('HASPROP:' . $name);
-		}
-		catch (NoPropertyException $ex) {
-			$prop =& $ex->useResolvedProperty();
-			$path = $ex->getMissingPath();
-		}
-		
-		foreach ($path as $seg) {
-			$prop[$seg] = [];
-			$prop =& $prop[$seg];
-		}
-		
-		$prop = $value;
+	protected function _addResourceProperty($key, $value) {
+		$this->_useResource()->addItem($key, $value);
 		
 		if ($this->_update) $this->_updateResource();
 		
 		return $this;
 	}
 	
-	protected function _removeResourceProperty($name) {
-		if (!is_string($name) || empty($name)) throw new \ErrorException();
-		
-		$index = strrpos($name, '.');
-		
-		if ($index === false) unset($this->_useResource()[$name]);
-		else {
-			$path = substr($name, 0, $index);
-			$prop = substr($name, $index + 1);
-			
-			if (empty($prop)) throw new \ErrorException('INVSEG');
-			
-			unset($this->_useProperty($this->_useResource(), $path)[$prop]);
-		}
+	protected function _removeResourceProperty($key) {
+		$this->_useResource()->removeItem($key);
 		
 		if ($this->_update) $this->_updateResource();
 		
@@ -153,7 +85,7 @@ implements IModel
 	
 	
 	protected function _getProjection(Callable $fn, Array $props = []) {
-		$data =& $this->_useResource();
+		$data =& $this->_useResource()->toArray();
 		$res = [];
 		
 		foreach ($props as $prop) $res[$prop] = $fn($data, $prop);
