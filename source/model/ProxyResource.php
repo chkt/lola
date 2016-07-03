@@ -4,6 +4,7 @@ namespace lola\model;
 
 use lola\model\IResource;
 
+use lola\type\StructuredData;
 use lola\model\ProxyResourceDriver;
 
 
@@ -11,7 +12,7 @@ use lola\model\ProxyResourceDriver;
 class ProxyResource
 implements IResource
 {
-	const VERSION = '0.2.1';
+	const VERSION = '0.2.4';
 	
 	
 	
@@ -74,7 +75,7 @@ implements IResource
 		return $this->_data;
 	}
 	
-	public function setData(Array $data) {
+	public function setData(StructuredData $data) {
 		if ($this->_life !== self::STATE_LIVE) throw new \ErrorException();
 		
 		$this->_data = $data;
@@ -84,7 +85,7 @@ implements IResource
 	}
 	
 	
-	public function create(Array $data) {
+	public function create(StructuredData $data) {
 		if ($this->_life !== self::STATE_NEW) throw new \ErrorException();
 		
 		$this->_data = $data;
