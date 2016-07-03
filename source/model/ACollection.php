@@ -35,7 +35,7 @@ extends AIterateable
 		
 		if (!array_key_exists($index, $items)) {
 			$resource =& $this->_resource->useItem($index);
-			$items[$index] =& call_user_func_array($this->_factory, [ & $resource ]);
+			$items[$index] = call_user_func_array($this->_factory, [ & $resource ]);
 		}
 		
 		return $items[$index];
