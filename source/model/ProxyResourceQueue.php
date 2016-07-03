@@ -17,7 +17,7 @@ extends AQueue
 	
 	
 	public function process(StructuredData $data = null) {		
-		foreach ($this->_items as $cb) call_user_func($cb, ($clone = $data->toArray()));		//LEGACY should send structured data to consumers
+		foreach ($this->_items as $cb) call_user_func($cb, !is_null($data) ? $data->toArray() : null);		//LEGACY should send structured data to consumers
 		
 		return $this;
 	}
