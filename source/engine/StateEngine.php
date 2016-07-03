@@ -126,7 +126,7 @@ class StateEngine
 			) continue;
 			
 			$currentStep = $steps[$current];
-			$decay = 2 - 1 * pow(M_E, -0.1 * $currentStep); 
+			$decay = 2 - pow(2, -0.1 * $currentStep); 
 			
 			foreach ($currentState['transition'] as $next => $action) {
 				if (array_key_exists($next, $closedSet)) continue;
