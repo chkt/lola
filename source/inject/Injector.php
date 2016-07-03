@@ -101,7 +101,7 @@ class Injector {
 	}
 	
 	public function process(Callable $fn, Array $deps = []) {
-		$args =& $this->_resolveDependencies($deps);
+		$args = $this->_resolveDependencies($deps);
 				
 		return $fn(...$args);
 	}
