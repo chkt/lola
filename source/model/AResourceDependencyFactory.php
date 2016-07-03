@@ -5,6 +5,7 @@ namespace lola\model;
 use lola\inject\IDependencyFactory;
 use lola\inject\Injector;
 
+use lola\type\StructuredData;
 use lola\model\IResource;
 
 
@@ -75,7 +76,7 @@ implements IDependencyFactory
 
 		return $this->_injector
 			->produce($this->_resource)
-			->create($data);
+			->create(new StructuredData($data));
 	}
 	
 	protected function _produceRead() {
