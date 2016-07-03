@@ -2,45 +2,43 @@
 
 namespace lola\model;
 
+use lola\type\AIterateable;
+
 use lola\model\IResourceCollection;
 
 
 
-abstract class ACollection {
+abstract class ACollection
+extends AIterateable
+{
 	
-	const VERSION = '0.1.2';
+	const VERSION = '0.2.4';
 	
 	
 	
 	private $_resource = null;
 	private $_factory = null;
-	
-	private $_model = null;
-	
-	private $_length = 0;
-	private $_cursor = 0;
 		
 	
 	public function __construct(IResourceCollection $resource, Callable $itemFactory) {
+		parent::__construct();
+		
 		$this->_resource = $resource;
 		$this->_factory = $itemFactory;
 		
-		$this->_model = [];
-		
 		$this->_length = $resource->getLength();
-		$this->_cursor = 0;
 	}
 	
 	
-	private function& _useModel($index) {
-		$models =& $this->_model;
+	protected function& _useItem($index) {
+		$items =& $this->_items;
 		
-		if (!array_key_exists($index, $models)) {
+		if (!array_key_exists($index, $items)) {
 			$resource =& $this->_resource->useItem($index);
-			$models[$index] =& call_user_func_array($this->_factory, [ & $resource ]);
+			$items[$index] =& call_user_func_array($this->_factory, [ & $resource ]);
 		}
 		
-		return $models[$index];
+		return $items[$index];
 	}
 	
 	
@@ -49,56 +47,15 @@ abstract class ACollection {
 	}
 	
 	
-	public function getLength() {
-		return $this->_length;
+	public function& hasItem(IResourceQuery $query) {
+		return $this->_resource->getIndexOf($query) !== -1;
 	}
 	
-	
-	public function& useIndex($index) {
-		if (!is_int($index) || $index < 0) throw new \ErrorException();
+	public function& useItem(IResourceQuery $query) {
+		$index = $this->_resource->getIndexOf($query);
+		$null = null;
 		
-		if ($index > $this->_length - 1) {
-			$null = null;
-			
-			return $null;
-		}
-		
-		$this->_cursor = $index;
-		
-		return $this->_useModel($index);
-	}
-	
-	public function& useOffset($offset = 0) {
-		if (!is_int($offset)) throw new \ErrorException();
-		
-		$cursor = $this->_cursor + $offset;
-		
-		if ($cursor < 0 || $cursor > $this->_length - 1)  {
-			$null = null;
-			
-			return $null;
-		}
-		
-		$this->_cursor = $cursor;
-		
-		return $this->_useModel($cursor);
-	}
-	
-	
-	public function& useFirst() {
-		return $this->useIndex(0);
-	}
-	
-	public function& usePrev() {
-		return $this->useOffset(-1);
-	}
-	
-	public function& useNext() {
-		return $this->useOffset(1);
-	}
-	
-	public function& useLast() {
-		return $this->useIndex($this->_length - 1);
+		return $index !== -1 ? $this->_useItem($index) : $null;
 	}
 	
 	
