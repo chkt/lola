@@ -330,7 +330,7 @@ implements IResourceQuery
 		if (is_null($this->_sorting)) {
 			$sorting = [];
 			
-			if (method_exists($this, '_sorting')) $this->_buildSorting($this->_order, $sorting);		//LEGACY
+			if (method_exists($this, '_buildSorting')) $this->_buildSorting($this->_order, $sorting);		//LEGACY
 			else {
 				foreach ($this->_order as $cond => $dir) {
 					$ret = $this->_resolveSorting($cond, $dir);
