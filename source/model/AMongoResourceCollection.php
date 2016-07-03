@@ -6,6 +6,7 @@ use lola\model\IResourceCollection;
 use lola\model\AMongoResource;
 
 use MongoDB\Collection;
+use lola\type\StructuredData;
 use lola\model\IResourceQuery;
 use lola\model\AMongoResourceQuery;
 
@@ -15,7 +16,7 @@ abstract class AMongoResourceCollection
 implements IResourceCollection
 {
 	
-	const VERSION = '0.1.2';
+	const VERSION = '0.2.4';
 	
 	const STATE_NEW = 1;
 	const STATE_LIVE = 2;
@@ -55,15 +56,15 @@ implements IResourceCollection
 	
 	private function& _produceResource($index) {
 		$ins = new ProxyResource($this->_driver);
+		$data = new StructuredData($this->_data[$index]);
 		
-		$ins->create($this->_data[$index]);
+		$ins->create($data);
 		
 		$this->_driver->addUpdateListener($ins, function(array $data) use ($index) {
 			$state =& $this->_update;
 			
 			if (!array_key_exists($index, $state)) $this->_updateNum += 1;
 			
-			$this->_data[$index] = $data;
 			$state[$index] = 'update';
 		});
 		
@@ -155,6 +156,18 @@ implements IResourceCollection
 		if ($this->_life !== self::STATE_LIVE) throw new \ErrorException();
 		
 		return $this->_length;
+	}
+	
+	
+	public function getIndexOf(IResourceQuery $query) {
+		for ($i = $this->_length - 1; $i > -1; $i -= 1) {
+			$item = $this->useItem($i);
+			$data = $item->getData();
+			
+			if ($query->match($data)) return $i;
+		}
+		
+		return -1;
 	}
 	
 	
