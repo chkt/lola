@@ -13,7 +13,7 @@ abstract class AInterceptableModel
 extends AActionModel
 {
 	
-	const VERSION = '0.2.1';
+	const VERSION = '0.2.4';
 	
 	
 	
@@ -28,7 +28,7 @@ extends AActionModel
 					$resolver->link($this);
 				},
 				function() {
-					return $this->_useResource();
+					return $this->_useResource()->toArray();		//LEGACY should return Structured data instead of array
 				},
 				$this->_useUpdateQueue(),
 				$this->_useDeleteQueue()
