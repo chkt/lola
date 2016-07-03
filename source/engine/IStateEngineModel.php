@@ -13,4 +13,7 @@ extends IModel
 	public function getState();
 	
 	public function setState($state);
+	
+	
+	public function useProvider();
 }
