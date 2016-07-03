@@ -4,11 +4,13 @@ namespace lola\model;
 
 use lola\model\IResourceQuery;
 
+use lola\type\StructuredData;
+
 
 
 interface IResource {
 	
-	const INTERFACE_VERSION = '0.2.1';
+	const INTERFACE_VERSION = '0.2.4';
 	
 	
 	const STATE_NEW = 1;
@@ -38,10 +40,10 @@ interface IResource {
 	
 	public function getData();
 	
-	public function setData(Array $data);
+	public function setData(StructuredData $data);
 	
 	
-	public function create(Array $data);
+	public function create(StructuredData $data);
 	
 	public function read(IResourceQuery $query);
 	
