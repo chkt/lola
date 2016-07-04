@@ -42,7 +42,7 @@ extends NamedQueue
 			array_shift($keys);
 			$cb = array_shift($cbs);
 			
-			call_user_func($cb, $ctrl);
+			call_user_func_array($cb, [ & $ctrl ]);
 		}
 		
 		return $this;
