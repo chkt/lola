@@ -129,14 +129,14 @@ class StateEngine
 			$decay = 2 - pow(2, -0.1 * $currentStep); 
 			
 			foreach ($currentState['transition'] as $next => $action) {
-				if (array_key_exists($next, $closedSet)) continue;
+				if (in_array($next, $closedSet)) continue;
 				
 				$nextState = $states[$next];
 				$nextWeight = $nextState['weight'];
 				$cost = array_key_exists('cost', $nextState) && $nextState['cost'] >= 1.0 ? $nextState['cost'] : $this->_defaultCost;
 				$score = $gScore[$current] + abs($nextWeight - $currentWeight) * $cost * $decay;
 				
-				if (!array_key_exists($next, $openSet)) $openSet[] = $next;
+				if (!in_array($next, $openSet)) $openSet[] = $next;
 				else if ($score >= $gScore[$next]) continue;
 				
 				$shortPath[$next] = $current;
