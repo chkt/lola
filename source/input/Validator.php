@@ -8,7 +8,7 @@ use lola\input\ValidationException;
 
 class Validator {
 	
-	const VERSION = '0.2.3';
+	const VERSION = '0.2.5';
 	
 	const STATE_NEW = 0;
 	const STATE_VALID = 1;
@@ -16,13 +16,16 @@ class Validator {
 	
 	const TYPE = 0;
 	const TYPE_NULL = 1;
+	const TYPE_BOOL = 7;
 	const TYPE_INT = 2;
 	const TYPE_UINT = 3;
 	
 	const TEST_TRUE = 4;
+	const TEST_PROPERTY = 9;
+	const USE_PROPERTY = 8;
+	
 	const SET_DEFAULT = 5;
 	const SET_VALUE = 6;
-	
 	
 	
 	
@@ -42,6 +45,12 @@ class Validator {
 		return $value;
 	}
 	
+	private function _validateBool($value, $test = true) {
+		if (is_bool($value) !== $test) throw new ValidationException($value);
+		
+		return $value;
+	}
+	
 	private function _validateInt($value, $test = true) {
 		if (is_int($value) !== $test) throw new ValidationException($value);
 		
@@ -50,6 +59,20 @@ class Validator {
 	
 	private function _validateUint($value, $test = true) {
 		if ((is_int($value) && $value >= 0) !== $test) throw new ValidationException($value);
+		
+		return $value;
+	}
+	
+	private function _validateArray($value) {
+		if (!is_array($value)) throw new ValidationException($value);
+		
+		return $value;
+	}
+	
+	private function _validateProperty($value, $prop) {
+		$this->_validateArray($value);
+		
+		if (!array_key_exists($prop, $value)) throw new ValidationException($value);
 		
 		return $value;
 	}
@@ -66,6 +89,10 @@ class Validator {
 		return null;
 	}
 	
+	private function _castBool($value) {
+		return $this->_validateBool((bool) $value);
+	}
+	
 	private function _castInt($value) {
 		return $this->_validateInt((int) $value);
 	}
@@ -77,6 +104,7 @@ class Validator {
 	private function _getCastTransform($type) {
 		$map = [
 			self::TYPE_NULL => '_castNull',
+			self::TYPE_BOOL => '_castBool',
 			self::TYPE_INT => '_castInt',
 			self::TYPE_UINT => '_castUint'
 		];
@@ -84,6 +112,13 @@ class Validator {
 		if (!array_key_exists($type, $map)) throw new \ErrorException();
 		
 		return $map[$type];
+	}
+	
+	
+	private function _useProperty($source, $prop) {
+		$this->_validateProperty($source, $prop);
+		
+		return $source[$prop];
 	}
 	
 	
@@ -114,6 +149,9 @@ class Validator {
 			case self::TYPE_NULL :
 				return $this->_validateNull($value, $condition);
 				
+			case self::TYPE_BOOL :
+				return $this->_validateBool($value, $condition);
+				
 			case self::TYPE_INT :
 				return $this->_validateInt($value, $condition);
 				
@@ -128,6 +166,12 @@ class Validator {
 				
 			case self::TEST_TRUE :
 				return $this->_validateTest($value, $condition);
+			
+			case self::TEST_PROPERTY :
+				return $this->_validateProperty($value, $condition);
+				
+			case self::USE_PROPERTY :
+				return $this->_useProperty($value, $condition);
 				
 			default : throw new \ErrorException();
 		}
