@@ -70,6 +70,7 @@ implements IInjectable, ILogger
 	
 	static protected function _valueToString($value) {
 		if (is_null($value)) return 'null';
+		else if (is_bool($value)) return $value ? 'true' : 'false';
 		else if (is_callable($value)) return 'callable';
 		else if (is_string($value)) return "'$value'";
 		else if (is_object($value)) return get_class($value);
