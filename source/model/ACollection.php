@@ -47,7 +47,7 @@ extends AIterateable
 	}
 	
 	
-	public function& hasItem(IResourceQuery $query) {
+	public function hasItem(IResourceQuery $query) {
 		return $this->_resource->getIndexOf($query) !== -1;
 	}
 	
