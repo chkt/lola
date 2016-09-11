@@ -360,7 +360,10 @@ implements IResourceQuery
 			$prop = $this->_getPropertyNameOf($cond);
 			$op = $this->_getPropertyOperatorOf($cond);
 			
-			if (!$this->_resolveMatch($data->useItem($prop), $op, $test)) return false;
+			if (
+				!$data->hasItem($prop) ||
+				!$this->_resolveMatch($data->useItem($prop), $op, $test)
+			) return false;
 		}
 		
 		return true;
