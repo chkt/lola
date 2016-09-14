@@ -1,6 +1,6 @@
 {
 	"name" : "chkt/lola",
-	"description" : "Micro MVC Framework, Services, Providers, Dependency Injection",
+	"description" : "Micro MVC Framework, Services, Providers, Modules, Dependency Injection",
 	"license" : "MIT",
 	
 	"keywords" : [
@@ -11,6 +11,7 @@
 		"Controller",
 		"Service",
 		"Provider",
+		"Modules",
 		"Dependency Injection"
 	],
 	
