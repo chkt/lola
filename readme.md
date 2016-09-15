@@ -98,10 +98,10 @@ namespace myModule;
 
 use lola\module\AModule;
 
-use myOtherModule\myService;
+use myOtherModule\MyService;
 
 
-class Module
+final class Module
 extends AModule
 {
 ```
@@ -109,7 +109,7 @@ extends AModule
 For convenience, you can just extend from lola\module\AModule. Alternatively you can implement \lola\module\IModule.
 
 ```php
-	getDependencyConfig(array $config) {
+	static public function getDependencyConfig(array $config) {
 		return [[
 			'type' => Injector::TYPE_SERVICE,
 			'id' => 'my'
@@ -117,7 +117,7 @@ For convenience, you can just extend from lola\module\AModule. Alternatively you
 	}
 ```
 
-Define your dependencies inside ::getDependencyConfig(). All defined dependencies will be available in ->__construct()
+Define your dependencies inside ::getDependencyConfig(). All defined dependencies will be available inside ->__construct()
 	
 ```php
 	public function __construct(MyService& $mySerivce) {
@@ -127,7 +127,7 @@ Define your dependencies inside ::getDependencyConfig(). All defined dependencie
 
 Inside the constructor you can run arbitrary code, for example add a folder of template files to your view service. 
 
-```
+```php
 	public function getModuleConfig() {
 		return [];
 	}
@@ -154,7 +154,7 @@ class MyController
 extends AController
 {
 
-	static function getDependencyConfig(array $config) {
+	static public function getDependencyConfig(array $config) {
 		return [[
 			'type' => Injector::TYPE_INJECTOR
 		],[
@@ -214,7 +214,7 @@ which will ensure that you will always receive the same service instance when su
 ```php
 <?php //MyService.php
 
-namespace app\service\MyService;
+namespace app\service;
 
 use lola\service\AService;
 
