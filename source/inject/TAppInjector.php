@@ -14,15 +14,15 @@ trait TAppInjector {
 	//use TAppLocator
 
 
-	
+
 	private $_tInjector = null;
-	
+
 
 	public function& useInjector() {
-		if (is_null($this->_tInjector)) $this->_tInjector = new Injector($this->useLocator(), [
+		if (is_null($this->_tInjector)) $this->_tInjector = new Injector($this->useLocator(), $this->useRegistry(), [
 			'app' =>& $this
 		]);
-		
+
 		return $this->_tInjector;
 	}
 }
