@@ -14,7 +14,7 @@ extends AProvider
 implements IInjectable
 {
 
-	const VERSION = '0.3.0';
+	const VERSION = '0.3.1';
 
 
 	static public function getDependencyConfig(Array $config) {
@@ -27,7 +27,9 @@ implements IInjectable
 
 	public function __construct(Registry& $registry) {
 		parent::__construct(function($hash) use ($registry) {
-			return $registry->resolve('service', $hash);
+			$segs = $registry->parseHash($hash);
+			
+			return $registry->produce('service', $segs['name'], !empty($segs['id']) ? $segs['id'] : 'default', $segs['module']);
 		});
 	}
 }
