@@ -10,7 +10,7 @@ use lola\module\IModule;
 
 class Registry {
 
-	const VERSION = '0.3.0';
+	const VERSION = '0.3.1';
 
 
 
@@ -108,30 +108,44 @@ class Registry {
 		
 		return $this;
 	}
+	
+	
+	public function parseHash($hash) {
+		if (!is_string($hash) || empty($hash)) throw new \ErrorException();
+		
+		$segs = parse_url($hash);
+		
+		if ($segs === false) throw new \ErrorException('MOD: hash malformed - ' . $hash);
+
+		$type = array_key_exists('scheme', $segs) ? $segs['scheme'] : '';		
+		$module = array_key_exists('host', $segs) ? $segs['host'] : '';
+		$name = array_key_exists('path', $segs) ? $name = str_replace('/', '\\', trim($segs['path'], '/')) : '';
+		$id = array_key_exists('query', $segs) ? $segs['query'] : '';
+		
+		return [
+			'module' => $module,
+			'type' => $type,
+			'name' => $name,
+			'id' => $id
+		];
+	}
 
 
 	public function resolve($type, $hash) {
-		if (!is_string($hash) || empty($hash)) throw new \ErrorException();
-
-		$mindex = strpos($hash, ':');
-
-		if ($mindex === false) $mindex = -1;
-
-		$nindex = strpos($hash, '.', $mindex + 1);
-
-		if ($nindex === false) $nindex = strlen($hash);
-
-		$nlen = $nindex - $mindex - 1;
-
-		if ($nlen === 0) throw new \ErrorException('MOD: no name');
-
-		$name = substr($hash, $mindex + 1, $nlen);
-		$id = substr($hash, $nindex + 1);
-
-		if ($mindex === -1) return $this->_locateEntity($type, $name, $id);
-
-		$module = substr($hash, 0, $mindex);
-
-		return $this->_produceEntity($module, $type, $name, $id);
+		$segs = $this->parseHash($hash);
+		
+		return $this->produce($type, $segs['name'], $segs['id'], $segs['module']);
+	}
+	
+	
+	public function produce($type, $name, $id = '', $module = '') {
+		if (
+			!is_string($type) || empty($type) ||
+			!is_string($name) || empty($name) ||
+			!is_string($id) || !is_string($module)
+		) throw new \ErrorException();
+		
+		if (empty($module)) return $this->_locateEntity($type, $name, $id);
+		else return $this->_produceEntity($module, $type, $name, $id);
 	}
 }
