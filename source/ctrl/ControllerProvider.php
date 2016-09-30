@@ -12,7 +12,7 @@ use lola\prov\StackProviderResolver;
 
 
 
-class ControllerProvider
+final class ControllerProvider
 extends AProvider
 implements IInjectable
 {
