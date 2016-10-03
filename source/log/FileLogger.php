@@ -25,7 +25,6 @@ implements IInjectable, ILogger
 		ILogger::TAG_TYPE => [Colorizer::F_MAGENTA, Colorizer::MOD_BRIGHT],
 		ILogger::TAG_MESSAGE => [Colorizer::MOD_BRIGHT],
 		ILogger::TAG_VOID => [],
-		ILogger::TAG_NEWLINE => [],
 		ILogger::TAG_URL_PATH => [Colorizer::F_GREEN, Colorizer::MOD_BRIGHT],
 		ILogger::TAG_SOURCE_FILE => [Colorizer::F_BLUE, Colorizer::MOD_BRIGHT],
 		ILogger::TAG_SOURCE_LINE => [],
@@ -38,15 +37,14 @@ implements IInjectable, ILogger
 		ILogger::TAG_ERROR_LINE => [],
 		ILogger::TAG_ERROR_SOURCE => [Colorizer::F_RED],
 		ILogger::TAG_ERROR_ARG_NAME => [],
-		ILogger::TAG_ERROR_ARG_VAL => [],
+		ILogger::TAG_ERROR_ARG_VAL => [Colorizer::F_GREEN],
 		ILogger::TAG_STACK => [Colorizer::F_RED, Colorizer::MOD_BRIGHT],
 		ILogger::TAG_STACK_FILE => [Colorizer::F_BLUE],
 		ILogger::TAG_STACK_LINE => [],
 		ILogger::TAG_PROPERTY_TYPE => [Colorizer::MOD_BRIGHT],
 		ILogger::TAG_PROPERTY_KEY => [Colorizer::F_BLUE, Colorizer::MOD_BRIGHT],
+		ILogger::TAG_ARRAY_KEY => [Colorizer::F_BLUE, Colorizer::MOD_BRIGHT],
 		ILogger::TAG_PROPERTY_VALUE => [Colorizer::F_GREEN],
-		ILogger::TAG_PROPERTY_SEPARATOR => [],
-		ILogger::TAG_PROPERTY_TERMINATOR => [],
 		ILogger::TAG_SCOPE_OPEN => [],
 		ILogger::TAG_SCOPE_CLOSE => [],
 		ILogger::TAG_KEY => [Colorizer::F_BLUE, Colorizer::MOD_BRIGHT],
@@ -102,7 +100,7 @@ implements IInjectable, ILogger
 			$tags[] = self::_createTag(ILogger::TAG_URL_PATH, $reply->getRedirectTarget());
 		}
 		
-		if ($stackOffset !== self::STACK_IGNORE) $tags = array_merge($tags, self::_buildStackOrigin ($stackOffset + 1));
+		if ($stackOffset !== self::STACK_IGNORE) $tags = array_merge($tags, self::_buildStackOrigin($stackOffset + 1));
 		
 		return $tags;
 	}
@@ -128,7 +126,6 @@ implements IInjectable, ILogger
 		$tags = [
 			self::_createTag(self::TAG_PROPERTY_TYPE, get_class($obj)),
 			self::_createTag(self::TAG_SCOPE_OPEN, '{'),
-			self::_createTag(self::TAG_NEWLINE, PHP_EOL)
 		];
 		
 		$cast = (array) $obj;
@@ -138,10 +135,7 @@ implements IInjectable, ILogger
 			$key = $segs[count($segs) - 1];
 			
 			$tags[] = self::_createTag(self::TAG_PROPERTY_KEY, $key);
-			$tags[] = self::_createTag(self::TAG_PROPERTY_SEPARATOR, ':');
 			$tags = array_merge($tags, self::_buildValue($value, $depth - 1));
-			$tags[] = self::_createTag(self::TAG_PROPERTY_TERMINATOR, ',');
-			$tags[] = self::_createTag(self::TAG_NEWLINE, PHP_EOL);
 		}
 		
 		$tags[] = self::_createTag(self::TAG_SCOPE_CLOSE, '}');
@@ -152,15 +146,11 @@ implements IInjectable, ILogger
 	static protected function _buildArray(array $arr, $depth = 0) {
 		$tags = [
 			self::_createTag(self::TAG_SCOPE_OPEN, '['),
-			self::_createTag(self::TAG_NEWLINE, PHP_EOL)
 		];
 		
 		foreach ($arr as $key => $value) {
-			$tags[] = self::_createTag(self::TAG_PROPERTY_KEY, $key);
-			$tags[] = self::_createTag(self::TAG_PROPERTY_SEPARATOR, '=>');
+			$tags[] = self::_createTag(self::TAG_ARRAY_KEY, $key);
 			$tags = array_merge($tags, self::_buildValue($value, $depth - 1));
-			$tags[] = self::_createTag(self::TAG_PROPERTY_TERMINATOR, ',');
-			$tags[] = self::_createTag(self::TAG_NEWLINE, PHP_EOL);
 		}
 		
 		$tags[] = self::_createTag(self::TAG_SCOPE_CLOSE, ']');
@@ -187,13 +177,17 @@ implements IInjectable, ILogger
 		];
 	}
 	
-	static protected function _buildTraceOrigin(Array $trace) {
-		return [
-			self::_createTag(ILogger::TAG_STACK_FILE, array_key_exists('file', $trace) ? $trace['file'] : '?'),
-			self::_createTag(ILogger::TAG_STACK_LINE, array_key_exists('line', $trace) ? $trace['line'] : '?')
-		];
+	static protected function _buildTraceOrigin(array $trace) {
+		$tags = [];
+		
+		if (array_key_exists('file', $trace)) {
+			$tags[] = self::_createTag(ILogger::TAG_STACK_FILE, $trace['file']);
+
+			if (array_key_exists('line', $trace)) $tags[] = self::_createTag(ILogger::TAG_STACK_LINE, $trace['line']);
+		}
+		
+		return $tags;
 	}
-	
 	
 	
 	static protected function _buildExceptionMessage(\Exception $ex) {
@@ -212,24 +206,23 @@ implements IInjectable, ILogger
 		return $tags;
 	}
 	
-	static protected function _buildTraceArguments(Array $args, Array $params = null) {
-		$tags = [ self::_createTag(ILogger::TAG_VOID, '(') ];
+	static protected function _buildNamedTraceArguments(array $args, array $params) {
+		$tags = [];
 		
-		if (is_null($params)) $tags[] = self::_createTag(ILogger::TAG_ERROR_ARG_NAME, '?');
-		else {
-			foreach ($params as $key => $param) {
-				$tags[] = self::_createTag(ILogger::TAG_ERROR_ARG_NAME, "$$param->name");
-				
-				if (array_key_exists($key, $args)) $tags[] = self::_createTag(ILogger::TAG_ERROR_ARG_VAL, self::_valueToString($args[$key]));
-				else if ($param->isOptional()) $tags[] = self::_createTag(ILogger::TAG_ERROR_ARG_VAL, self::_valueToString($param->getDefaultValue()));
-				else $tags[] = self::_createTag(ILogger::TAG_ERROR_ARG_VAL, 'unset');
-				
-				$tags[] = self::_CreateTag(ILogger::TAG_VOID, ',');
-			}
+		foreach ($params as $key => $param) {
+			$tags[] = self::_createTag(ILogger::TAG_ERROR_ARG_NAME, "$$param->name");
+			
+			if (array_key_exists($key, $args)) $tags[] = self::_createTag(ILogger::TAG_ERROR_ARG_VAL, self::_valueToString ($args[$key]));
+			else if ($param->isDefaultValueAvailable()) $tags[] = self::_createTag(ILogger::TAG_ERROR_ARG_VAL, self::_valueToString($param->getDefaultValue()));
 		}
+				
+		return $tags;
+	}
+	
+	static protected function _buildAnonymousTraceArguments(array $args) {
+		$tags = [];
 		
-		array_pop($tags);
-		array_push($tags, self::_createTag(ILogger::TAG_VOID, ')'));
+		foreach ($args as $value) $tags[] = self::_createTag(ILogger::TAG_ERROR_ARG_VAL, self::_valueToString($value));
 		
 		return $tags;
 	}
@@ -241,10 +234,12 @@ implements IInjectable, ILogger
 		
 		for ($i = 0, $l = count($trace); $i < $l; $i += 1) {
 			$step = $trace[$i];
-			$tags[] = self::_createTag(ILogger::TAG_VOID, PHP_EOL);
 			$tags[] = self::_createTag(ILogger::TAG_STACK, (string) $i);
 			
-			if (array_key_exists('class', $step)) {
+			if (
+				array_key_exists('class', $step) &&
+				method_exists($step['class'], $step['function'])
+			) {
 				$tags[] = self::_createTag(ILogger::TAG_ERROR_SOURCE, $step['class'] . $step['type'] . $step['function']);
 				
 				$method = new \ReflectionMethod($step['class'], $step['function']);
@@ -263,7 +258,7 @@ implements IInjectable, ILogger
 			
 			$tags = array_merge(
 				$tags,
-				self::_buildTraceArguments($step['args'], $params),
+				!is_null($params) ? self::_buildNamedTraceArguments($step['args'], $params) : self::_buildAnonymousTraceArguments($step['args']),
 				self::_buildTraceOrigin($step)
 			);
 		}
@@ -296,7 +291,7 @@ implements IInjectable, ILogger
 			$prevType = $currentType;
 		}
 		
-		return $this->log($res);
+		return $this->log($res .= $formater->apply($prevType));
 	}
 	
 	
@@ -323,7 +318,7 @@ implements IInjectable, ILogger
 	}
 	
 	
-	public function logStats($label, Array $stats) {
+	public function logStats($label, array $stats) {
 		if (!is_string($label) || empty($label)) throw new \ErrorException();
 		
 		$tags = [
