@@ -19,10 +19,10 @@ interface ILogger {
 	const TOKEN_TYPE = 'type';
 	const TOKEN_CONTENT = 'content';
 	
+	const TAG_NONE = 28;
 	const TAG_TYPE = 1;
 	const TAG_MESSAGE = 5;
 	const TAG_VOID = 8;
-	const TAG_NEWLINE = 30;
 	
 	const TAG_URL_PATH = 2;
 	const TAG_SOURCE_FILE = 3;
@@ -45,9 +45,8 @@ interface ILogger {
 	
 	const TAG_PROPERTY_TYPE = 23;
 	const TAG_PROPERTY_KEY = 24;
+	const TAG_ARRAY_KEY = 29;
 	const TAG_PROPERTY_VALUE = 25;
-	const TAG_PROPERTY_SEPARATOR = 28;
-	const TAG_PROPERTY_TERMINATOR = 29;
 	const TAG_SCOPE_OPEN = 26;
 	const TAG_SCOPE_CLOSE = 27;
 	
