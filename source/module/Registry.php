@@ -84,11 +84,12 @@ class Registry {
 	}
 	
 	private function _loadDefered() {
-		foreach ($this->_defered as $name) {
+		$defered = $this->_defered;
+		$this->_defered = [];
+		
+		foreach ($defered as $name) {
 			if (!array_key_exists($name, $this->_modules)) $this->_loadModule($name);
 		}
-		
-		$this->_defered = [];
 	}
 	
 
