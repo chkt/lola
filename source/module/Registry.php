@@ -106,6 +106,24 @@ class Registry {
 	
 	
 	/**
+	 * Applies the entity config specified by $config
+	 * @param array $config The entity config
+	 */
+	private function _applyConfig(array $config) {
+		$locator = $this->_app->useLocator();
+		
+		foreach ($config as $hash => $fn) {
+			$entity = EntityParser::parse($hash);
+			$id = $entity['name'] . (!empty($entity['id']) ? '?' . $entity['id'] : '');
+			
+			$locator
+				->using($entity['type'])
+				->configure($id, $fn);
+		}
+	}
+	
+	
+	/**
 	 * Loads the module referenced by $name
 	 * @param string $name The module name
 	 * @throws \ErrorException if the module referenced by name is not an instance of IModule
@@ -118,6 +136,12 @@ class Registry {
 		if (!($loader instanceof IModule)) throw new \ErrorException('MOD: no loader');
 
 		$module = $loader->getModuleConfig();
+		
+		if (array_key_exists('config', $module)) {
+			$this->_applyConfig($module['config']);
+			
+			unset($module['config']);
+		}
 		
 		$this->_modules[$name] = $module;
 	}
@@ -158,6 +182,12 @@ class Registry {
 	 */
 	public function injectModule($name, $module) {
 		if (!is_string($name) || empty($name)) throw new \ErrorException();
+
+		if (array_key_exists('config', $module)) {
+			$this->_applyConfig($module['config']);
+			
+			unset($module['config']);
+		}
 		
 		$this->_modules[$name] = $module;
 		
