@@ -4,16 +4,17 @@ namespace lola\module;
 
 use lola\app\IApp;
 
+use lola\module\EntityParser;
 use lola\module\IModule;
 
 
 
 class Registry {
 
-	const VERSION = '0.3.1';
+	const VERSION = '0.3.2';
 
-
-
+	
+	
 	private $_app = null;
 	private $_injector = null;
 	
@@ -162,33 +163,6 @@ class Registry {
 		
 		return $this;
 	}
-	
-	
-	/**
-	 * Returns the entity definition referenced by hash
-	 * @param string $hash
-	 * @return array
-	 * @throws \ErrorException if $hash is not a nonempty string
-	 */
-	public function parseHash($hash) {
-		if (!is_string($hash) || empty($hash)) throw new \ErrorException();
-		
-		$segs = parse_url($hash);
-		
-		if ($segs === false) throw new \ErrorException('MOD: hash malformed - ' . $hash);
-
-		$type = array_key_exists('scheme', $segs) ? $segs['scheme'] : '';		
-		$module = array_key_exists('host', $segs) ? $segs['host'] : '';
-		$name = array_key_exists('path', $segs) ? $name = str_replace('/', '\\', trim($segs['path'], '/')) : '';
-		$id = array_key_exists('query', $segs) ? $segs['query'] : '';
-		
-		return [
-			'module' => $module,
-			'type' => $type,
-			'name' => $name,
-			'id' => $id
-		];
-	}
 
 
 	/**
@@ -198,7 +172,7 @@ class Registry {
 	 * @return mixed
 	 */
 	public function resolve($type, $hash) {
-		$segs = $this->parseHash($hash);
+		$segs = EntityParser::parse($hash);
 		
 		return $this->produce($type, $segs['name'], $segs['id'], $segs['module']);
 	}
