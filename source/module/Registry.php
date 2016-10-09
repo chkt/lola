@@ -21,6 +21,9 @@ class Registry {
 	private $_modules = null;
 
 
+	/**
+	 * @param IApp $app
+	 */
 	public function __construct(IApp& $app) {
 		$this->_app =& $app;
 		$this->_injector = null;
@@ -30,6 +33,10 @@ class Registry {
 	}
 
 
+	/**
+	 * Returns a reference to the injector
+	 * @return Injector
+	 */
 	private function& _useInjector() {
 		if (is_null($this->_injector)) $this->_injector =& $this->_app->useInjector();
 
@@ -37,6 +44,13 @@ class Registry {
 	}
 	
 	
+	/**
+	 * Returns the classpath referenced by $moduleName, $entityType and $entityName
+	 * @param string $moduleName
+	 * @param string $entityType
+	 * @param string $entityName
+	 * @return string
+	 */
 	private function _getClassPath($moduleName, $entityType, $entityName) {
 		if (!array_key_exists($moduleName, $this->_modules)) $this->_loadModule($moduleName);
 		
@@ -52,6 +66,14 @@ class Registry {
 	}
 
 
+	/**
+	 * Locates and returns the entity referenced by $entityType, $entityName and $entityId
+	 * @param string $entityType
+	 * @param string $entityName
+	 * @param string $entityId
+	 * @return mixed
+	 * @throws \ErrorException if the referenced entity does not exist
+	 */
 	private function _locateEntity($entityType, $entityName, $entityId) {
 		if (!empty($this->_defered)) $this->_loadDefered();
 		
@@ -64,6 +86,15 @@ class Registry {
 		throw new \ErrorException('MOD: entity missing: ' . $entityType . '|' . $entityName);
 	}
 
+	/**
+	 * Returns the entity referenced by $moduleName, $entityType, $entityName and $entityId
+	 * @param string $moduleName
+	 * @param string $entityType
+	 * @param string $entityName
+	 * @param string $entityId
+	 * @return mixed
+	 * @throws \ErrorException if the referenced entity does not exist
+	 */
 	private function _produceEntity($moduleName, $entityType, $entityName, $entityId) {
 		$qname = $this->_getClassPath($moduleName, $entityType, $entityName);
 		
@@ -73,6 +104,11 @@ class Registry {
 	}
 	
 	
+	/**
+	 * Loads the module referenced by $name
+	 * @param string $name The module name
+	 * @throws \ErrorException if the module referenced by name is not an instance of IModule
+	 */
 	private function _loadModule($name) {
 		$qname = '\\' . $name . '\\' . 'Module';
 
@@ -80,9 +116,14 @@ class Registry {
 
 		if (!($loader instanceof IModule)) throw new \ErrorException('MOD: no loader');
 
-		$this->_modules[$name] = $loader->getModuleConfig();
+		$module = $loader->getModuleConfig();
+		
+		$this->_modules[$name] = $module;
 	}
 	
+	/**
+	 * Loads all defered modules
+	 */
 	private function _loadDefered() {
 		$defered = $this->_defered;
 		$this->_defered = [];
@@ -93,7 +134,12 @@ class Registry {
 	}
 	
 
-
+	/**
+	 * Adds the module referenced by $name to the defered modules
+	 * @param string $name The module name
+	 * @return Registry
+	 * @throws \ErrorException if $name is not a nonempty string
+	 */
 	public function loadModule($name) {
 		if (!is_string($name) || empty($name)) throw new \ErrorException();
 		
@@ -102,15 +148,28 @@ class Registry {
 		return $this;
 	}
 
+	/**
+	 * Injects $module to registry
+	 * @param string $name The module name
+	 * @param array $module The module config
+	 * @return Registry
+	 * @throws \ErrorException if $name is not a nonempty string
+	 */
 	public function injectModule($name, $module) {
 		if (!is_string($name) || empty($name)) throw new \ErrorException();
-
+		
 		$this->_modules[$name] = $module;
 		
 		return $this;
 	}
 	
 	
+	/**
+	 * Returns the entity definition referenced by hash
+	 * @param string $hash
+	 * @return array
+	 * @throws \ErrorException if $hash is not a nonempty string
+	 */
 	public function parseHash($hash) {
 		if (!is_string($hash) || empty($hash)) throw new \ErrorException();
 		
@@ -132,6 +191,12 @@ class Registry {
 	}
 
 
+	/**
+	 * Returns the entity referenced by $type and $hash
+	 * @param string $type The entity type
+	 * @param string $hash The entity hash
+	 * @return mixed
+	 */
 	public function resolve($type, $hash) {
 		$segs = $this->parseHash($hash);
 		
@@ -139,6 +204,18 @@ class Registry {
 	}
 	
 	
+	/**
+	 * Returns the entity referenced by $type, $name, $id and $module
+	 * @param string $type The entity type
+	 * @param string $name The entity name
+	 * @param string $id The unique entity id
+	 * @param string $module The module id
+	 * @return mixed
+	 * @throws \ErrorException if $type is not a nonempty string
+	 * @throws \ErrorException if $name is not a nonempty string
+	 * @throws \ErrorException if $id is not a string
+	 * @throws \ErrorException if $module is not a string
+	 */
 	public function produce($type, $name, $id = '', $module = '') {
 		if (
 			!is_string($type) || empty($type) ||
