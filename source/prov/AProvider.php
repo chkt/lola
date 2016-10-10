@@ -2,14 +2,17 @@
 
 namespace lola\prov;
 
-use \lola\prov\IProviderResolver;
-use \lola\prov\SimpleProviderResolver;
+use lola\prov\IProviderResolver;
+use lola\prov\SimpleProviderResolver;
+
+use lola\module\EntityParser;
 
 
 
-abstract class AProvider {
+abstract class AProvider
+{
 	
-	const VERSION = '0.1.0';
+	const VERSION = '0.3.2';
 	
 	
 	
@@ -19,11 +22,17 @@ abstract class AProvider {
 	 */
 	protected $_factory = null;
 	
+	
 	/**
-	 * The created instances
-	 * @var array
+	 * The instances
+	 * @var array 
 	 */
 	protected $_ins = null;
+	/**
+	 * The queued configuration callbacks
+	 * @var array 
+	 */
+	protected $_config = null;
 	
 	/**
 	 * The provider resolver
@@ -39,29 +48,68 @@ abstract class AProvider {
 	 */
 	public function __construct(Callable $factory, IProviderResolver $resolver = null) {
 		$this->_factory = $factory;
-		
+			
 		$this->_ins = [];
+		$this->_config = [];
 		
 		$this->_resolver = !is_null($resolver) ? $resolver : new SimpleProviderResolver();
 	}
 	
 	
 	/**
-	 * Gets an instance
+	 * Configures $ins with the config represented by $id
+	 * @param string $id The id string
+	 * @param mixed $ins The instance
+	 */
+	private function _configureId($id, & $ins) {
+		$index = $this->_resolver->resolve($id);
+		
+		if (array_key_exists($index, $this->_config)) {
+			$args = [ & $ins ];
+			
+			foreach ($this->_config[$index] as $fn) call_user_func_array($fn, $args);
+		}
+	}
+	
+	/**
+	 * Configures $ins as the entity represented by $id
+	 * @param string $id The id string
+	 * @param mixed $ins The instance
+	 */
+	public function _configureEntity($id, & $ins) {
+		$entity = EntityParser::parse($id);
+		
+		$this->_configureId($entity['name'], $ins);
+		
+		if (!empty($entity['id'])) $this->_configureId($id, $ins);
+	}
+	
+	
+	/**
+	 * Returns an instance represented by $id
 	 * @param string $id
 	 * @return mixed
 	 */
-	public function get($id = '') {
-		return $this->_resolver->resolve($id, $this->_ins, $this->_factory);
+	private function& _produce($id) {
+		$ins = call_user_func($this->_factory, $id);
+		
+		$this->_configureEntity($id, $ins);
+		
+		return $ins;
 	}
+	
 	
 	/**
 	 * Returns a reference to an instance
 	 * @param string $id
 	 * @return mixed
 	 */
-	public function& using($id = '') {
-		return $this->_resolver->resolve($id, $this->_ins, $this->_factory);
+	public function& using($id) {
+		$index = $this->_resolver->resolve($id);
+		
+		if (!array_key_exists($index, $this->_ins)) $this->_ins[$index] = $this->_produce($id);
+		
+		return $this->_ins[$index];
 	}
 	
 	/**
@@ -69,15 +117,11 @@ abstract class AProvider {
 	 * @param string $id The instance id
 	 * @param mixed $ins The instance
 	 * @return AProvider
-	 * @throws \ErrorException if $id is not a nonempty string
 	 */
-	public function set($id, $ins) {
-		if (
-			!is_string($id) || empty($id) ||
-			is_null($ins)
-		) throw new \ErrorException();
-			
-		$this->_ins[$id] = $ins;
+	public function set($id, $ins) {	
+		$index = $this->_resolver->resolve($id);
+		
+		$this->_ins[$index] =& $ins;
 		
 		return $this;
 	}
@@ -86,32 +130,46 @@ abstract class AProvider {
 	 * Resets an id
 	 * @param string $id
 	 * @return AProvider
-	 * @throws \ErrorException if $id is not a nonempty string
 	 */
 	public function reset($id) {
-		if (!is_string($id) || empty($id)) throw new \ErrorException();
+		$index = $this->_resolver->resolve($id);
 		
-		unset($this->_ins[$id]);
+		unset($this->_ins[$index]);
 		
 		return $this;
 	}
 	
 	
 	/**
-	 * Returns a reference to the resolver
-	 * @return IProviderResolver
+	 * Configures an id after creation
+	 * @param string $id
+	 * @param callable $fn
+	 * @return AProvider
+	 * @throws \ErrorException if $fn is not a callable
 	 */
-	public function& useResolver() {
-		return $this->_resolver;
+	public function configure($id, $fn) {
+		if (!is_callable($fn)) throw new \ErrorException();		
+		
+		$index = $this->_resolver->resolve($id);
+		
+		if (!array_key_exists($index, $this->_config)) $this->_config[$index] = [];
+		
+		$this->_config[$index][] = $fn;
+		
+		if (array_key_exists($index, $this->_ins)) $this->_configureEntity($id, $this->_ins);
+		
+		return $this;
 	}
 	
 	/**
-	 * Sets the resolver
-	 * @param IProviderResolver $resolve
+	 * Clear the configuration for $id
+	 * @param string $id
 	 * @return AProvider
 	 */
-	public function setResolver(IProviderResolver $resolve) {
-		$this->_resolver = $resolve;
+	public function clearConfig($id) {		
+		$index = $this->_resolver->resolve($id);
+		
+		if (array_key_exists($index, $this->_config)) unset($this->_config[$index]);
 		
 		return $this;
 	}
