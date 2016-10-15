@@ -17,7 +17,7 @@ abstract class AReplyController extends AController {
 	/**
 	 * The version string
 	 */
-	const VERSION = '0.1.3';
+	const VERSION = '0.3.3';
 	
 	
 	
@@ -39,9 +39,17 @@ abstract class AReplyController extends AController {
 	 */
 	protected $_reply = null;
 	
-			
+	
+	/**
+	 * The request transform
+	 * @var ControllerProcessor|null
+	 */
 	protected $_requestProcessor = null;
 	
+	/**
+	 * The reply transform
+	 * @var ControllerProcessor|null
+	 */
 	protected $_replyProcessor = null;
 	
 	
@@ -110,7 +118,7 @@ abstract class AReplyController extends AController {
 	
 	/**
 	 * Returns a reference to the request processor
-	 * @return RequestProcessor
+	 * @return ControllerProcessor
 	 */
 	public function& useRequestProcessor() {
 		if (is_null($this->_requestProcessor)) $this->_requestProcessor = new ControllerProcessor();
@@ -120,7 +128,7 @@ abstract class AReplyController extends AController {
 	
 	/**
 	 * Sets the request processor
-	 * @param RequestProcessor $processor
+	 * @param ControllerProcessor $processor
 	 * @return AReplyController
 	 */
 	public function setRequestProcessor(ControllerProcessor $processor) {
@@ -132,7 +140,7 @@ abstract class AReplyController extends AController {
 	
 	/**
 	 * Returns a reference to the reply processor
-	 * @return ReplyProcessor
+	 * @return ControllerProcessor
 	 */
 	public function& useReplyProcessor() {
 		if (is_null($this->_replyProcessor)) $this->_replyProcessor = new ControllerProcessor();
@@ -142,7 +150,7 @@ abstract class AReplyController extends AController {
 	
 	/**
 	 * Sets the reply processor
-	 * @param ReplyProcessor $processor
+	 * @param ControllerProcessor $processor
 	 * @return AReplyController
 	 */
 	public function setReplyProcessor(ControllerProcessor $processor) {
@@ -154,7 +162,7 @@ abstract class AReplyController extends AController {
 	
 	/**
 	 * Replies with the instance-action referenced by $route
-	 * @param Route& $route The route
+	 * @param Route $route The route
 	 */
 	public function enter(Route& $route) {
 		$this->_route =& $route;
