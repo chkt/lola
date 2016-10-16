@@ -29,7 +29,7 @@ extends \lola\app\App
 ```
 
 To do anything useful with the framework, you will have to create an app object,
-which will do basic bootstrapping and initialization of the elementary facilities.
+which will do basic bootstrapping and initialization of its elementary facilities.
 
 ```php
 <?php //index.php
@@ -86,6 +86,22 @@ $app
 Now you can retrieve your reference to the application object
 and enter your application (by accessing the router service for example).
 
+###Entity identifiers
+
+Lola uses URI formated identifier strings to identify locateable entities within the application.
+The string `entityType://moduleId/path/to/entityName?entityId` will retrieve the entity
+of type `entityType` from module `moduleId` at the path `path/to/entityName` and the unique id `entityId`.
+
+`entityType` can be any type of configured locateable resource type,
+`moduleId` is the canonical name of the module,
+the path represents the path to the class within its local tree -
+the forward slashes will be converted to backslashes to conform to php naming conventions.
+
+The framework will do its best to aggressively infer attributes of the requested entity.
+In any place where the type is implicit, specifying `entityType` is unneccessary.
+When the `moduleId` is not specified, the module registry will search for the class within the registered modules.
+`entityId` is only required when needed to configure the entity, and the `entityName` can often be reduced to a simple alphanumeric string.
+
 ###Modules
 
 Lola uses Modules, Dependency Injection and Providers.
@@ -129,14 +145,37 @@ Inside the constructor you can run arbitrary code, for example add a folder of t
 
 ```php
 	public function getModuleConfig() {
-		return [];
+		return [
+			'locator' => [
+				'controller' => [
+					'path' => 'controller',
+					'prefix' => '',
+					'postfix' => 'Controller'
+				]
+			]
+```
+
+Define the locations of your controllers, services and other locateable resources inside ->getModuleConfig().
+All defined resources will automatically be available to providers and the injector.
+
+The sample contains a custom configuration for the controllers belonging to the module with all settings reflecting the default settings for controllers.
+
+```php
+			'config' => [
+				'service:my' => function(MyService& $myService) {
+					$myService->configure('myModule');
+				}
+			]
+		];
 	}
 }
 ```
 
-Define the locations of your controllers, services and other locateable resources inside ->getModuleConfig().
-All defined resources will automatically available to providers and the injector.
+You can also add additional configuration inside your module config.
+All configuration will be added to the module registry and only invoked once an actual instance of the referenced entity is created.
 
+This way you can avoid creating and configuring services that will not be used later 
+as well as dependency loops when trying to configure an entity that is defined by the current module.
 
 ###Controllers
 ```php
@@ -159,7 +198,7 @@ extends AController
 			'type' => Injector::TYPE_INJECTOR
 		],[
 			'type' => Injector::TYPE_SERVICE,
-			'id' => 'myOtherModule:my'
+			'id' => '//myOtherModule/my'
 		]];
 	}
 ```
@@ -178,22 +217,22 @@ All Controllers extend from /lola/ctrl/AController, which itself is an injectabl
 	) {
 		$this->myService = $myService;
 		
-		$this->setRequestProcessor($injector->produce('\\myModule\\controller\\MyControllerRequestProcessor'));
-		$this->setReplyProcessor($injector->produce('\\myModule\\controller\\MyControllerReplyProcessor'));
+		$this->setRequestTransform($injector->produce('\\myModule\\controller\\MyControllerRequestTransform'));
+		$this->setReplyTransform($injector->produce('\\myModule\\controller\\MyControllerReplyTransform'));
 	}
 ```
 
-Controllers use request and reply processors to perform task common to all actions within the controller,
-or even within the whole application. All processors extend from /lola/ctrl/ControllerProcessor.
-When you first create a controller, its processors will be empty.
+Controllers use request and reply transforms to setup the state of the controller prior to running the requested action.
+All transforms extend from /lola/ctrl/ControllerTransform.
+When you first create a controller, its transforms will be empty.
 
 When entering an action on a controller by calling $ctrl->enter(),
-first the request processor will be executed on the controller,
-then the action will be invoked and last the reply processor will be executed.
+first the request transform will be executed on the controller,
+then the action will be invoked and last the reply transform will be executed.
 Only methods ending in *Action will be enterable. 
 
 If your controller is run in reaction to a http request,
-you could for example set up your reply processor to render the view with the return value of your action,
+you could for example set up your reply transform to render the view with the return value of your action,
 and then use the \lola\http\HttpReply instance of the controller to send the rendered view.
 
 ```php
@@ -204,6 +243,84 @@ and then use the \lola\http\HttpReply instance of the controller to send the ren
 	}
 }
 ```
+
+###State Transforms
+
+State transforms are simple statemachines representing certain setup task inside the application,
+like for example setting up state for a controller before executing an action.
+
+```php
+<?php //MyRequestTransform.php
+
+namespace app\ctrl;
+
+use lola\ctrl\ControllerProcessor;
+use lola\inject\IInjectable;
+
+class MyRequestTransform
+extends ControllerProcessor
+implements IInjectable
+{
+	
+	static public function getDependencyConfig(array $config) {
+		return [];
+	}
+```
+
+State transforms are not by default injectable, but you can easily augment them with this ability.
+The transform will be home to the state graph as well as to the actual code implementing the state transitions. 
+
+```php
+	public function __construct() {
+		parent::__construct([
+			'start' => [
+				'next' => [
+					'success' => 'step1'
+				]
+			]
+			'step1' => [
+				'transform' => 'foo',
+				'next' => [
+					'success' => '',
+					'failure' => 'fallback
+				]
+			],
+			'fallback' => [
+				'transform' => 'bar',
+				'next' => [
+					'success' => ''
+				]
+			]
+		]);
+	}
+```
+
+The state graph defines the order in which the transform should be executed
+under different scenarios.
+
+It is recommended to have a `start` state in every transform, since the start state will automatically run if no other state is handed to the instances `->process()` method.
+
+If a state contains a `transform` property, the state transform will try to execute the method with the value of `transform` concatenated with `Step`.
+So for example if the transform property contains the value `foo`, the state transform will try to enter the instance method named `fooStep`.
+
+Transform methods can optionally return a return value. The return value will be mapped to the values in `next`.
+If the method return nothing or null, its return value will be mapped to `success`. If the value of the next property for the return value is the empty string,
+no further states will be entered.
+
+```php
+
+	public function fooStep(MyEntity& myEntity) {
+		//...
+	}
+	
+	public function barStep(MyEntity& myEntity) {
+		//...
+	}
+}
+```
+
+The actual transformation functions are members of the class. `myEntity` can be set using the instances `->setTarget()` method.
+For transforms that are executed as part of the framework defined application flow, this happens automatically.
 
 ###Services
 
