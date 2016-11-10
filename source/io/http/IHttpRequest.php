@@ -50,8 +50,6 @@ extends IRequest
 	public function setHeader(string $name, string $value) : IHttpRequest;
 
 
-	public function hasBody() : bool;
-
 	public function getBody() : string;
 
 	public function setBody(string $body) : IHttpRequest;
