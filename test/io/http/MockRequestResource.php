@@ -43,7 +43,7 @@ implements IHttpRequestResource
 	}
 
 	public function getEncoding() : string {
-		return 'utf-8';
+		return 'iso-8859-1';
 	}
 
 	public function getAcceptMimes() : array {
