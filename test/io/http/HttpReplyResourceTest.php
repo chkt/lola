@@ -60,6 +60,6 @@ extends TestCase
 		$this->assertEquals($reply->sendBody('bar'), $reply);
 		$this->assertEquals(ob_get_contents(), 'foobar');
 
-		ob_clean();
+		ob_end_clean();
 	}
 }
