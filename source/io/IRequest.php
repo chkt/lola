@@ -3,7 +3,7 @@
 namespace lola\io;
 
 use lola\io\IReply;
-use lola\io\IRequestClient;
+use lola\io\IClient;
 
 
 
@@ -12,7 +12,7 @@ interface IRequest
 
 	public function& useReply() : IReply;
 
-	public function& useClient() : IRequestClient;
+	public function& useClient() : IClient;
 
 
 	public function getTime() : int;
