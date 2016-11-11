@@ -1,12 +1,11 @@
 <?php
 
-require_once('MockRequestResource.php');
+require_once('MockDriver.php');
 
 use PHPUnit\Framework\TestCase;
 
 use lola\io\http\HttpRequest;
-use lola\io\http\HttpDriver;
-use test\io\http\MockRequestResource;
+use test\io\http\MockDriver;
 
 
 
@@ -20,11 +19,7 @@ extends TestCase
 	public function __construct() {
 		parent::__construct();
 
-		$request = new MockRequestResource();
-		$driver = new HttpDriver();
-		$driver->setRequestResource($request);
-
-		$this->_driver = $driver;
+		$this->_driver = new MockDriver();
 	}
 
 
@@ -272,7 +267,7 @@ extends TestCase
 		$this->assertTrue($request->hasHeader('Header-3'));
 		$this->assertEquals($request->getHeader('Header-3'), 'baz');
 	}
-	
+
 
 	public function testGetBody() {
 		$request = new HttpRequest($this->_driver);
