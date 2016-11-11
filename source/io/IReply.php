@@ -19,7 +19,7 @@ interface IReply
 	public function setBodyFromOB() : IReply;
 
 
-	public function send() : null;
+	public function send();
 
-	public function sendOB() : null;
+	public function sendOB();
 }
