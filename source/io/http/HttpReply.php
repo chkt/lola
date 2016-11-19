@@ -142,6 +142,19 @@ implements IHttpReply
 		return $this;
 	}
 
+	public function resetHeader(string $name) : IHttpReply {
+		if (empty($name)) throw new \ErrorException();
+
+		if ($name === 'Content-Type') {
+			$this->_mime = IHttpConfig::MIME_PLAIN;
+			$this->_encoding = IHttpConfig::ENCODING_UTF8;
+		}
+		else if ($name === 'Location') $this->_redirectTarget = '';
+		else unset($this->_headers[$name]);
+
+		return $this;
+	}
+
 	public function getHeaders() : array {
 		return $this->_headers;
 	}
