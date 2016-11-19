@@ -135,6 +135,28 @@ extends TestCase
 		$this->assertEquals($reply->getHeader('Header-1'), 'foo');
 	}
 
+	public function testResetHeader() {
+		$reply = new HttpReply($this->_driver);
+
+		$reply->setHeader('Content-Type', 'text/html;charset=iso-8859-1');
+		$this->assertEquals($reply->resetHeader('Content-Type'), $reply);
+		$this->assertEquals($reply->getMime(), 'text/plain');
+		$this->assertEquals($reply->getEncoding(), 'utf-8');
+		$this->assertEquals($reply->getHeader('Content-Type'), 'text/plain;charset=utf-8');
+		$this->assertTrue($reply->hasHeader('Content-Type'));
+
+		$reply->setHeader('Location', '/path/to/resource');
+		$this->assertEquals($reply->resetHeader('Location'), $reply);
+		$this->assertEquals($reply->getRedirectTarget(), '');
+		$this->assertEquals($reply->getHeader('Location'), '');
+		$this->assertFalse($reply->hasHeader('Location'));
+
+		$reply->setHeader('Header-1', 'foo');
+		$this->assertEquals($reply->resetHeader('Header-1'), $reply);
+		$this->assertEquals($reply->getHeader('Header-1'), '');
+		$this->assertFalse($reply->hasHeader('Header-1'));
+	}
+
 	public function testGetHeaders() {
 		$reply = new HttpReply($this->_driver);
 
