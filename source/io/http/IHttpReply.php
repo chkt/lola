@@ -42,5 +42,7 @@ extends IReply
 
 	public function setHeader(string $name, string $value) : IHttpReply;
 
+	public function resetHeader(string $name) : IHttpReply;
+
 	public function getHeaders() : array;
 }
