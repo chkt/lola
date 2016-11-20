@@ -3,11 +3,14 @@
 namespace test\io\http;
 
 require_once 'MockRequestResource.php';
+require_once 'MockReplyResource.php';
 
 use lola\io\http\HttpDriver;
 use lola\io\http\IHttpRequestResource;
+use lola\io\http\IHttpReplyResource;
 
 use test\io\http\MockRequestResource;
+use test\io\http\MockReplyResource;
 
 
 
@@ -15,7 +18,8 @@ final class MockDriver
 extends HttpDriver
 {
 
-	private $_resource;
+	private $_requestResource;
+	private $_replyResource;
 
 	private $_replyCallback;
 
@@ -23,15 +27,23 @@ extends HttpDriver
 	public function __construct() {
 		parent::__construct();
 
-		$this->_resource = null;
+		$this->_requestResource = null;
+		$this->_replyResource = null;
 		$this->_replyCallback = null;
 	}
 
 
 	public function& useRequestResource() : IHttpRequestResource {
-		if (is_null($this->_resource)) $this->_resource = new MockRequestResource();
+		if (is_null($this->_requestResource)) $this->_requestResource = new MockRequestResource();
 
-		return $this->_resource;
+		return $this->_requestResource;
+	}
+
+
+	public function& useReplyResource() : IHttpReplyResource {
+		if (is_null($this->_replyResource)) $this->_replyResource = new MockReplyResource();
+
+		return $this->_replyResource;
 	}
 
 
