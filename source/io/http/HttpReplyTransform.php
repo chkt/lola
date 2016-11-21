@@ -12,54 +12,64 @@ class HttpReplyTransform
 extends AStateTransform
 {
 
+	const STEP_FILTER_HEADERS = 'filterHeaders';
+	const STEP_SEND_HEADERS = 'sendHeaders';
+	const STEP_SEND_COOKIES = 'sendCookies';
+	const STEP_SEND_REDIRECT = 'sendRedirect';
+	const STEP_REDIRECT_BODY = 'redirectBody';
+	const STEP_SEND_BODY = 'sendBody';
+	const STEP_EXIT = 'exit';
+
+
+
 	public function __construct() {
 		parent::__construct([
 			self::STEP_FIRST => [
 				'next' => [
-					self::STEP_SUCCESS => 'filterHeaders'
+					self::STEP_SUCCESS => self::STEP_FILTER_HEADERS
 				]
 			],
-			'filterHeaders' => [
+			self::STEP_FILTER_HEADERS => [
 				'transform' => 'filterHeaders',
 				'next' => [
-					self::STEP_SUCCESS => 'sendHeaders'
+					self::STEP_SUCCESS => self::STEP_SEND_HEADERS
 				]
 			],
-			'sendHeaders' => [
+			self::STEP_SEND_HEADERS => [
 				'transform' => 'sendHeaders',
 				'next' => [
-					'cookies' => 'sendCookies',
-					'redirect' => 'sendRedirect',
-					self::STEP_SUCCESS => 'sendBody'
+					'cookies' => self::STEP_SEND_COOKIES,
+					'redirect' => self::STEP_SEND_REDIRECT,
+					self::STEP_SUCCESS => self::STEP_SEND_BODY
 				]
 			],
-			'sendCookies' => [
+			self::STEP_SEND_COOKIES => [
 				'transform' => 'sendCookies',
 				'next' => [
-					'redirect' => 'sendRedirect',
-					self::STEP_SUCCESS => 'sendBody',
+					'redirect' => self::STEP_SEND_REDIRECT,
+					self::STEP_SUCCESS => self::STEP_SEND_BODY,
 				]
 			],
-			'sendRedirect' => [
+			self::STEP_SEND_REDIRECT => [
 				'transform' => 'sendRedirect',
 				'next' => [
-					'body' => 'redirectBody',
-					self::STEP_SUCCESS => 'sendBody'
+					'body' => self::STEP_REDIRECT_BODY,
+					self::STEP_SUCCESS => self::STEP_SEND_BODY
 				]
 			],
-			'redirectBody' => [
+			self::STEP_REDIRECT_BODY => [
 				'transform' => 'redirectBody',
 				'next' => [
-					self::STEP_SUCCESS => 'sendBody'
+					self::STEP_SUCCESS => self::STEP_SEND_BODY
 				]
 			],
-			'sendBody' => [
+			self::STEP_SEND_BODY => [
 				'transform' => 'sendBody',
 				'next' => [
-					self::STEP_SUCCESS => 'exit'
+					self::STEP_SUCCESS => self::STEP_EXIT
 				]
 			],
-			'exit' => [
+			self::STEP_EXIT => [
 				'transform' => 'exit',
 				'next' => [
 					self::STEP_SUCCESS => ''
