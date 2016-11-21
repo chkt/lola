@@ -5,12 +5,15 @@ namespace lola\io\http;
 use lola\type\AStateTransform;
 
 use lola\io\http\IHttpDriver;
+use lola\io\ReplySentException;
 
 
 
 class HttpReplyTransform
 extends AStateTransform
 {
+
+	const VERSION = '0.5.0';
 
 	const STEP_FILTER_HEADERS = 'filterHeaders';
 	const STEP_SEND_HEADERS = 'sendHeaders';
@@ -147,6 +150,6 @@ extends AStateTransform
 	}
 
 	public function exitStep(IHttpDriver& $driver) {
-		exit();
+		throw new ReplySentException();
 	}
 }
