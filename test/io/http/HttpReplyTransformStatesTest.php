@@ -5,7 +5,6 @@ require_once('HttpReplyTransform.php');
 
 use PHPUnit\Framework\TestCase;
 use test\io\http\MockDriver;
-use test\io\http\HttpReplyTransform;
 
 
 
@@ -14,9 +13,9 @@ extends TestCase
 {
 
 	public function testSimpleReply() {
-		$trn = new HttpReplyTransform();
 		$driver = new MockDriver();
 		$reply =& $driver->useReply();
+		$trn =& $driver->useReplyTransform();
 
 		$reply
 			->setCode('404')
@@ -24,9 +23,16 @@ extends TestCase
 			->setHeader('X-Header-1', 'foo')
 			->setBody('Does not exist - sorry...');
 
-		$trn
-			->setTarget($driver)
-			->process();
+		try {
+			$trn
+				->setTarget($driver)
+				->process();
+
+			throw new \Exception();
+		}
+		catch (\Exception $ex) {
+			$this->assertInstanceOf('\lola\io\IReplySentException', $ex);
+		}
 
 		$queue = $driver
 			->useReplyResource()
@@ -51,9 +57,9 @@ extends TestCase
 	}
 
 	public function testRedirectReply() {
-		$trn = new HttpReplyTransform();
 		$driver = new MockDriver();
 		$reply =& $driver->useReply();
+		$trn =& $driver->useReplyTransform();
 
 		$reply
 			->setCode('302')
@@ -61,9 +67,16 @@ extends TestCase
 			->setMime('text/plain')
 			->setHeader('X-Header-1', 'foo');
 
-		$trn
-			->setTarget($driver)
-			->process();
+		try {
+			$trn
+				->setTarget($driver)
+				->process();
+
+			throw new \Exception();
+		}
+		catch (\Exception $ex) {
+			$this->assertInstanceOf('\lola\io\IReplySentException', $ex);
+		}
 
 		$queue = $driver
 			->useReplyResource()
@@ -91,9 +104,9 @@ extends TestCase
 	}
 
 	public function testCookieReply() {
-		$trn = new HttpReplyTransform();
 		$driver = new MockDriver();
 		$reply =& $driver->useReply();
+		$trn =& $driver->useReplyTransform();
 
 		$reply
 			->setCode('404')
@@ -104,9 +117,16 @@ extends TestCase
 			->set('a', 'bar', 1234)
 			->set('b', 'baz', 4321);
 
-		$trn
-			->setTarget($driver)
-			->process();
+		try {
+			$trn
+				->setTarget($driver)
+				->process();
+
+			throw new \Exception();
+		}
+		catch (Exception $ex) {
+			$this->assertInstanceOf('\lola\io\IReplySentException', $ex);
+		}
 
 		$queue = $driver
 			->useReplyResource()
@@ -141,9 +161,9 @@ extends TestCase
 	}
 
 	public function testCookieRedirectReply() {
-		$trn = new HttpReplyTransform();
 		$driver = new MockDriver();
 		$reply =& $driver->useReply();
+		$trn =& $driver->useReplyTransform();
 
 		$reply
 			->setCode('302')
@@ -154,9 +174,14 @@ extends TestCase
 			->set('a', 'bar', 1234)
 			->set('b', 'baz', 4321);
 
-		$trn
-			->setTarget($driver)
-			->process();
+		try {
+			$trn
+				->setTarget($driver)
+				->process();
+		}
+		catch (Exception $ex) {
+			$this->assertInstanceOf('\lola\io\IReplySentException', $ex);
+		}
 
 		$queue = $driver
 			->useReplyResource()
