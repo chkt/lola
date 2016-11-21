@@ -1,7 +1,6 @@
 <?php
 
 require_once('MockDriver.php');
-require_once('HttpReplyTransform.php');
 
 use PHPUnit\Framework\TestCase;
 use test\io\http\MockDriver;
