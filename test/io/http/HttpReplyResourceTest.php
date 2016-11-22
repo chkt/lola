@@ -51,15 +51,40 @@ extends TestCase
 	}
 
 	public function testSendBody() {
-		ob_start();
+		$out = '';
+
+		$this
+			->getFunctionMock('\lola\io\http', 'fopen')
+			->expects($this->any())
+			->with(
+				$this->equalTo('php://output'),
+				$this->equalTo('r+')
+			)
+			->willReturn(1);
+
+		$this
+			->getFunctionMock('\lola\io\http', 'fwrite')
+			->expects($this->any())
+			->with(
+				$this->equalTo(1),
+				$this->isType('string')
+			)
+			->willReturnCallback(function($handle, $content) use (& $out) {
+				$out .= $content;
+			});
+
+		$this
+			->getFunctionMock('\lola\io\http', 'fclose')
+			->expects($this->any())
+			->with($this->equalTo(1))
+			->willReturn(true);
 
 		$reply = new HttpReplyResource();
 
-		$reply->sendBody('foo');
+		$reply
+			->sendBody('foo')
+			->sendBody('bar');
 
-		$this->assertEquals($reply->sendBody('bar'), $reply);
-		$this->assertEquals(ob_get_contents(), 'foobar');
-
-		ob_end_clean();
+		$this->assertEquals('foobar', $out);
 	}
 }
