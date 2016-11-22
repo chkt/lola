@@ -49,6 +49,23 @@ extends TestCase
 		$this->assertEquals($reply->getCode(), '404');
 	}
 
+	public function testGetCodeHeader() {
+		$reply = new HttpReply($this->_driver);
+
+		$reply->setCode(IHttpConfig::CODE_NOT_FOUND);
+
+		$this->assertEquals('HTTP/1.1 404 Not Found', $reply->getCodeHeader());
+	}
+
+	public function testGetCodeMessage() {
+		$reply = new HttpReply($this->_driver);
+
+		$reply->setCode(IHttpConfig::CODE_NOT_FOUND);
+
+		$this->assertEquals('404 - Page not found', $reply->getCodeMessage());
+	}
+
+
 	public function testGetMime() {
 		$reply = new HttpReply($this->_driver);
 
