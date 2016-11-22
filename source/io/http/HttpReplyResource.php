@@ -27,7 +27,10 @@ implements IHttpReplyResource
 	}
 
 	public function sendBody(string $body) : IHttpReplyResource {
-		print $body;
+		$handle = fopen('php://output', 'r+');
+
+		fwrite($handle, $body);
+		fclose($handle);
 
 		return $this;
 	}
