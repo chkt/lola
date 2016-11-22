@@ -68,6 +68,18 @@ implements IHttpReply
 		return $this;
 	}
 
+	public function getCodeHeader() : string {
+		return $this->_driver
+			->useConfig()
+			->getCodeHeader($this->_code);
+	}
+
+	public function getCodeMessage() : string {
+		return $this->_driver
+			->useConfig()
+			->getCodeMessage($this->_code);
+	}
+
 
 	public function getMime() : string {
 		return $this->_mime;
