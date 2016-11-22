@@ -18,6 +18,10 @@ extends IReply
 
 	public function setCode(string $code) : IHttpReply;
 
+	public function getCodeHeader() : string;
+
+	public function getCodeMessage() : string;
+
 
 	public function getMime() : string;
 
