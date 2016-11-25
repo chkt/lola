@@ -4,76 +4,50 @@ namespace lola\ctrl;
 
 use lola\ctrl\AReplyController;
 
+use lola\io\http\HttpConfig;
 use lola\route\Route;
-
-use \lola\http\HttpRequest;
-use \lola\http\HttpReply;
-
+use lola\ctrl\RESTItemRequestTransform;
+use lola\ctrl\RESTReplyTransform;
 
 
-abstract class AItemController extends AReplyController {
-	
-	const VERSION = '0.0.7';
-	
-	
-	
+
+abstract class AItemController
+extends AReplyController
+{
+
+	const VERSION = '0.5.0';
+
+
+
 	public function __construct() {
 		$this
-			->useRequestProcessor()
-			->append('resolve', function(AReplyController &$ctrl) {
-				$route =& $ctrl->useRoute();
-				$request =& $ctrl->useRequest();
-				
-				$mime = $request->getPreferedAcceptMime([
-					HttpRequest::MIME_JSON
-				]);
-				
-				if (empty($mime)) return 'unavailable';
-				
-				switch($request->getMethod()) {
-					case $request::METHOD_GET : return $route->setAction('read');
-					case $request::METHOD_PUT : return $route->setAction('create');
-					case $request::METHOD_PATCH : return $route->setAction('update');
-					case $request::METHOD_DELETE : return $route->setAction('delete');
-					default : $route->setAction('unavailable');
-				}
-			});
-			
-		$this
-			->useReplyProcessor()
-			->append('view', function(AReplyController& $ctrl) {
-				$json = $ctrl->useRoute()->useActionResult()->popItem();
-				
-				$ctrl
-					->useReply()
-					->setContent(json_encode($json))
-					->setMime(HttpReply::MIME_JSON);
-			});
+			->setRequestTransform(new RESTItemRequestTransform())
+			->setReplyProcessor(new RESTReplyTransform());
 	}
-	
-		
+
+
 	abstract protected function createAction(Route $route);
-	
+
 	abstract protected function readAction(Route $route);
-	
+
 	abstract protected function updateAction(Route $route);
-	
+
 	abstract protected function deleteAction(Route $route);
-	
-	
+
+
 	public function unavailableAction(Route $route) {
 		$this
 			->useReply()
-			->setCode(400)
-			->setMime(HttpReply::MIME_PLAIN)
+			->setCode(HttpConfig::CODE_NOT_VALID)
+			->setMime(HttpConfig::MIME_PLAIN)
 			->send();
 	}
-	
+
 	public function unauthenticatedAction(Route $route) {
 		$this
 			->useReply()
-			->setCode(403)
-			->setMime(HttpReply::MIME_PLAIN)
+			->setCode(HttpConfig::CODE_NOT_AUTH)
+			->setMime(HttpConfig::MIME_PLAIN)
 			->send();
 	}
 }
