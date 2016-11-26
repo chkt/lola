@@ -9,12 +9,15 @@ use lola\io\http\IHttpCookies;
 use lola\io\http\IHttpConfig;
 use lola\io\http\IHttpRequestResource;
 use lola\io\http\IHttpReplyResource;
+use lola\io\http\payload\IHttpPayload;
 
 
 
 interface IHttpDriver
 extends IRequestReplyDriver
 {
+
+	public function& usePayload() : IHttpPayload;
 
 	public function& useCookies() : IHttpCookies;
 
