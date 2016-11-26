@@ -23,16 +23,28 @@ extends TestCase
 	}
 
 
-	public function testUseReply() {
+	public function testUsePayload() {
+		$request = new HttpRequest($this->_driver);
 
+		$this->assertEquals($this->_driver->usePayload(), $request->usePayload());
+	}
+
+	public function testUseReply() {
+		$request = new HttpRequest($this->_driver);
+
+		$this->assertEquals($this->_driver->useReply(), $request->useReply());
 	}
 
 	public function testUseCookies() {
+		$request = new HttpRequest($this->_driver);
 
+		$this->assertEquals($this->_driver->useCookies(), $request->useCookies());
 	}
 
 	public function testUseClient() {
+		$request = new HttpRequest($this->_driver);
 
+		$this->assertEquals($this->_driver->useClient(), $request->useClient());
 	}
 
 
