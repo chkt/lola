@@ -10,12 +10,14 @@ use lola\io\IClient;
 use lola\io\http\IHttpCookies;
 use lola\io\http\IHttpRequestResource;
 use lola\io\http\IHttpConfig;
+use lola\io\http\payload\IHttpPayload;
 
 use lola\type\IStateTransform;
 use lola\io\http\HttpRequest;
 use lola\io\http\HttpClient;
 use lola\io\http\HttpReply;
 use lola\io\http\HttpCookies;
+use lola\io\http\payload\HttpPayload;
 
 
 
@@ -24,6 +26,7 @@ implements IHttpDriver
 {
 
 	private $_request;
+	private $_payload;
 	private $_client;
 	private $_reply;
 	private $_cookies;
@@ -36,6 +39,7 @@ implements IHttpDriver
 
 	public function __construct() {
 		$this->_request = null;
+		$this->_payload = null;
 		$this->_client = null;
 		$this->_reply = null;
 		$this->_cookies = null;
@@ -51,6 +55,12 @@ implements IHttpDriver
 		if (is_null($this->_request)) $this->_request = new HttpRequest($this);
 
 		return $this->_request;
+	}
+
+	public function& usePayload() : IHttpPayload {
+		if (is_null($this->_payload)) $this->_payload = new HttpPayload($this);
+
+		return $this->_payload;
 	}
 
 	public function& useClient() : IClient {
