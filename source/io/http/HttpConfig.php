@@ -144,6 +144,10 @@ implements IHttpConfig
 			self::LINK_MIME_LINK => [
 				self::MIME_PLAIN => ': %m',
 				self::MIME_HTML => ': <a href="%m">%m</a>'
+			],
+			self::LINK_MIME_PAYLOAD => [
+				self::MIME_FORM => '\\lola\\io\\http\\payload\\FormPayloadParser',
+				self::MIME_JSON => '\\lola\\io\\http\\payload\\JSONPayloadParser'
 			]
 		];
 	}
@@ -165,7 +169,8 @@ implements IHttpConfig
 			self::LINK_CODE_HEADER,
 			self::LINK_CODE_MESSAGE,
 			self::LINK_MIME_BODY,
-			self::LINK_MIME_LINK
+			self::LINK_MIME_LINK,
+			self::LINK_MIME_PAYLOAD
 		]);
 	}
 
@@ -226,6 +231,12 @@ implements IHttpConfig
 		else $link = '';
 
 		return str_replace('%l', $link, $body);
+	}
+
+	public function getMimePayloadParser(string $mime) : string {
+		$map = $this->_links[self::LINK_MIME_PAYLOAD];
+
+		return array_key_exists($mime, $map) ? $map[$mime] : '';
 	}
 
 
