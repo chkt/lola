@@ -18,6 +18,7 @@ interface IHttpConfig
 	const LINK_CODE_MESSAGE = 'codeMessage';
 	const LINK_MIME_BODY = 'mimeBody';
 	const LINK_MIME_LINK = 'mimeLink';
+	const LINK_MIME_PAYLOAD = 'mimePayload';
 
 	const PROTOCOL_HTTP = 'http';
 	const PROTOCOL_HTTPS = 'https';
@@ -83,6 +84,8 @@ interface IHttpConfig
 	public function getCodeMessage(string $code) : string;
 
 	public function getMimeBody(string $mime, string $code, string $link = null) : string;
+
+	public function getMimePayloadParser(string $mime) : string;
 
 
 	public function hasRule(string $type, string $rule) : bool;
