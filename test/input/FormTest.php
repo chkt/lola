@@ -19,8 +19,6 @@ extends TestCase
 			'name' => 'foo',
 			'value' => 'bar',
 			'validate' => function($now, $was) {
-				error_log($now . ' ' . $was);
-
 				$this->assertEquals($was, 'bar');
 				$this->assertEquals($now, 'baz');
 
