@@ -104,13 +104,13 @@ extends TestCase
 			->getMock();
 
 		$transform
-			->expects($this->any())
+			->expects($this->at(0))
 			->method('setTarget')
 			->with($this->isInstanceOf('\lola\io\http\HttpDriver'))
 			->will($this->returnValue($transform));
 
 		$transform
-			->expects($this->any())
+			->expects($this->at(1))
 			->method('process')
 			->will($this->returnValue($transform));
 
