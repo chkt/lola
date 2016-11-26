@@ -2,8 +2,6 @@
 
 namespace lola\app;
 
-use lola\http\HttpReply;
-
 
 
 trait TAppBase {
