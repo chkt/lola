@@ -9,6 +9,7 @@ use lola\io\IRequest;
 use lola\io\IReply;
 use lola\io\http\IHttpCookies;
 use lola\io\IClient;
+use lola\io\http\payload\IHttpPayload;
 
 
 
@@ -39,6 +40,10 @@ implements IHttpRequest
 		$this->_body = null;
 	}
 
+
+	public function& usePayload() : IHttpPayload {
+		return $this->_driver->usePayload();
+	}
 
 	public function& useReply() : IReply {
 		return $this->_driver->useReply();
@@ -266,7 +271,7 @@ implements IHttpRequest
 		return $this;
 	}
 
-	
+
 	public function getBody() : string {
 		if (is_null($this->_body)) $this->_body = $this->_source->getBody();
 
