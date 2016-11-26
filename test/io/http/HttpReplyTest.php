@@ -28,11 +28,15 @@ extends TestCase
 
 
 	public function testUseRequest() {
+		$reply = new HttpReply($this->_driver);
 
+		$this->assertEquals($this->_driver->useRequest(), $reply->useRequest());
 	}
 
 	public function testUseCookies() {
+		$reply = new HttpReply($this->_driver);
 
+		$this->assertEquals($this->_driver->useCookies(), $reply->useCookies());
 	}
 
 
