@@ -15,6 +15,12 @@ extends TestCase
 		$this->assertInstanceOf('\lola\io\http\HttpRequest', $driver->useRequest());
 	}
 
+	public function testUsePayload() {
+		$driver = new HttpDriver();
+
+		$this->assertInstanceOf('\lola\io\http\payload\HttpPayload', $driver->usePayload());
+	}
+
 	public function testUseClient() {
 		$driver = new HttpDriver();
 
