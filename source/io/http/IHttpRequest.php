@@ -4,12 +4,15 @@ namespace lola\io\http;
 
 use lola\io\IRequest;
 use lola\io\http\IHttpCookies;
+use lola\io\http\payload\IHttpPayload;
 
 
 
 interface IHttpRequest
 extends IRequest
 {
+
+	public function& usePayload() : IHttpPayload;
 
 	public function& useCookies() : IHttpCookies;
 
