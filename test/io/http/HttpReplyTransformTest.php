@@ -128,7 +128,7 @@ extends TestCase
 		$this->assertEquals($reply->getBody(), '302 - Found: /to/resource');
 	}
 
-	public function testSendBody() {
+	public function testSendBodyStep() {
 		$trn = new HttpReplyTransform();
 		$driver = new MockDriver();
 		$reply =& $driver->useReply();
@@ -148,5 +148,14 @@ extends TestCase
 			'type' => 'body',
 			'content' => 'foo-bar-baz'
 		]]);
+	}
+
+	public function testExitStep() {
+		$trn = new HttpReplyTransform();
+		$driver = new MockDriver();
+
+		$this->expectException('\\lola\\io\\ReplySentException');
+
+		$trn->exitStep($driver);
 	}
 }
