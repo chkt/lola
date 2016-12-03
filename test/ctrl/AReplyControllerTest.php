@@ -43,4 +43,32 @@ extends TestCase
 
 		$this->assertEquals($driver->useReply(), $controller->useReply());
 	}
+
+	public function testUseRequestTransform() {
+		$controller = $this->getMockForAbstractClass('\lola\ctrl\AReplyController');
+
+		$this->assertInstanceOf('\lola\ctrl\ControllerTransform', $controller->useRequestTransform());
+	}
+
+	public function testSetRequestTransform() {
+		$controller = $this->getMockForAbstractClass('\lola\ctrl\AReplyController');
+		$transform = new \lola\ctrl\ControllerTransform();
+
+		$this->assertEquals($controller, $controller->setRequestTransform($transform));
+		$this->assertEquals($transform, $controller->useRequestTransform());
+	}
+
+	public function testUseReplyTransform() {
+		$controller = $this->getMockForAbstractClass('\lola\ctrl\AReplyController');
+
+		$this->assertInstanceOf('\lola\ctrl\ControllerTransform', $controller->useReplyTransform());
+	}
+
+	public function testSetReplyTransform() {
+		$controller = $this->getMockForAbstractClass('\lola\ctrl\AReplyController');
+		$transform = new \lola\ctrl\ControllerTransform();
+
+		$this->assertEquals($controller, $controller->setReplyTransform($transform));
+		$this->assertEquals($transform, $controller->useReplyTransform());
+	}
 }
