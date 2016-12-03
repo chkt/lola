@@ -18,7 +18,7 @@ extends AController
 	/**
 	 * The version string
 	 */
-	const VERSION = '0.5.0';
+	const VERSION = '0.5.1';
 
 
 
@@ -146,7 +146,7 @@ extends AController
 	 * @param ControllerTransform $transform
 	 * @return AReplyController
 	 */
-	public function setReplyProcessor(ControllerTransform $transform) {
+	public function setReplyTransform(ControllerTransform $transform) {
 		$this->_replyTransform = $transform;
 
 		return $this;
