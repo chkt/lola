@@ -25,7 +25,7 @@ extends AReplyController
 	public function __construct() {
 		$this
 			->setRequestTransform(new RESTCollectionRequestTransform())
-			->setReplyProcessor(new RESTReplyTransform());
+			->setReplyTransform(new RESTReplyTransform());
 	}
 
 
