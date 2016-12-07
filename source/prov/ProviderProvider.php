@@ -8,23 +8,42 @@ use lola\app\IApp;
 
 
 
-class ProviderProvider extends AProvider {
-	
-	const VERSION = '0.1.0';
-	
-	
-	
+class ProviderProvider
+extends AProvider
+{
+
+	const VERSION = '0.5.2';
+
+
+
+	private $_providers;
+
+
 	public function __construct(IApp $app) {
-		parent::__construct(function($providerName) use ($app) {
-			$props = $app->getProperty('locator');
-			
-			if (!array_key_exists($providerName, $props)) throw new \ErrorException();
-			
-			$qName = $props[$providerName];
-			
+		parent::__construct(function($providerName) use (& $app) {
+			if (!array_key_exists($providerName, $this->_providers)) throw new \ErrorException();
+
 			return $app
 				->useInjector()
-				->produce($qName);
+				->produce($this->_providers[$providerName]);
 		});
+
+		$defaults = [
+			'environment' => \lola\prov\EnvironmentProvider::class,
+			'service' => \lola\service\ServiceProvider::class,
+			'ctrl' => \lola\ctrl\ControllerProvider::class,
+			'class' => \lola\prov\ClassProvider::class
+		];
+
+		$map = $app->hasProperty(IApp::PROP_LOCATOR) ? $app->getProperty(IApp::PROP_LOCATOR) : [];
+
+		$this->_providers = array_merge($defaults, $map);
+	}
+
+
+	public function& locate(string $type, string $location) {
+		return $this
+			->using($type)
+			->using($location);
 	}
 }
