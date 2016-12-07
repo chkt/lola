@@ -1,6 +1,10 @@
 <?php
 
+namespace test\ctrl;
+
 use PHPUnit\Framework\TestCase;
+
+use lola\ctrl\AItemController;
 use lola\ctrl\RESTItemRequestTransform;
 
 
@@ -8,6 +12,12 @@ use lola\ctrl\RESTItemRequestTransform;
 final class RESTItemRequestTransformTest
 extends TestCase
 {
+
+	private function _mockController() {
+		return $this
+			->getMockBuilder(AItemController::class)
+			->disableOriginalConstructor();
+	}
 
 	private function _getRoute($action) {
 		$route = $this
@@ -27,7 +37,7 @@ extends TestCase
 
 	private function _getController($route) {
 		$ctrl = $this
-			->getMockBuilder('\lola\ctrl\AItemController')
+			->_mockController()
 			->setMethods([ 'useRoute' ])
 			->getMockForAbstractClass();
 
@@ -69,7 +79,7 @@ extends TestCase
 			->willReturn($route);
 
 		$ctrl = $this
-			->getMockBuilder('\lola\ctrl\AItemController')
+			->_mockController()
 			->setMethods([ 'useRequest', 'useRoute' ])
 			->getMockForAbstractClass();
 
@@ -149,7 +159,7 @@ extends TestCase
 			->willReturn('HEAD');
 
 		$ctrl = $this
-			->getMockBuilder('\lola\ctrl\AItemController')
+			->_mockController()
 			->setMethods([ 'useRequest' ])
 			->getMockForAbstractClass();
 
