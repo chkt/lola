@@ -6,7 +6,6 @@ use lola\ctrl\AController;
 use lola\route\Route;
 
 use lola\io\http\IHttpDriver;
-use lola\io\http\HttpDriver;
 use lola\ctrl\ControllerTransform;
 
 
@@ -18,7 +17,12 @@ extends AController
 	/**
 	 * The version string
 	 */
-	const VERSION = '0.5.1';
+	const VERSION = '0.5.2';
+
+
+	static public function getDependencyConfig(array $config) {
+		return [ 'environment:http' ];
+	}
 
 
 
@@ -48,6 +52,15 @@ extends AController
 
 
 	/**
+	 * Creates a new instance
+	 * @param IHttpDriver $http
+	 */
+	public function __construct(IHttpDriver& $http) {
+		$this->_httpDriver =& $http;
+	}
+
+
+	/**
 	 * Returns a reference to the route
 	 * @return Route
 	 */
@@ -72,8 +85,6 @@ extends AController
 	 * @return IHttpDriver
 	 */
 	public function& useDriver() {
-		if (is_null($this->_httpDriver)) $this->_httpDriver = new HttpDriver();
-
 		return $this->_httpDriver;
 	}
 
