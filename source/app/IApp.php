@@ -4,15 +4,20 @@ namespace lola\app;
 
 
 interface IApp {
-	public function __construct(Array $config);
+
+	const PROP_LOCATOR = 'locator';
+	const PROP_ENVIRONMENT = 'environment';
 
 
-	public function& useInjector();
+
+	public function& useInjector() : Injector;
 
 	public function& useLocator();
 
 	public function& useRegistry();
 
 
-	public function getProperty($name);
+	public function hasProperty(string $name) : bool;
+
+	public function getProperty(string $name);
 }
