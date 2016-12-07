@@ -7,6 +7,7 @@ use phpmock\phpunit\PHPMock;
 
 use lola\log\FileLogger;
 use test\io\http\MockDriver;
+use lola\ctrl\AReplyController;
 
 
 
@@ -106,7 +107,12 @@ extends TestCase
 			});
 
 		$logger = new FileLogger();
-		$ctrl = $this->getMockForAbstractClass('\lola\ctrl\AReplyController');
+		$driver = new MockDriver();
+
+		$ctrl = $this
+			->getMockBuilder(AReplyController::class)
+			->setConstructorArgs([& $driver ])
+			->getMockForAbstractClass();
 
 		$ctrl
 			->useRequest()
