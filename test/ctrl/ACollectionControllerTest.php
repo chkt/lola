@@ -1,6 +1,10 @@
 <?php
 
+namespace test\ctrl;
+
 use PHPUnit\Framework\TestCase;
+
+use test\io\http\MockDriver;
 use lola\ctrl\ACollectionController;
 
 
@@ -8,6 +12,14 @@ use lola\ctrl\ACollectionController;
 final class ACollectionControllerTest
 extends TestCase
 {
+
+	private function _mockController() {
+		$driver = new MockDriver();
+
+		return $this
+			->getMockBuilder(ACollectionController::class)
+			->setConstructorArgs([& $driver ]);
+		}
 
 	private function _getController($code, $mime) {
 		$reply = $this
@@ -34,7 +46,7 @@ extends TestCase
 			->willReturn($reply);
 
 		$ctrl = $this
-			->getMockBuilder('\lola\ctrl\ACollectionController')
+			->_mockController()
 			->setMethods([ 'useReply' ])
 			->getMockForAbstractClass();
 
@@ -55,7 +67,9 @@ extends TestCase
 
 
 	public function test__construct() {
-		$ctrl = $this->getMockForAbstractClass('\lola\ctrl\ACollectionController');
+		$ctrl = $this
+			->_mockController()
+			->getMockForAbstractClass();
 
 		$this->assertInstanceOf('\lola\ctrl\RESTCollectionRequestTransform', $ctrl->useRequestTransform());
 		$this->assertInstanceOf('\lola\ctrl\RESTReplyTransform', $ctrl->useReplyTransform());
@@ -86,7 +100,7 @@ extends TestCase
 			->willReturn($route);
 
 		$ctrl = $this
-			->getMockBuilder('\lola\ctrl\ACollectionController')
+			->_mockController()
 			->setMethods([ 'unavailableAction' ])
 			->getMockForAbstractClass();
 
