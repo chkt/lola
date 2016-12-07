@@ -1,7 +1,10 @@
 <?php
 
+namespace test\ctrl;
+
 use PHPUnit\Framework\TestCase;
 
+use test\io\http\MockDriver;
 use lola\ctrl\RESTReplyTransform;
 
 
@@ -24,8 +27,11 @@ extends TestCase
 			->method('useActionResult')
 			->willReturn($return);
 
+		$driver = new MockDriver();
+
 		$ctrl = $this
 			->getMockBuilder('\lola\ctrl\AReplyController')
+			->setConstructorArgs([ & $driver ])
 			->setMethods([ 'useRoute' ])
 			->getMock();
 
