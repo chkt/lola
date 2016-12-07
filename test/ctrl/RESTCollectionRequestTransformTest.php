@@ -1,6 +1,9 @@
 <?php
 
+namespace test\ctrl;
+
 use PHPUnit\Framework\TestCase;
+use lola\ctrl\ACollectionController;
 use lola\ctrl\RESTCollectionRequestTransform;
 
 
@@ -8,6 +11,12 @@ use lola\ctrl\RESTCollectionRequestTransform;
 class RESTCollectionRequestTransformTest
 extends TestCase
 {
+
+	private function _mockController() {
+		return $this
+			->getMockBuilder(ACollectionController::class)
+			->disableOriginalConstructor();
+	}
 
 	public function testResolveStep() {
 		$request = $this
@@ -52,7 +61,7 @@ extends TestCase
 			->willReturn('POST');
 
 		$ctrl = $this
-			->getMockBuilder('\lola\ctrl\ACollectionController')
+			->_mockController()
 			->setMethods([ 'useRequest' ])
 			->getMockForAbstractClass();
 
@@ -83,7 +92,7 @@ extends TestCase
 			->willReturn($route);
 
 		$ctrl = $this
-			->getMockBuilder('\lola\ctrl\ACollectionController')
+			->_mockController()
 			->setMethods([ 'useRoute' ])
 			->getMockForAbstractClass();
 
@@ -111,7 +120,7 @@ extends TestCase
 			->willReturn($route);
 
 		$ctrl = $this
-			->getMockBuilder('\lola\ctrl\ACollectionController')
+			->_mockController()
 			->setMethods([ 'useRoute' ])
 			->getMockForAbstractClass();
 
@@ -139,7 +148,7 @@ extends TestCase
 			->willReturn($route);
 
 		$ctrl = $this
-			->getMockBuilder('\lola\ctrl\ACollectionController')
+			->_mockController()
 			->setMethods([ 'useRoute' ])
 			->getMockForAbstractClass();
 
@@ -183,7 +192,7 @@ extends TestCase
 			->willReturn($route);
 
 		$ctrl = $this
-			->getMockBuilder('\lola\ctrl\ACollectionController')
+			->_mockController()
 			->setMethods([ 'useRequest', 'useRoute' ])
 			->getMockForAbstractClass();
 
@@ -234,7 +243,7 @@ extends TestCase
 			->willReturn($route);
 
 		$ctrl = $this
-			->getMockBuilder('\lola\ctrl\ACollectionController')
+			->_mockController()
 			->setMethods([ 'useRequest', 'useRoute' ])
 			->getMockForAbstractClass();
 
