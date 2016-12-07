@@ -4,7 +4,8 @@ namespace lola\ctrl;
 
 use lola\ctrl\AReplyController;
 
-use lola\io\http\HttpConfig;
+use lola\io\http\IHttpDriver;
+use lola\io\http\IHttpConfig;
 use lola\route\Route;
 use lola\ctrl\RESTCollectionRequestTransform;
 use lola\ctrl\RESTReplyTransform;
@@ -22,7 +23,9 @@ extends AReplyController
 	protected $_itemController = '';
 
 
-	public function __construct() {
+	public function __construct(IHttpDriver& $driver) {
+		parent::__construct($driver);
+
 		$this
 			->setRequestTransform(new RESTCollectionRequestTransform())
 			->setReplyTransform(new RESTReplyTransform());
@@ -47,16 +50,16 @@ extends AReplyController
 	public function unavailableAction(Route $route) {
 		$this
 			->useReply()
-			->setCode(HttpConfig::CODE_NOT_VALID)
-			->setMime(HttpConfig::MIME_PLAIN)
+			->setCode(IHttpConfig::CODE_NOT_VALID)
+			->setMime(IHttpConfig::MIME_PLAIN)
 			->send();
 	}
 
 	public function unauthenticatedAction(Route $route) {
 		$this
 			->useReply()
-			->setCode(HttpConfig::CODE_NOT_AUTH)
-			->setMime(HttpConfig::MIME_PLAIN)
+			->setCode(IHttpConfig::CODE_NOT_AUTH)
+			->setMime(IHttpConfig::MIME_PLAIN)
 			->send();
 	}
 }
