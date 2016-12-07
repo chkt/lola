@@ -1,6 +1,11 @@
 <?php
 
+namespace test\ctrl;
+
 use PHPUnit\Framework\TestCase;
+
+use test\io\http\MockDriver;
+use lola\ctrl\AReplyController;
 
 
 
@@ -8,14 +13,24 @@ class AReplyControllerTest
 extends TestCase
 {
 
+	private function _mockController() {
+		$driver = new MockDriver();
+
+		return $this
+			->getMockBuilder(AReplyController::class)
+			->setConstructorArgs([ & $driver ])
+			->getMockForAbstractClass();
+	}
+
+
 	public function testUseDriver() {
-		$controller = $this->getMockForAbstractClass('\lola\ctrl\AReplyController');
+		$controller = $this->_mockController();
 
 		$this->assertInstanceOf('\lola\io\http\IHttpDriver', $controller->useDriver());
 	}
 
 	public function testSetDriver() {
-		$controller = $this->getMockForAbstractClass('\lola\ctrl\AReplyController');
+		$controller = $this->_mockController();
 		$driver = new \lola\io\http\HttpDriver();
 
 		$this->assertEquals($controller, $controller->setDriver($driver));
@@ -23,7 +38,7 @@ extends TestCase
 	}
 
 	public function testUseRequest() {
-		$controller = $this->getMockForAbstractClass('\lola\ctrl\AReplyController');
+		$controller = $this->_mockController();
 
 		$this->assertInstanceOf('\lola\io\http\IHttpRequest', $controller->useRequest());
 
@@ -34,7 +49,7 @@ extends TestCase
 	}
 
 	public function testUseReply() {
-		$controller = $this->getMockForAbstractClass('\lola\ctrl\AReplyController');
+		$controller = $this->_mockController();
 
 		$this->assertInstanceOf('\lola\io\http\IHttpReply', $controller->useReply());
 
@@ -45,13 +60,13 @@ extends TestCase
 	}
 
 	public function testUseRequestTransform() {
-		$controller = $this->getMockForAbstractClass('\lola\ctrl\AReplyController');
+		$controller = $this->_mockController();
 
 		$this->assertInstanceOf('\lola\ctrl\ControllerTransform', $controller->useRequestTransform());
 	}
 
 	public function testSetRequestTransform() {
-		$controller = $this->getMockForAbstractClass('\lola\ctrl\AReplyController');
+		$controller = $this->_mockController();
 		$transform = new \lola\ctrl\ControllerTransform();
 
 		$this->assertEquals($controller, $controller->setRequestTransform($transform));
@@ -59,13 +74,13 @@ extends TestCase
 	}
 
 	public function testUseReplyTransform() {
-		$controller = $this->getMockForAbstractClass('\lola\ctrl\AReplyController');
+		$controller = $this->_mockController();
 
 		$this->assertInstanceOf('\lola\ctrl\ControllerTransform', $controller->useReplyTransform());
 	}
 
 	public function testSetReplyTransform() {
-		$controller = $this->getMockForAbstractClass('\lola\ctrl\AReplyController');
+		$controller = $this->_mockController();
 		$transform = new \lola\ctrl\ControllerTransform();
 
 		$this->assertEquals($controller, $controller->setReplyTransform($transform));
