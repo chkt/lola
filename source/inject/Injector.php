@@ -3,17 +3,21 @@
 namespace lola\inject;
 
 use lola\prov\ProviderProvider;
+use lola\module\EntityParser;
 use lola\module\Registry;
+use lola\inject\IInjectable;
 
 
 
-class Injector {
+class Injector
+{
 
-	const VERSION = '0.3.0';
+	const VERSION = '0.5.2';
 
 	const TYPE_INJECTOR = 'injector';
 	const TYPE_LOCATOR = 'locator';
-	const TYPE_REGISTRY = 'module';
+	const TYPE_REGISTRY = 'registry';
+	const TYPE_ENVIRONMENT = 'environment';
 	const TYPE_CONTROLLER = 'controller';
 	const TYPE_SERVICE = 'service';
 	const TYPE_FACTORY = 'factory';
@@ -29,7 +33,7 @@ class Injector {
 	public function __construct(
 		ProviderProvider& $locator,
 		Registry& $module,
-		Array $resolve = []
+		array $resolve = []
 	) {
 		$this->_locator =& $locator;
 		$this->_registry =& $module;
@@ -37,75 +41,88 @@ class Injector {
 	}
 
 
-	private function& _resolveFactory(Array $factory) {
+	private function& _resolveLocateable(array $dep) {
+		if (!array_key_exists(EntityParser::PROP_LOCATION, $dep)) throw new \ErrorException('INJ: not a locateable');
+
+		return $this->_locator->locate(
+			$dep[EntityParser::PROP_TYPE],
+			$dep[EntityParser::PROP_LOCATION]
+		);
+	}
+
+
+	private function& _resolveFactory(array $factory) {
 		if (array_key_exists('factory', $factory)) {
 			$config = array_key_exists('config', $factory) ? $factory['config'] : [];
 
-			$ins =& $this
-				->_locator
-				->using('class')
-				->using($factory['factory']);
+			$ins =& $this->_locator->locate(
+				'class',
+				$factory['factory']
+			);
 
 			if (!($ins instanceof IDependencyFactory)) throw new \ErrorException('INJ: not a factory');
 
 			$res = $ins
 				->setConfig($config)
 				->produce();
-
-			return $res;
 		}
 		else if (array_key_exists('function', $factory)) {
 			$deps = array_key_exists('dependencies', $factory) ? $factory['dependencies'] : [];
 			$res = $this->process($factory['function'], $deps);
-
-			return $res;
 		}
 		else throw new \ErrorException('INJ: malformed factory');
+
+		return $res;
 	}
 
 
-	private function _resolveDependencies(Array $deps) {
-		return array_map(function&($item) {
-			if (!is_array($item) || !array_key_exists('type', $item)) throw new \ErrorException('INJ: malformed dependency');
+	private function& _resolveArgument(array $dep) {
+		if (!array_key_exists('data', $dep)) throw new \ErrorException('INJ: not an argument');
 
-			$type = $item['type'];
-
-			switch($type) {
-				case self::TYPE_INJECTOR : return $this;
-
-				case self::TYPE_LOCATOR :
-					if (!array_key_exists('id', $item)) return $this->_locator;
-					else return $this->_locator->using($item['id']);
-
-				case self::TYPE_REGISTRY : return $this->_registry;
-				
-				case self::TYPE_CONTROLLER :
-					if (!array_key_exists('id', $item)) return $this->_locator->using('controller');
-					else return $this->_locator->using('controller')->using($item['id']);
-
-				case self::TYPE_SERVICE :
-					if (!array_key_exists('id', $item)) return $this->_locator->using('service');
-					else return $this->_locator->using('service')->using($item['id']);
-
-				case self::TYPE_FACTORY : return $this->_resolveFactory($item);
-
-				case self::TYPE_ARGUMENT : return $item['data'];
-
-				default :
-					if (array_key_exists($type, $this->_resolve)) return $this->_resolve[$type];
-
-					throw new \ErrorException('INJ: unknown dependency');
-			}
-		}, $deps);
+		return $dep['data'];
 	}
 
 
-	public function produce($className, Array $params = []) {
-		if (!is_string($className) || empty($className)) throw new \ErrorException();
+	private function& _resolveDependency(array $dep) {
+		if (!array_key_exists(EntityParser::PROP_TYPE, $dep)) throw new \ErrorException('INJ: malformed dependency');
+
+		$type = $dep[EntityParser::PROP_TYPE];
+
+		switch ($type) {
+			case self::TYPE_INJECTOR : return $this;
+			case self::TYPE_LOCATOR : return $this->_locator;
+			case self::TYPE_REGISTRY : return $this->_registry;
+			case self::TYPE_CONTROLLER :
+			case self::TYPE_SERVICE :
+			case self::TYPE_ENVIRONMENT : return $this->_resolveLocateable($dep);
+			case self::TYPE_FACTORY : return $this->_resolveFactory($dep);
+			case self::TYPE_ARGUMENT : return $this->_resolveArgument($dep);
+			default : throw new \ErrorException('INJ: unknown dependency');
+		}
+	}
+
+
+	private function _resolveDependencies(array $deps) {
+		$res = [];
+
+		foreach($deps as $dep) {
+			if (is_string($dep)) $dep = EntityParser::extractType($dep);
+
+			if (!is_array($dep)) throw new \ErrorException('INJ: invalid dependency');
+
+			$res[] =& $this->_resolveDependency($dep);
+		}
+
+		return $res;
+	}
+
+
+	public function produce(string $className, array $params = []) {
+		if (empty($className)) throw new \ErrorException();
 
 		$class = new \ReflectionClass($className);
 
-		if (!$class->implementsInterface('\\lola\\inject\\IInjectable')) throw new \ErrorException('INJ: not injectable');
+		if (!$class->implementsInterface(IInjectable::class)) throw new \ErrorException('INJ: not injectable');
 
 		$deps = call_user_func([$className, 'getDependencyConfig'], $params);
 		$args = $this->_resolveDependencies($deps);
@@ -113,7 +130,7 @@ class Injector {
 		return $class->newInstanceArgs($args);
 	}
 
-	public function process(Callable $fn, Array $deps = []) {
+	public function process(callable $fn, array $deps = []) {
 		$args = $this->_resolveDependencies($deps);
 
 		return $fn(...$args);
