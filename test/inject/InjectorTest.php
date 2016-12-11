@@ -6,7 +6,6 @@ use PHPUnit\Framework\TestCase;
 
 use test\inject\MockInjectable;
 use test\inject\MockFactory;
-use lola\module\Registry;
 use lola\prov\ProviderProvider;
 use lola\inject\Injector;
 
@@ -40,52 +39,37 @@ extends TestCase
 		return $locator;
 	}
 
-	private function _mockRegistry() {
-		return $this
-			->getMockBuilder(Registry::class)
-			->disableOriginalConstructor()
-			->getMock();
-	}
-
-
 	public function testProduceCore() {
 		$locator = $this->_mockLocator();
-		$registry = $this->_mockRegistry();
-		$injector = new Injector($locator, $registry);
+		$injector = new Injector($locator);
 
 		$items = $injector
 			->produce(MockInjectable::class, [
 				'injector:',
-				'locator:',
-				'registry:'
+				'locator:'
 			])
 			->getArgs();
 
-		$this->assertCount(3, $items);
+		$this->assertCount(2, $items);
 		$this->assertEquals($injector, $items[0]);
 		$this->assertEquals($locator, $items[1]);
-		$this->assertEquals($registry, $items[2]);
 
 		$items = $injector
 			->produce(MockInjectable::class, [[
 				'type' => Injector::TYPE_INJECTOR
 			], [
 				'type' => Injector::TYPE_LOCATOR
-			], [
-				'type' => Injector::TYPE_REGISTRY
 			]])
 			->getArgs();
 
-		$this->assertCount(3, $items);
+		$this->assertCount(2, $items);
 		$this->assertEquals($injector, $items[0]);
 		$this->assertEquals($locator, $items[1]);
-		$this->assertEquals($registry, $items[2]);
 	}
 
 	public function testProduceLocateable() {
 		$locator = $this->_mockLocator();
-		$registry = $this->_mockRegistry();
-		$injector = new Injector($locator, $registry);
+		$injector = new Injector($locator);
 
 		$items = $injector
 			->produce(MockInjectable::class, [
@@ -155,8 +139,7 @@ extends TestCase
 				return new MockFactory();
 			});
 
-		$registry = $this->_mockRegistry();
-		$injector = new Injector($locator, $registry);
+		$injector = new Injector($locator);
 
 		$items = $injector
 			->produce(MockInjectable::class, [[
@@ -211,10 +194,42 @@ extends TestCase
 		$this->assertEquals([ 'foo' ], $items[0]);
 	}
 
+	public function testProduceResolvable() {
+		$locator = $this->_mockLocator();
+		$injector = new Injector($locator, [
+			'foo' => 'bar',
+			'baz' => 'quux'
+		]);
+
+		$items = $injector
+			->produce(MockInjectable::class, [
+				'resolve:foo',
+				'resolve:baz'
+			])
+			->getArgs();
+
+		$this->assertCount(2, $items);
+		$this->assertEquals('bar', $items[0]);
+		$this->assertEquals('quux', $items[1]);
+
+		$items = $injector
+			->produce(MockInjectable::class, [[
+				'type' => Injector::TYPE_RESOLVE,
+				'location' => 'foo'
+			], [
+				'type' => Injector::TYPE_RESOLVE,
+				'location' => 'baz'
+			]])
+			->getArgs();
+
+		$this->assertCount(2, $items);
+		$this->assertEquals('bar', $items[0]);
+		$this->assertEquals('quux', $items[1]);
+	}
+
 	public function testProduceArgument() {
 		$locator = $this->_mockLocator();
-		$registry = $this->_mockRegistry();
-		$injector = new Injector($locator, $registry);
+		$injector = new Injector($locator);
 
 		$items = $injector
 			->produce(MockInjectable::class, [[
@@ -229,8 +244,7 @@ extends TestCase
 
 	public function testProcess() {
 		$locator = $this->_mockLocator();
-		$registry = $this->_mockRegistry();
-		$injector = new Injector($locator, $registry);
+		$injector = new Injector($locator);
 
 		$items = $injector->process(function(...$args) {
 			return $args;
