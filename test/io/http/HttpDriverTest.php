@@ -1,6 +1,8 @@
 <?php
 
 use PHPUnit\Framework\TestCase;
+
+use lola\inject\IInjectable;
 use lola\io\http\HttpDriver;
 
 
@@ -8,6 +10,13 @@ use lola\io\http\HttpDriver;
 class HttpDriverTest
 extends TestCase
 {
+
+	public function testGetDependencyConfig() {
+		$driver = new HttpDriver();
+
+		$this->assertEquals([], HttpDriver::getDependencyConfig([]));
+		$this->assertInstanceOf(IInjectable::class, $driver);
+	}
 
 	public function testUseRequest() {
 		$driver = new HttpDriver();
