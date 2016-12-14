@@ -26,14 +26,17 @@ implements IInjectable
 	private $_systems;
 
 
-	public function __construct(IApp & $app) {
-		parent::__construct(function($name) {
+	public function __construct(IApp& $app) {
+		parent::__construct(function($name) use (& $app) {
 			if (!array_key_exists($name, $this->_systems)) throw new \ErrorException();
 
-			return new $this->_systems[$name]();
+			return $app
+				->useInjector()
+				->produce($this->_systems[$name]);
 		});
 
 		$defaults = [
+			'registry' => \lola\module\Registry::class,
 			'http' => \lola\io\http\HttpDriver::class,
 			'log' => \lola\log\FileLogger::class
 		];
