@@ -3,6 +3,7 @@
 namespace lola\io\http;
 
 use lola\io\http\IHttpDriver;
+use lola\inject\IInjectable;
 
 use lola\io\IRequest;
 use lola\io\IReply;
@@ -22,8 +23,14 @@ use lola\io\http\payload\HttpPayload;
 
 
 class HttpDriver
-implements IHttpDriver
+implements IHttpDriver, IInjectable
 {
+
+	static public function getDependencyConfig(array $config) {
+		return [];
+	}
+	
+
 
 	private $_request;
 	private $_payload;
