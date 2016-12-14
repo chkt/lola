@@ -4,7 +4,6 @@ namespace lola\ctrl;
 
 use lola\prov\AProvider;
 
-use lola\inject\Injector;
 use lola\inject\IInjectable;
 use lola\module\Registry;
 
@@ -17,13 +16,11 @@ extends AProvider
 implements IInjectable
 {
 
-	const VERSION = '0.3.0';
+	const VERSION = '0.5.2';
 
 
-	static public function getDependencyConfig(Array $config) {
-		return [[
-			'type' => Injector::TYPE_REGISTRY
-		]];
+	static public function getDependencyConfig(array $config) {
+		return [ 'environment:registry' ];
 	}
 
 
