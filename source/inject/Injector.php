@@ -16,27 +16,24 @@ class Injector
 
 	const TYPE_INJECTOR = 'injector';
 	const TYPE_LOCATOR = 'locator';
-	const TYPE_REGISTRY = 'registry';
 	const TYPE_ENVIRONMENT = 'environment';
 	const TYPE_CONTROLLER = 'controller';
 	const TYPE_SERVICE = 'service';
 	const TYPE_FACTORY = 'factory';
+	const TYPE_RESOLVE = 'resolve';
 	const TYPE_ARGUMENT = 'object';
 
 
 
 	private $_locator = null;
-	private $_registry = null;
 	private $_resolve = null;
 
 
 	public function __construct(
 		ProviderProvider& $locator,
-		Registry& $module,
 		array $resolve = []
 	) {
 		$this->_locator =& $locator;
-		$this->_registry =& $module;
 		$this->_resolve = $resolve;
 	}
 
@@ -76,6 +73,15 @@ class Injector
 	}
 
 
+	public function& _resolveInstance(array $dep) {
+		if (
+			!array_key_exists('location', $dep) ||
+			!array_key_exists($dep['location'], $this->_resolve)
+		) throw new \ErrorException('INJ: not resolvable');
+
+		return $this->_resolve[$dep['location']];
+	}
+
 	private function& _resolveArgument(array $dep) {
 		if (!array_key_exists('data', $dep)) throw new \ErrorException('INJ: not an argument');
 
@@ -91,11 +97,11 @@ class Injector
 		switch ($type) {
 			case self::TYPE_INJECTOR : return $this;
 			case self::TYPE_LOCATOR : return $this->_locator;
-			case self::TYPE_REGISTRY : return $this->_registry;
 			case self::TYPE_CONTROLLER :
 			case self::TYPE_SERVICE :
 			case self::TYPE_ENVIRONMENT : return $this->_resolveLocateable($dep);
 			case self::TYPE_FACTORY : return $this->_resolveFactory($dep);
+			case self::TYPE_RESOLVE : return $this->_resolveInstance($dep);
 			case self::TYPE_ARGUMENT : return $this->_resolveArgument($dep);
 			default : throw new \ErrorException('INJ: unknown dependency');
 		}
