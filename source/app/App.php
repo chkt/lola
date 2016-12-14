@@ -4,9 +4,9 @@ namespace lola\app;
 
 use \lola\app\TAppBase;
 use \lola\app\TAppFile;
-use \lola\inject\TAppInjector;
-use \lola\prov\TAppLocator;
-use \lola\module\TAppRegistry;
+
+use lola\inject\Injector;
+use lola\prov\ProviderProvider;
 
 
 
@@ -15,9 +15,6 @@ implements IApp
 {
 	use TAppBase;
 	use TAppFile;
-	use TAppInjector;
-	use TAppLocator;
-	use TAppRegistry;
 
 
 
@@ -25,15 +22,41 @@ implements IApp
 
 
 
-	protected $_dict = [];
+	private $_injector;
+	private $_locator;
+
+	protected $_dict;
 
 
-	public function __construct(array $config) {
+	public function __construct(array $config = []) {
 		$this->_dict = $config;
 
 		date_default_timezone_set(array_key_exists('timezone', $config) ? $config['timezone'] : 'UTC');
 
 		ob_start();
+	}
+
+
+	/**
+	 * Return a reference to the injector associated with the instance
+	 * @returns Injector
+	 */
+	public function& useInjector() : Injector {
+		if (is_null($this->_injector)) $this->_injector = new Injector($this->useLocator(), [
+			'app' => & $this
+		]);
+
+		return $this->_injector;
+	}
+
+	/**
+	 * Returns a reference to the locator associated with the instance
+	 * @return ProviderProvider
+	 */
+	public function& useLocator() : ProviderProvider {
+		if (is_null($this->_locator)) $this->_locator = new ProviderProvider($this);
+
+		return $this->_locator;
 	}
 
 
