@@ -6,11 +6,45 @@ use PHPUnit\Framework\TestCase;
 
 use lola\app\App;
 
+use lola\inject\Injector;
+use lola\prov\ProviderProvider;
+
 
 
 final class AppTest
 extends TestCase
 {
+
+	public function testUseInjector() {
+		$locator = $this
+			->getMockBuilder(ProviderProvider::class)
+			->disableOriginalConstructor()
+			->getMock();
+
+		$app = $this
+			->getMockBuilder(App::class)
+			->setMethods([ 'useLocator' ])
+			->getMock();
+
+		$app
+			->expects($this->once())
+			->method('useLocator')
+			->willReturnReference($locator);
+
+		$injector = $app->useInjector();
+
+		$this->assertInstanceOf(Injector::class, $injector);
+		$this->assertEquals($injector, $app->useInjector());
+	}
+
+	public function testUseLocator() {
+		$app = new App();
+
+		$locator = $app->useLocator();
+
+		$this->assertInstanceOf(ProviderProvider::class, $locator);
+		$this->assertEquals($locator, $app->useLocator());
+	}
 
 	public function testHasProperty() {
 		$app = new App([
