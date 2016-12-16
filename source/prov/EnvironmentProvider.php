@@ -17,9 +17,7 @@ implements IInjectable
 
 
 	static public function getDependencyConfig(array $config) {
-		return [[
-			'type' => 'app'
-		]];
+		return [ 'resolve:app' ];
 	}
 
 
