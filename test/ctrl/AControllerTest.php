@@ -2,6 +2,9 @@
 
 use PHPUnit\Framework\TestCase;
 
+use lola\route\Route;
+use lola\ctrl\AController;
+
 
 
 final class AControllerTest
@@ -10,7 +13,7 @@ extends TestCase
 
 	public function testHasAction() {
 		$ctrl = $this
-			->getMockBuilder('\lola\ctrl\AController')
+			->getMockBuilder(AController::class)
 			->setMethods([ 'fooAction' ])
 			->getMockForAbstractClass();
 
@@ -21,7 +24,7 @@ extends TestCase
 
 	public function testIsEnterable() {
 		$route = $this
-			->getMockBuilder('\lola\route\Route')
+			->getMockBuilder(Route::class)
 			->disableOriginalConstructor()
 			->getMock();
 
@@ -41,7 +44,7 @@ extends TestCase
 			->willReturn('bar');
 
 		$ctrl = $this
-			->getMockBuilder('\lola\ctrl\AController')
+			->getMockBuilder(AController::class)
 			->setMethods([ 'fooAction' ])
 			->getMockForAbstractClass();
 
@@ -52,7 +55,7 @@ extends TestCase
 
 	public function testEnter() {
 		$route = $this
-			->getMockBuilder('\lola\route\Route')
+			->getMockBuilder(Route::class)
 			->disableOriginalConstructor()
 			->getMock();
 
@@ -67,20 +70,20 @@ extends TestCase
 			->willReturn('bar');
 
 		$ctrl = $this
-			->getMockBuilder('\lola\ctrl\AController')
+			->getMockBuilder(AController::class)
 			->setMethods([ 'fooAction', 'defaultAction' ])
 			->getMockForAbstractClass();
 
 		$ctrl
 			->expects($this->once())
 			->method('fooAction')
-			->with($this->isInstanceOf('\lola\route\Route'))
+			->with($this->isInstanceOf(Route::class))
 			->willReturn('fooResult');
 
 		$ctrl
 			->expects($this->once())
 			->method('defaultAction')
-			->with($this->isInstanceOf('\lola\route\Route'))
+			->with($this->isInstanceOf(Route::class))
 			->willReturn('defaultResult');
 
 		$this->assertEquals('fooResult', $ctrl->enter($route));
@@ -89,7 +92,7 @@ extends TestCase
 
 	public function test_reenter() {
 		$route = $this
-			->getMockBuilder('\lola\route\Route')
+			->getMockBuilder(Route::class)
 			->disableOriginalConstructor()
 			->getMock();
 
@@ -100,14 +103,14 @@ extends TestCase
 			->willReturn($route);
 
 		$ctrl = $this
-			->getMockBuilder('\lola\ctrl\AController')
+			->getMockBuilder(AController::class)
 			->setMethods([ 'barAction' ])
 			->getMockForAbstractClass();
 
 		$ctrl
 			->expects($this->once())
 			->method('barAction')
-			->with($this->isInstanceOf('\lola\route\Route'))
+			->with($this->isInstanceOf(Route::class))
 			->willReturn('barResult');
 
 		$reenter = new \ReflectionMethod($ctrl, '_reenter');
@@ -115,7 +118,7 @@ extends TestCase
 
 		$this->assertEquals('barResult', $reenter->invokeArgs($ctrl, [ 'bar', & $route ]));
 
-		$this->expectException('\ErrorException');
+		$this->expectException(\ErrorException::class);
 		$reenter->invokeArgs($ctrl,  [ 'baz', & $route ]);
 	}
 }
