@@ -12,7 +12,7 @@ class ProviderProvider
 extends AProvider
 {
 
-	const VERSION = '0.5.2';
+	const VERSION = '0.5.4';
 
 
 
@@ -31,7 +31,7 @@ extends AProvider
 		$defaults = [
 			'environment' => \lola\prov\EnvironmentProvider::class,
 			'service' => \lola\service\ServiceProvider::class,
-			'ctrl' => \lola\ctrl\ControllerProvider::class,
+			'controller' => \lola\ctrl\ControllerProvider::class,
 			'class' => \lola\prov\ClassProvider::class
 		];
 
