@@ -22,9 +22,7 @@ extends TestCase
 	public function testUsing() {
 		$app = new App();
 
-		$this->assertEquals([[
-			'type' => 'app'
-		]], EnvironmentProvider::getDependencyConfig([]));
+		$this->assertEquals([ 'resolve:app' ], EnvironmentProvider::getDependencyConfig([]));
 
 		$provider = new EnvironmentProvider($app);
 
