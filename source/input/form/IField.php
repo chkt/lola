@@ -1,6 +1,6 @@
 <?php
 
-namespace lola\input;
+namespace lola\input\form;
 
 use lola\type\IProjectable;
 
@@ -20,7 +20,7 @@ extends IProjectable
 
 	public function isSubmit() : bool;
 
-	
+
 	public function isValid() : bool;
 
 
