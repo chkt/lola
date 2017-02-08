@@ -58,11 +58,12 @@ implements IValidationStep
 
 	public function validate($source) : IValidationStep {
 		$this->_source = $source;
+		$this->_result = $source;
+		$this->_error = null;
 
 		try {
 			$this->_result = $this->_validate($source);
 		} catch (IValidationException $ex) {
-			$this->_result = $source;
 			$this->_error = $ex;
 		}
 
