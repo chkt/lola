@@ -1,6 +1,6 @@
 <?php
 
-namespace lola\input;
+namespace lola\input\form;
 
 use lola\input\form\IField;
 
