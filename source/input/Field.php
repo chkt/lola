@@ -2,179 +2,146 @@
 
 namespace lola\input;
 
-use lola\input\IField;
+use lola\input\form\IField;
+
+use lola\input\valid\IValidationStep;
+use lola\input\valid\step\NoopValidationStep;
 
 
 
-final class Field
-implements IField {
-	
-	const VERSION = '0.0.6';
-	
-	const KEY_TYPE = 'type';
-	const KEY_NAME = 'name';
-	const KEY_VALUE = 'value';
-	const KEY_IMMUTABLE = 'immutable';
-	const KEY_VALIDATE = 'validate';
-	
-	const TYPE_SUBMIT = 'submit';
-	
+class Field
+implements IField
+{
+
+	const VERSION = '0.6.0';
+
+	const FLAG_NONE = 0x0;
 	const FLAG_SUBMIT = 0x1;
 	const FLAG_IMMUTABLE = 0x2;
-	
-	
-	
-	static public function Validating($name, $value, Callable $cb, $flags = 0x0) {
-		$target = new self($name, $value, $flags);
-		
-		$target->_validating = true;
-		$target->_validate = $cb;
-		
-		return $target;
-	}
-	
-	
-	
-	protected $_name = '';
-	protected $_flags = 0x0;
-	
-	protected $_valueFirst = '';
-	protected $_valueNow = '';
-	
-	protected $_immutable = false;
-	protected $_validating = false;
-	protected $_invalid = 0;
-	protected $_validate = null;
-	
-	
-	public function __construct($name, $value, $flags = 0x0) {
-		if (
-			!is_string($name) || empty($name) || 
-			!is_string($value) ||
-			!is_int($flags)
-		) throw new \ErrorException();
-		
+
+
+
+	private $_name;
+
+	private $_valueFirst;
+	private $_valueNow;
+
+	private $_submit;
+	private $_immutable;
+
+	private $_validation;
+
+
+	public function __construct(string $name, array $values = [], int $flags = self::FLAG_NONE) {
+		if (empty($name)) throw new \ErrorException();
+
+		$normalized = $this->_normalizeValues($values);
+
 		$this->_name = $name;
-		$this->_flags = $flags;
-		
-		$this->_valueFirst = $value;
-		$this->_valueNow = $value;
-		
-		$this->_immutable = (bool) ($flags &= self::FLAG_IMMUTABLE);
-		$this->_validating = false;
-		$this->_invalid = 0;
-		$this->_validate = null;
+
+		$this->_valueFirst = $normalized;
+		$this->_valueNow = $normalized;
+
+		$this->_submit = (bool) ($flags & self::FLAG_SUBMIT);
+		$this->_immutable = (bool) ($flags & self::FLAG_IMMUTABLE);
+
+		$this->_validation = null;
 	}
-	
-	
-	public function getName() {
+
+
+	public function isChanged() : bool {
+		return $this->_valueNow !== $this->_valueFirst;
+	}
+
+	public function isEmpty() : bool {
+		return count($this->_valueNow === 1) && empty($this->_valueNow[0]);
+	}
+
+	public function isMultiValue() : bool {
+		return count($this->_valueNow) > 1;
+	}
+
+	public function isImmutable() : bool {
+		return $this->_immutable;
+	}
+
+	public function isSubmit() : bool {
+		return $this->_submit;
+	}
+
+
+	public function getName() : string {
 		return $this->_name;
 	}
-	
-	
-	public function getValue() {
+
+
+	private function _normalizeValues(array $values) : array {
+		if (count($values) === 0) return $values;
+
+		$unique = array_unique($values);
+
+		for ($i = count($unique) - 1; $i > -1; $i -= 1) {
+			$value = $unique[$i];
+
+			if (!is_string($value)) throw new \ErrorException();
+
+			if (empty($value)) array_splice($unique, $i, 1);
+		}
+
+		return $unique;
+	}
+
+	public function getValue() : string {
+		return empty($this->_valueNow) ? '' : $this->_valueNow[0];
+	}
+
+	public function setValue(string $value) : IField {
+		return $this->setValues([ $value ]);
+	}
+
+
+	public function getValues() : array {
 		return $this->_valueNow;
 	}
-	
-	public function setValue($value) {
-		if (!is_string($value)) throw new \ErrorException();
-		
-		if (!$this->_immutable) {
-			if ($this->_validating) $this->_invalid = (int) call_user_func($this->_validate, $value, $this->_valueFirst);
 
-			$this->_valueNow = $value;
+	public function setValues(array $values) : IField {
+		if (!$this->_immutable) $this->_valueNow = $this->_normalizeValues($values);
+
+		return $this;
+	}
+
+
+	public function& useValidation() : IValidationStep {
+		if (is_null($this->_validation)) {
+			$this->_validation = new NoopValidationStep();
+			$this->_validation->validate($this->_valueNow);
 		}
-		
+
+		return $this->_validation;
+	}
+
+	public function setValidation(IValidationStep& $step) : IField {
+		$this->_validation =& $step;
+
 		return $this;
 	}
-	
-	
-	public function getValues(Array $filter = null) {
-		return [ $this->_name => $this->_valueNow ];
-	}
-	
-	public function setValues(Array $values) {
-		foreach ($values as $name => $state) {
-			if ($name !== $this->_name) {
-				$this->_invalid = 1;
-				
-				continue;
-			}
-			
-			$this->setValue((string) $state);
-		}
-		
-		return $this;
-	}
-	
-	public function mapValues(Array $values) {
-		if (!empty(array_diff($values, (array) $this->_name))) $this->_invalid = 1;
-		
-		$this->setValue(in_array($this->_name, $values) ? (string) true : '');
-		
-		return $this;
-	}
-	
-	
-	public function getData() {
+
+
+	public function getProjection(array $selection = []) : array {
+		$validation = $this->useValidation();
+
 		return [
-			'type' => 'single',
-			'name' => $this->_name,
-			'value' => $this->_valueNow,
-			'values' => [ $this->_name => $this->_valueNow ],
-			'changed' => $this->_valueNow !== $this->_valueFirst,
-			'mutable' => !$this->_immutable,
-			'valid' => !$this->_invalid,
-			'validity' => $this->_invalid
+			'changed' => $this->isChanged(),
+			'empty' => $this->isEmpty(),
+			'multiValue' => $this->isMultiValue(),
+			'immutable' => $this->isImmutable(),
+			'submit' => $this->isSubmit(),
+			'name' => $this->getName(),
+			'value' => $this->getValue(),
+			'values' => $this->getValues(),
+			'validated' => $this->useValidation()->wasValidated(),
+			'valid' => $validation->isValid(),
+			'error' => !$validation->isValid() ? $validation->getError()->getProjection() : null
 		];
-	}
-	
-	
-	public function isEmpty() {
-		return empty($this->_valueNow);
-	}
-	
-	public function isNonEmpty() {
-		return !empty($this->_valueNow);
-	}
-	
-	
-	public function isInitial() {
-		return $this->_valueFirst === $this->_valueNow;
-	}
-	
-	public function isChanged() {
-		return $this->_valueFirst !== $this->_valueNow;
-	}
-
-	
-	public function isMutable() {
-		return !$this->_immutable;
-	}	
-	
-	public function isValidating() {
-		return $this->_validating;
-	}
-	
-	public function isValid() {
-		return !$this->_invalid;
-	}
-	
-	
-	public function isSubmit() {
-		return $this->_flags & self::FLAG_SUBMIT;
-	}
-	
-	public function isMultiple() {
-		return false;
-	}
-	
-	
-	public function invalidate($state) {
-		if (!is_int($state) || $state < 0) throw new \ErrorException();
-		
-		$this->_invalid = $state;
-		
-		return $this;
 	}
 }
