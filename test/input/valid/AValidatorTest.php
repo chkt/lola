@@ -4,6 +4,7 @@ namespace test\input\valid;
 
 use PHPUnit\Framework\TestCase;
 
+use lola\input\valid\IValidationInterceptor;
 use lola\input\valid\ValidationException;
 use lola\input\valid\AValidationStep;
 use lola\input\valid\AValidator;
@@ -34,12 +35,29 @@ extends TestCase
 		return $step;
 	}
 
-	private function _mockValidator(array $steps = null) : AValidator {
+	private function _mockInterceptor(callable $fn) {
+		$interceptor = $this
+			->getMockBuilder(IValidationInterceptor::class)
+			->setMethods([ 'intercept' ])
+			->getMock();
+
+		$interceptor
+			->expects($this->any())
+			->method('intercept')
+			->with($this->isInstanceOf(AValidationStep::class))
+			->willReturnCallback(function(AValidationStep $step) use ($fn) {
+				call_user_func($fn, $step);
+			});
+
+		return $interceptor;
+	}
+
+	private function _mockValidator(array $steps = null, IValidationInterceptor $interceptor = null) : AValidator {
 		if (is_null($steps)) $steps = [ $this->_mockStep() ];
 
 		$validator = $this
 			->getMockBuilder(AValidator::class)
-			->setConstructorArgs([ $steps ])
+			->setConstructorArgs([ $steps, $interceptor ])
 			->getMockForAbstractClass();
 
 		return $validator;
@@ -194,6 +212,31 @@ extends TestCase
 		$this->assertTrue($validator->isValid());
 		$this->assertEquals('foo', $validator->getSource());
 		$this->assertEquals('oof', $validator->getResult());
+	}
+
+	public function testValidateInterceptor() {
+		$count = 0;
+
+		$step0 = $this->_mockStep(function($value) {
+			return $value;
+		});
+
+		$step1 = $this->_mockStep(function($value) {
+			return $value;
+		});
+
+		$interceptor = $this->_mockInterceptor(function(AValidationStep $step) use ($step0, $step1, & $count) {
+			$this->assertEquals(++$count % 2 === 1 ? $step0 : $step1, $step);
+		});
+
+		$validator = $this->_mockValidator([ $step0, $step1 ], $interceptor);
+
+		$validator
+			->validate('foo')
+			->validate('bar')
+			->validate('baz');
+
+		$this->assertEquals(6, $count);
 	}
 
 	public function testReset() {
