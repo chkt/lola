@@ -4,7 +4,7 @@ namespace test\input\form;
 
 use PHPUnit\Framework\TestCase;
 
-use lola\input\Field;
+use lola\input\form\Field;
 use lola\input\valid\AValidationStep;
 use lola\input\valid\step\NoopValidationStep;
 
