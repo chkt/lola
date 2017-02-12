@@ -24,27 +24,12 @@ extends TestCase
 		$this->assertEquals(1, $ex2->getCode());
 	}
 
-	public function testIsFinal() {
-		$ex1 = new ValidationException('foo');
-
-		$this->assertFalse($ex1->isFinal());
-
-		$ex2 = new ValidationException('foo', 1, false);
-
-		$this->assertFalse($ex2->isFinal());
-
-		$ex3 = new ValidationException('foo', 1, true);
-
-		$this->assertTrue($ex3->isFinal());
-	}
-
 	public function testGetProjection() {
 		$ex = new ValidationException('foo');
 
 		$this->assertEquals([
 			'message' => 'foo',
-			'code' => 0,
-			'final' => false
+			'code' => 0
 		], $ex->getProjection());
 	}
 }
