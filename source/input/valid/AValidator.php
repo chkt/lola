@@ -57,29 +57,48 @@ implements IValidator
 	}
 
 
-	public function validate($value) : IValidator {
-		$this->_source = $value;
-		$this->_failures = [];
+	private function _processChain(IValidationStep $step, & $origin) : AValidator {
+		$stack = [];
+		$value = $origin;
 
-		for ($i = 0, $l = count($this->_steps); $i < $l; $i += 1) {
-			$step = $this->_steps[$i];
-
+		while (true) {
 			$step->validate($value);
 
 			if (!is_null($this->_interceptor)) $this->_interceptor->intercept($step);
 
-			if ($step->isValid()) {
-				$value = $step->getResult();
+			if (!$step->isValid()) {
+				$this->_failures[] = $step->getError();
 
-				continue;
+				return $this;
 			}
 
-			$failure = $step->getError();
+			$value = $step->getResult();
 
-			$this->_failures[] = $failure;
+			if (!($step instanceof IValidationTransform)) break;
 
-			if ($failure->isFinal()) break;
+			$stack[] = $step;
+			$step = $step->getNextStep();
 		}
+
+		while (!empty($stack)) {
+			$step = array_pop($stack);
+			
+			$value = $step
+				->transform($value)
+				->getTransformedResult();
+		}
+
+		$origin = $value;
+
+		return $this;
+	}
+
+
+	public function validate($value) : IValidator {
+		$this->_source = $value;
+		$this->_failures = [];
+
+		foreach ($this->_steps as $step) $this->_processChain($step, $value);
 
 		$this->_result = $value;
 
