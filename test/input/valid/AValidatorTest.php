@@ -7,6 +7,7 @@ use PHPUnit\Framework\TestCase;
 use lola\input\valid\IValidationInterceptor;
 use lola\input\valid\ValidationException;
 use lola\input\valid\AValidationStep;
+use lola\input\valid\AValidationTransform;
 use lola\input\valid\AValidator;
 
 
@@ -31,6 +32,27 @@ extends TestCase
 			->method('_validate')
 			->with($this->anything())
 			->willReturnCallback($fn);
+
+		return $step;
+	}
+
+	private function _mockTransform(AValidationStep $next, callable $test, callable $transform) {
+		$step = $this
+			->getMockBuilder(AValidationTransform::class)
+			->setConstructorArgs([ $next ])
+			->getMockForAbstractClass();
+
+		$step
+			->expects($this->any())
+			->method('_validate')
+			->with($this->anything())
+			->willReturnCallback($test);
+
+		$step
+			->expects($this->any())
+			->method('_transform')
+			->with($this->anything(), $this->anything())
+			->willReturnCallback($transform);
 
 		return $step;
 	}
@@ -82,6 +104,52 @@ extends TestCase
 		});
 
 		return [ $step0, $step1 ];
+	}
+
+	private function _produceChain() {
+		$step3 = $this->_mockStep(function($value) {
+			if (!is_int($value)) throw new ValidationException('NOINT', 1);
+
+			return $value;
+		});
+
+		$step2 = $this->_mockTransform($step3, function($value) {
+			if (!is_string($value)) throw new ValidationException('NOSTRING', 2);
+
+			$int = (int) $value;
+
+			if ((string) $int !== $value) throw new ValidationException('MALFORMED', 3);
+
+			return $int;
+		}, function($source, $result) {
+			return $result;
+		});
+
+		$step1 = $this->_mockTransform($step2, function($value) {
+			if (!is_array($value)) throw new ValidationException('NOARRAY', 4);
+
+			if (!array_key_exists('foo', $value)) throw new ValidationException('NOPROP', 5);
+
+			return $value['foo'];
+		}, function($source, $result) {
+			 $source['foo'] = $result;
+
+			 return $source;
+		});
+
+		$step0 = $this->_mockTransform($step1, function($value) {
+			if (!is_array($value)) throw new ValidationException('NOARRAY', 6);
+
+			if (!array_key_exists('bar', $value)) throw new ValidationException('NOPROP', 7);
+
+			return $value['bar'];
+		}, function($source, $result) {
+			$source['bar'] = $result;
+
+			return $source;
+		});
+
+		return $step0;
 	}
 
 
@@ -212,6 +280,16 @@ extends TestCase
 		$this->assertTrue($validator->isValid());
 		$this->assertEquals('foo', $validator->getSource());
 		$this->assertEquals('oof', $validator->getResult());
+	}
+
+	public function testValidateChain() {
+		$step0 = $this->_produceChain();
+
+		$validator = $this->_mockValidator([ $step0 ]);
+
+		$this->assertEquals($validator, $validator->validate([ 'bar' => [ 'foo' => '1' ]]));
+		$this->assertTrue($validator->isValid());
+		$this->assertEquals([ 'bar' => [ 'foo' => 1 ]], $validator->getResult());
 	}
 
 	public function testValidateInterceptor() {
