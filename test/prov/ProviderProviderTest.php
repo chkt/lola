@@ -33,9 +33,7 @@ extends TestCase
 			->expects($this->exactly(4))
 			->method('produce')
 			->with($this->isType('string'))
-			->willReturnCallback(function($type) use ($mockProv) {
-				return $mockProv;
-			});
+			->willReturn($mockProv);
 
 		$app = $this
 			->getMockBuilder(IApp::class)
@@ -55,7 +53,7 @@ extends TestCase
 		$locator = new ProviderProvider($app);
 
 		$this->assertEquals('\\foo\\Bar', $locator->locate('class', '\\foo\\Bar'));
-		$this->assertEquals('//module/controller?id', $locator->locate('ctrl', '//module/controller?id'));
+		$this->assertEquals('//module/controller?id', $locator->locate('controller', '//module/controller?id'));
 		$this->assertEquals('//module/service?id', $locator->locate('service', '//module/service?id'));
 		$this->assertEquals('name', $locator->locate('environment', 'name'));
 	}
