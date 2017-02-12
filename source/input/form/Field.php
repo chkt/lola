@@ -114,7 +114,7 @@ implements IField
 	public function& useValidation() : IValidationStep {
 		if (is_null($this->_validation)) {
 			$this->_validation = new NoopValidationStep();
-			$this->_validation->validate($this->_valueNow);
+			$this->_validation->validate($this->isMultiValue() ? $this->getValues() : $this->getValue());
 		}
 
 		return $this->_validation;
