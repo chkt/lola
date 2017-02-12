@@ -10,5 +10,4 @@ interface IValidationException
 extends IProjectable
 {
 
-	public function isFinal() : bool;
 }
