@@ -82,7 +82,7 @@ implements IValidator
 
 		while (!empty($stack)) {
 			$step = array_pop($stack);
-			
+
 			$value = $step
 				->transform($value)
 				->getTransformedResult();
@@ -96,6 +96,7 @@ implements IValidator
 
 	public function validate($value) : IValidator {
 		$this->_source = $value;
+		$this->_result = $value;
 		$this->_failures = [];
 
 		foreach ($this->_steps as $step) $this->_processChain($step, $value);
