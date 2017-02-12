@@ -8,6 +8,10 @@ use lola\input\valid\IValidationInterceptor;
 use lola\input\valid\ValidationException;
 use lola\input\valid\AValidationStep;
 use lola\input\valid\AValidator;
+use lola\input\valid\step\NoopValidationStep;
+use lola\input\valid\step\ArrayPropTransform;
+use lola\input\valid\step\StringNonEmptyStep;
+use lola\input\valid\step\ConstraintStep;
 use lola\input\form\Field;
 use lola\input\form\ValidationInterceptor;
 use lola\input\form\Processor;
@@ -17,26 +21,6 @@ use lola\input\form\Processor;
 final class ProcessorTest
 extends TestCase
 {
-
-	private function _mockValidationStep(string $id, callable $fn) : AValidationStep {
-		$step = $this
-			->getMockBuilder(AValidationStep::class)
-			->getMockForAbstractClass();
-
-		$step
-			->expects($this->any())
-			->method('_validate')
-			->with($this->anything())
-			->willReturnCallback($fn);
-
-		$step
-			->expects($this->any())
-			->method('getId')
-			->with()
-			->willReturn($id);
-
-		return $step;
-	}
 
 	private function _mockValidator(array $steps, IValidationInterceptor $interceptor = null) : AValidator {
 		return $this
@@ -54,27 +38,14 @@ extends TestCase
 		$field1 = new Field('bar', [ '1' ]);
 		$field2 = new Field('baz', [], Field::FLAG_SUBMIT);
 
-		$step0 = $this->_mockValidationStep('foo', function($value) {
-			if (!array_key_exists('foo', $value) || empty($value['foo'])) throw new ValidationException('foo.empty', 1);
-
-			return $value;
-		});
-
-		$step1 = $this->_mockValidationStep('bar', function($value) {
-			if (!array_key_exists('bar', $value) || empty($value['bar'])) throw new ValidationException('bar.empty', 1);
-
-			$int = (int) $value['bar'];
-
-			if ((string) $int !== $value['bar']) throw new ValidationException('bar.no_int', 2);
-
-			$value['bar'] = $int;
-
-			return $value;
-		});
+		$step0 = new ArrayPropTransform('foo', new ConstraintStep(['bang', 'quux', 'barf']));
+		$step1 = new ArrayPropTransform('bar', new StringNonEmptyStep());
 
 		$interceptor = $this->_produceInterceptor([
-			'foo' => & $field0,
-			'bar' => & $field1
+			'arrayProp.foo' => & $field0,
+			'constraint' => & $field0,
+			'arrayProp.bar' => & $field1,
+			'stringNonEmpty' => & $field1
 		]);
 
 		$validator = $this->_mockValidator([ $step0, $step1 ], $interceptor);
