@@ -86,27 +86,7 @@ extends TestCase
 	}
 
 
-	private function _produceSteps() {
-		$step0 = $this->_mockStep(function($value) {
-			if (is_bool($value)) throw new ValidationException('BOOLEAN', 1);
-
-			if (!is_string($value)) throw new ValidationException('NOSTRING', 2, true);
-
-			return $value;
-		});
-
-		$step1 = $this->_mockStep(function($value) {
-			if ($value === false || $value === 'bang') throw new ValidationException('BANG', 3);
-
-			if ($value === true) return 'true';
-
-			return empty($value) ? 1 : strrev($value);
-		});
-
-		return [ $step0, $step1 ];
-	}
-
-	private function _produceChain() {
+	private function _produceChain(string $prop0 = 'foo', string $prop1 = 'bar') {
 		$step3 = $this->_mockStep(function($value) {
 			if (!is_int($value)) throw new ValidationException('NOINT', 1);
 
@@ -125,26 +105,26 @@ extends TestCase
 			return $result;
 		});
 
-		$step1 = $this->_mockTransform($step2, function($value) {
-			if (!is_array($value)) throw new ValidationException('NOARRAY', 4);
+		$step1 = $this->_mockTransform($step2, function($value) use ($prop1) {
+			if (!is_array($value)) throw new ValidationException('NOARRAY.' . $prop1, 4);
 
-			if (!array_key_exists('foo', $value)) throw new ValidationException('NOPROP', 5);
+			if (!array_key_exists($prop1, $value)) throw new ValidationException('NOPROP.' . $prop1, 5);
 
-			return $value['foo'];
-		}, function($source, $result) {
-			 $source['foo'] = $result;
+			return $value[$prop1];
+		}, function($source, $result) use ($prop1) {
+			 $source[$prop1] = $result;
 
 			 return $source;
 		});
 
-		$step0 = $this->_mockTransform($step1, function($value) {
-			if (!is_array($value)) throw new ValidationException('NOARRAY', 6);
+		$step0 = $this->_mockTransform($step1, function($value) use ($prop0) {
+			if (!is_array($value)) throw new ValidationException('NOARRAY.' . $prop0, 6);
 
-			if (!array_key_exists('bar', $value)) throw new ValidationException('NOPROP', 7);
+			if (!array_key_exists($prop0, $value)) throw new ValidationException('NOPROP.' . $prop0, 7);
 
-			return $value['bar'];
-		}, function($source, $result) {
-			$source['bar'] = $result;
+			return $value[$prop0];
+		}, function($source, $result) use ($prop0) {
+			$source[$prop0] = $result;
 
 			return $source;
 		});
@@ -191,7 +171,7 @@ extends TestCase
 
 
 	public function testGetSource() {
-		$validator = $this->_mockValidator($this->_produceSteps());
+		$validator = $this->_mockValidator();
 
 		$this->assertNull($validator->getSource());
 
@@ -210,20 +190,19 @@ extends TestCase
 		$validator->validate('');
 
 		$this->assertEquals('', $validator->getSource());
-
-		$validator->validate('bang');
-
-		$this->assertEquals('bang', $validator->getSource());
 	}
 
 	public function testGetResult() {
-		$validator = $this->_mockValidator($this->_produceSteps());
+		$validator = $this->_mockValidator([
+			$this->_produceChain('foo', 'bar'),
+			$this->_produceChain('baz', 'quux')
+		]);
 
 		$this->assertNull($validator->getResult());
 
 		$validator->validate('foo');
 
-		$this->assertEquals('oof', $validator->getResult());
+		$this->assertEquals('foo', $validator->getResult());
 
 		$validator->reset();
 
@@ -233,42 +212,58 @@ extends TestCase
 
 		$this->assertEquals(1, $validator->getResult());
 
-		$validator->validate('');
+		$validator->validate([
+			'foo' => [ 'bar' => '1'],
+			'baz' => [ 'quux' => '2' ]
+		]);
 
-		$this->assertEquals(1, $validator->getResult());
+		$this->assertEquals([
+			'foo' => [ 'bar' => 1 ],
+			'baz' => [ 'quux' => 2 ]
+		], $validator->getResult());
 
-		$validator->validate('bang');
+		$validator->validate([
+			'foo' => '1',
+			'baz' => [ 'quux' => '2' ]
+		]);
 
-		$this->assertEquals('bang', $validator->getResult());
-
-		$validator->validate(true);
-
-		$this->assertEquals('true', $validator->getResult());
+		$this->assertEquals([
+			'foo' => '1',
+			'baz' => [ 'quux' => 2 ]
+		], $validator->getResult());
 	}
 
 	public function testGetFailures() {
-		$validator = $this->_mockValidator($this->_produceSteps());
+		$validator = $this->_mockValidator([
+			$this->_produceChain('foo', 'baz'),
+			$this->_produceChain('bar', 'baz')
+		]);
 
-		$this->assertEmpty($validator->getFailures());
-
-		$validator->validate(1);
-
-		$this->assertEquals(1, count($validator->getFailures()));
-		$this->assertEquals('NOSTRING', $validator->getFailures()[0]->getMessage());
-
-		$validator->reset();
-
-		$this->assertEmpty($validator->getFailures());
+		$this->assertEquals(0, count($validator->getFailures()));
 
 		$validator->validate('foo');
 
-		$this->assertEmpty($validator->getFailures());
-
-		$validator->validate(false);
-
 		$this->assertEquals(2, count($validator->getFailures()));
-		$this->assertEquals('BOOLEAN', $validator->getFailures()[0]->getMessage());
-		$this->assertEquals('BANG', $validator->getFailures()[1]->getMessage());
+		$this->assertEquals('NOARRAY.foo', $validator->getFailures()[0]->getMessage());
+		$this->assertEquals('NOARRAY.bar', $validator->getFailures()[1]->getMessage());
+
+		$validator->reset();
+
+		$this->assertEquals(0, count($validator->getFailures()));
+
+		$validator->validate([
+			'foo' => ['baz' => '1']
+		]);
+
+		$this->assertEquals(1, count($validator->getFailures()));
+		$this->assertEquals('NOPROP.bar', $validator->getFailures()[0]->getMessage());
+
+		$validator->validate([
+			'foo' => ['baz' => '1'],
+			'bar' => ['baz' => '2']
+		]);
+
+		$this->assertEquals(0, count($validator->getFailures()));
 	}
 
 
@@ -283,13 +278,20 @@ extends TestCase
 	}
 
 	public function testValidateChain() {
-		$step0 = $this->_produceChain();
+		$validator = $this->_mockValidator([
+			$this->_produceChain('foo', 'baz'),
+			$this->_produceChain('bar', 'baz')
+		]);
 
-		$validator = $this->_mockValidator([ $step0 ]);
-
-		$this->assertEquals($validator, $validator->validate([ 'bar' => [ 'foo' => '1' ]]));
+		$this->assertEquals($validator, $validator->validate([
+			'foo' => [ 'baz' => '1' ],
+			'bar' => [ 'baz' => '2' ]
+		]));
 		$this->assertTrue($validator->isValid());
-		$this->assertEquals([ 'bar' => [ 'foo' => 1 ]], $validator->getResult());
+		$this->assertEquals([
+			'foo' => [ 'baz' => 1 ],
+			'bar' => [ 'baz' => 2 ]
+		], $validator->getResult());
 	}
 
 	public function testValidateInterceptor() {
@@ -344,19 +346,25 @@ extends TestCase
 
 	public function testAssertThrow() {
 		$validator = $this
-			->_mockValidator($this->_produceSteps())
+			->_mockValidator([
+				$this->_produceChain('foo', 'baz'),
+				$this->_produceChain('bar', 'baz')
+			])
 			->validate(false);
 
 		$this->expectException(ValidationException::class);
-		$this->expectExceptionMessage('BOOLEAN');
-		$this->expectExceptionCode(1);
+		$this->expectExceptionMessage('NOARRAY.foo');
+		$this->expectExceptionCode(6);
 
 		$validator->assert();
 	}
 
 
 	public function testGetProjection() {
-		$validator = $this->_mockValidator($this->_produceSteps());
+		$validator = $this->_mockValidator([
+			$this->_produceChain('foo', 'baz'),
+			$this->_produceChain('bar', 'baz')
+		]);
 
 		$this->assertEquals([
 			'state' => 'new',
@@ -365,25 +373,45 @@ extends TestCase
 			'failures' => []
 		], $validator->getProjection());
 
-		$validator->validate('foo');
+		$validator->validate([
+			'foo' => [ 'baz' => '1' ],
+			'bar' => [ 'baz' => '2' ],
+			'quux' => 1
+		]);
 
 		$this->assertEquals([
 			'state' => 'valid',
-			'source' => 'foo',
-			'result' => 'oof',
+			'source' => [
+				'foo' => [ 'baz' => '1' ],
+				'bar' => [ 'baz' => '2' ],
+				'quux' => 1
+			],
+			'result' => [
+				'foo' => [ 'baz' => 1 ],
+				'bar' => [ 'baz' => 2 ],
+				'quux' => 1
+			],
 			'failures' => []
 		], $validator->getProjection());
 
-		$validator->validate(1);
+		$validator->validate([
+			'foo' => [ 'baz' => '1' ],
+			'quux' => 1
+		]);
 
 		$this->assertEquals([
 			'state' => 'invalid',
-			'source' => 1,
-			'result' => 1,
+			'source' => [
+				'foo' => [ 'baz' => '1' ],
+				'quux' => 1
+			],
+			'result' => [
+				'foo' => [ 'baz' => 1],
+				'quux' => 1
+			],
 			'failures' => [[
-				'message' => 'NOSTRING',
-				'code' => 2,
-				'final' => true
+				'message' => 'NOPROP.bar',
+				'code' => 7
 			]]
 		], $validator->getProjection());
 
@@ -392,28 +420,13 @@ extends TestCase
 		$this->assertEquals([
 			'state' => 'invalid',
 			'source' => true,
-			'result' => 'true',
+			'result' => true,
 			'failures' => [[
-				'message' => 'BOOLEAN',
-				'code' => 1,
-				'final' => false
-			]]
-		], $validator->getProjection());
-
-		$validator->validate(false);
-
-		$this->assertEquals([
-			'state' => 'invalid',
-			'source' => false,
-			'result' => false,
-			'failures' => [[
-				'message' => 'BOOLEAN',
-				'code' => 1,
-				'final' => false
+				'message' => 'NOARRAY.foo',
+				'code' => 6
 			], [
-				'message' => 'BANG',
-				'code' => 3,
-				'final' => false
+				'message' => 'NOARRAY.bar',
+				'code' => 6
 			]]
 		], $validator->getProjection());
 	}
