@@ -4,6 +4,7 @@ namespace lola\input\form;
 
 use lola\input\form\IField;
 
+use lola\input\valid\IValidateable;
 use lola\input\valid\IValidationStep;
 use lola\input\valid\step\NoopValidationStep;
 
@@ -120,7 +121,7 @@ implements IField
 		return $this->_validation;
 	}
 
-	public function setValidation(IValidationStep& $step) : IField {
+	public function setValidation(IValidationStep& $step) : IValidateable {
 		$this->_validation =& $step;
 
 		return $this;
