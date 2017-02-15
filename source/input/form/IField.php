@@ -3,13 +3,14 @@
 namespace lola\input\form;
 
 use lola\type\IProjectable;
+use lola\input\valid\IValidateable;
 
 use lola\input\valid\IValidationStep;
 
 
 
 interface IField
-extends IProjectable
+extends IProjectable, IValidateable
 {
 
 	public function isChanged() : bool;
@@ -34,9 +35,4 @@ extends IProjectable
 	public function getValues() : array;
 
 	public function setValues(array $values) : IField;
-
-
-	public function& useValidation() : IValidationStep;
-
-	public function setValidation(IValidationStep& $step) : IField;
 }
