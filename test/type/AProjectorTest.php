@@ -5,11 +5,11 @@ namespace test\type;
 use PHPUnit\Framework\TestCase;
 
 use lola\type\StructuredData;
-use lola\type\AProjection;
+use lola\type\AProjector;
 
 
 
-final class ProjectionTest
+final class ProjectorTest
 extends TestCase
 {
 
@@ -17,7 +17,7 @@ extends TestCase
 		$source = new StructuredData($data);
 
 		return $this
-			->getMockBuilder(AProjection::class)
+			->getMockBuilder(AProjector::class)
 			->setConstructorArgs([ & $source, & $transforms ])
 			->getMockForAbstractClass();
 	}
