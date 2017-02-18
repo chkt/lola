@@ -2,14 +2,14 @@
 
 namespace lola\type;
 
-use lola\type\IProjection;
+use lola\type\IProjector;
 
 use lola\type\StructuredData;
 
 
 
-abstract class AProjection
-implements IProjection
+abstract class AProjector
+implements IProjector
 {
 
 	private $_source;
