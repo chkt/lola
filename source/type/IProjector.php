@@ -4,7 +4,7 @@ namespace lola\type;
 
 
 
-interface IProjection
+interface IProjector
 {
 
 	public function get(array $selection = null)  : array;
