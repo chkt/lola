@@ -2,26 +2,19 @@
 
 namespace lola\inject;
 
+use lola\inject\IInjector;
 use lola\prov\ProviderProvider;
+
 use lola\module\EntityParser;
-use lola\module\Registry;
 use lola\inject\IInjectable;
 
 
 
 class Injector
+implements IInjector
 {
 
 	const VERSION = '0.5.2';
-
-	const TYPE_INJECTOR = 'injector';
-	const TYPE_LOCATOR = 'locator';
-	const TYPE_ENVIRONMENT = 'environment';
-	const TYPE_CONTROLLER = 'controller';
-	const TYPE_SERVICE = 'service';
-	const TYPE_FACTORY = 'factory';
-	const TYPE_RESOLVE = 'resolve';
-	const TYPE_ARGUMENT = 'object';
 
 
 
@@ -73,7 +66,7 @@ class Injector
 	}
 
 
-	public function& _resolveInstance(array $dep) {
+	private function& _resolveInstance(array $dep) {
 		if (
 			!array_key_exists('location', $dep) ||
 			!array_key_exists($dep['location'], $this->_resolve)
