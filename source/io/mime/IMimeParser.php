@@ -1,10 +1,10 @@
 <?php
 
-namespace lola\io\http\payload;
+namespace lola\io\mime;
 
 
 
-interface IPayloadParser
+interface IMimeParser
 {
 
 	public function stringify(array $payload) : string;
