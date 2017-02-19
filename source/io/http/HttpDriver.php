@@ -5,20 +5,20 @@ namespace lola\io\http;
 use lola\io\http\IHttpDriver;
 use lola\inject\IInjectable;
 
+use lola\type\IStateTransform;
 use lola\io\IRequest;
 use lola\io\IReply;
 use lola\io\IClient;
+use lola\io\mime\IMimePayload;
 use lola\io\http\IHttpCookies;
 use lola\io\http\IHttpRequestResource;
 use lola\io\http\IHttpConfig;
-use lola\io\http\payload\IHttpPayload;
 
-use lola\type\IStateTransform;
+use lola\io\mime\MimePayload;
 use lola\io\http\HttpRequest;
 use lola\io\http\HttpClient;
 use lola\io\http\HttpReply;
 use lola\io\http\HttpCookies;
-use lola\io\http\payload\HttpPayload;
 
 
 
@@ -29,11 +29,11 @@ implements IHttpDriver, IInjectable
 	static public function getDependencyConfig(array $config) {
 		return [];
 	}
-	
+
 
 
 	private $_request;
-	private $_payload;
+	private $_requestPayload;
 	private $_client;
 	private $_reply;
 	private $_cookies;
@@ -46,7 +46,7 @@ implements IHttpDriver, IInjectable
 
 	public function __construct() {
 		$this->_request = null;
-		$this->_payload = null;
+		$this->_requestPayload = null;
 		$this->_client = null;
 		$this->_reply = null;
 		$this->_cookies = null;
@@ -64,10 +64,10 @@ implements IHttpDriver, IInjectable
 		return $this->_request;
 	}
 
-	public function& usePayload() : IHttpPayload {
-		if (is_null($this->_payload)) $this->_payload = new HttpPayload($this);
+	public function& useRequestPayload() : IMimePayload {
+		if (is_null($this->_requestPayload)) $this->_requestPayload = new MimePayload($this->useRequest(), $this->useConfig());
 
-		return $this->_payload;
+		return $this->_requestPayload;
 	}
 
 	public function& useClient() : IClient {
