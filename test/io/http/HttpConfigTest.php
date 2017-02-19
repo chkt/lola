@@ -233,15 +233,19 @@ extends TestCase
 		$this->assertEquals($config->getMimeBody($config::CODE_REDIRECT, $config::MIME_HTML, '/foo/bar/baz'), '<!DOCTYPE html><html><head><title>303 - See Other</title></head><body><p>303 - See Other: <a href="/foo/bar/baz">/foo/bar/baz</a></p></body></html>');
 	}
 
-	public function testGetMimePayloadParser() {
+	public function testProduceMimeParser() {
 		$config = new HttpConfig();
 
-		$this->assertEquals('', $config->getMimePayloadParser($config::MIME_PLAIN));
-		$this->assertEquals('', $config->getMimePayloadParser($config::MIME_HTML));
-		$this->assertEquals('', $config->getMimePayloadParser($config::MIME_XHTML));
-		$this->assertEquals('', $config->getMimePayloadParser($config::MIME_XML));
-		$this->assertEquals('\\lola\\io\\http\\payload\\JSONPayloadParser', $config->getMimePayloadParser($config::MIME_JSON));
-		$this->assertEquals('\\lola\\io\\http\\payload\\FormPayloadParser', $config->getMimePayloadParser($config::MIME_FORM));
+		$this->assertInstanceOf(\lola\io\mime\parser\JSONMimeParser::class, $config->produceMimeParser(HttpConfig::MIME_JSON));
+		$this->assertInstanceOf(\lola\io\mime\parser\FormMimeParser::class, $config->produceMimeParser(HttpConfig::MIME_FORM));
+	}
+
+	public function testProduceMimeParser_invalid() {
+		$config = new HttpConfig();
+
+		$this->expectException(\Exception::class);
+
+		$config->produceMimeParser(HttpConfig::MIME_PLAIN);
 	}
 
 
