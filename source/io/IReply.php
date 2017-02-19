@@ -12,10 +12,5 @@ interface IReply
 	public function& useRequest() : IRequest;
 
 
-	public function getBody() : string;
-
-	public function setBody(string $body) : IReply;
-
-
 	public function send();
 }
