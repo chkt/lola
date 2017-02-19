@@ -4,9 +4,9 @@ namespace lola\io\http;
 
 use lola\io\http\IHttpReply;
 
-use lola\io\IReply;
-use lola\io\http\IHttpDriver;
 use lola\io\IRequest;
+use lola\io\mime\IMimeContainer;
+use lola\io\http\IHttpDriver;
 use lola\io\http\IHttpCookies;
 use lola\io\http\IHttpConfig;
 
@@ -85,7 +85,7 @@ implements IHttpReply
 		return $this->_mime;
 	}
 
-	public function setMime(string $mime) : IHttpReply {
+	public function setMime(string $mime) : IMimeContainer {
 		if (!$this->_rules->isMime($mime)) throw new \ErrorException();
 
 		$this->_mime = $mime;
@@ -98,7 +98,7 @@ implements IHttpReply
 		return $this->_encoding;
 	}
 
-	public function setEncoding(string $encoding) : IHttpReply {
+	public function setEncoding(string $encoding) : IMimeContainer {
 		if (!$this->_rules->isEncoding($encoding)) throw new \ErrorException();
 
 		$this->_encoding = $encoding;
@@ -176,7 +176,7 @@ implements IHttpReply
 		return $this->_body;
 	}
 
-	public function setBody(string $body) : IReply {
+	public function setBody(string $body) : IMimeContainer {
 		$this->_body = $body;
 
 		return $this;
