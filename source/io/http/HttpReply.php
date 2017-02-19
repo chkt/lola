@@ -5,6 +5,7 @@ namespace lola\io\http;
 use lola\io\http\IHttpReply;
 
 use lola\io\IRequest;
+use lola\io\mime\IMimeConfig;
 use lola\io\mime\IMimeContainer;
 use lola\io\http\IHttpDriver;
 use lola\io\http\IHttpCookies;
@@ -35,8 +36,8 @@ implements IHttpReply
 		$this->_rules = $driver->useConfig();
 
 		$this->_code = IHttpConfig::CODE_OK;
-		$this->_mime = IHttpConfig::MIME_PLAIN;
-		$this->_encoding = IHttpConfig::ENCODING_UTF8;
+		$this->_mime = IMimeConfig::MIME_PLAIN;
+		$this->_encoding = IMimeConfig::ENCODING_UTF8;
 
 		$this->_isRedirect = false;
 		$this->_redirectTarget = '';
@@ -158,8 +159,8 @@ implements IHttpReply
 		if (empty($name)) throw new \ErrorException();
 
 		if ($name === 'Content-Type') {
-			$this->_mime = IHttpConfig::MIME_PLAIN;
-			$this->_encoding = IHttpConfig::ENCODING_UTF8;
+			$this->_mime = IMimeConfig::MIME_PLAIN;
+			$this->_encoding = IMimeConfig::ENCODING_UTF8;
 		}
 		else if ($name === 'Location') $this->_redirectTarget = '';
 		else unset($this->_headers[$name]);
