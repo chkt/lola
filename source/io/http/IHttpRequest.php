@@ -5,8 +5,8 @@ namespace lola\io\http;
 use lola\io\IRequest;
 use lola\io\mime\IMimeContainer;
 
+use lola\io\mime\IMimePayload;
 use lola\io\http\IHttpCookies;
-use lola\io\http\payload\IHttpPayload;
 
 
 
@@ -14,7 +14,7 @@ interface IHttpRequest
 extends IRequest, IMimeContainer
 {
 
-	public function& usePayload() : IHttpPayload;
+	public function& usePayload() : IMimePayload;
 
 	public function& useCookies() : IHttpCookies;
 
