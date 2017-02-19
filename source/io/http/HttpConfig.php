@@ -2,15 +2,20 @@
 
 namespace lola\io\http;
 
+use lola\io\mime\IMimeConfig;
 use lola\io\http\IHttpConfig;
+
+use lola\io\mime\IMimeParser;
+use lola\io\mime\parser\FormMimeParser;
+use lola\io\mime\parser\JSONMimeParser;
 
 
 
 class HttpConfig
-implements IHttpConfig
+implements IMimeConfig, IHttpConfig
 {
 
-	const VERSION = '0.5.0';
+	const VERSION = '0.6.1';
 
 
 	static public function parseHeader(string $header) : array {
@@ -146,8 +151,8 @@ implements IHttpConfig
 				self::MIME_HTML => ': <a href="%m">%m</a>'
 			],
 			self::LINK_MIME_PAYLOAD => [
-				self::MIME_FORM => '\\lola\\io\\http\\payload\\FormPayloadParser',
-				self::MIME_JSON => '\\lola\\io\\http\\payload\\JSONPayloadParser'
+				self::MIME_FORM => FormMimeParser::class,
+				self::MIME_JSON => JSONMimeParser::class
 			]
 		];
 	}
@@ -191,11 +196,11 @@ implements IHttpConfig
 		return in_array($method, $this->_rules[self::RULE_METHOD]);
 	}
 
-	public function isMime($mime) : bool {
+	public function isMime(string $mime) : bool {
 		return in_array($mime, $this->_rules[self::RULE_MIME]);
 	}
 
-	public function isEncoding($encoding) : bool {
+	public function isEncoding(string $encoding) : bool {
 		return in_array($encoding, $this->_rules[self::RULE_ENCODING]);
 	}
 
@@ -233,10 +238,14 @@ implements IHttpConfig
 		return str_replace('%l', $link, $body);
 	}
 
-	public function getMimePayloadParser(string $mime) : string {
+	public function produceMimeParser(string $mime) : IMimeParser {
 		$map = $this->_links[self::LINK_MIME_PAYLOAD];
 
-		return array_key_exists($mime, $map) ? $map[$mime] : '';
+		if (!array_key_exists($mime, $map)) throw new \ErrorException();
+
+		$class = new \ReflectionClass($map[$mime]);
+
+		return $class->newInstance();
 	}
 
 
