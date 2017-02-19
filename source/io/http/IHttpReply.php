@@ -3,12 +3,13 @@
 namespace lola\io\http;
 
 use lola\io\IReply;
+use lola\io\mime\IMimeContainer;
 
 use lola\io\http\IHttpCookies;
 
 
 interface IHttpReply
-extends IReply
+extends IReply, IMimeContainer
 {
 
 	public function& useCookies() : IHttpCookies;
@@ -21,16 +22,6 @@ extends IReply
 	public function getCodeHeader() : string;
 
 	public function getCodeMessage() : string;
-
-
-	public function getMime() : string;
-
-	public function setMime(string $mime)  : IHttpReply;
-
-
-	public function getEncoding() : string;
-
-	public function setEncoding(string $encoding) : IHttpReply;
 
 
 	public function isRedirect() : bool;
