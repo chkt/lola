@@ -4,7 +4,7 @@ namespace test\input\form;
 
 use PHPUnit\Framework\TestCase;
 
-use lola\io\http\payload\IHttpPayload;
+use lola\io\mime\IMimePayload;
 use lola\input\valid\IValidationInterceptor;
 use lola\input\valid\AValidator;
 use lola\input\valid\step\ArrayPropTransform;
@@ -20,9 +20,9 @@ final class AFormTest
 extends TestCase
 {
 
-	private function _mockPayload(array $fields = []) : IHttpPayload {
+	private function _mockPayload(array $fields = []) : IMimePayload {
 		$payload = $this
-			->getMockBuilder(IHttpPayload::class)
+			->getMockBuilder(IMimePayload::class)
 			->getMock();
 
 		$payload
