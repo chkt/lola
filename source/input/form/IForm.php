@@ -4,7 +4,7 @@ namespace lola\input\form;
 
 use lola\type\IProjectable;
 
-use lola\io\http\payload\IHttpPayload;
+use lola\io\mime\IMimePayload;
 
 
 
@@ -24,5 +24,5 @@ extends IProjectable
 	public function getId() : string;
 
 
-	public function validate(IHttpPayload $payload) : IForm;
+	public function validate(IMimePayload $payload) : IForm;
 }

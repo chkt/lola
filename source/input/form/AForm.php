@@ -4,7 +4,7 @@ namespace lola\input\form;
 
 use lola\input\form\IForm;
 
-use lola\io\http\payload\IHttpPayload;
+use lola\io\mime\IMimePayload;
 use lola\input\valid\IValidator;
 use lola\input\form\Processor;
 
@@ -54,7 +54,7 @@ implements IForm
 	}
 
 
-	public function validate(IHttpPayload $payload) : IForm {
+	public function validate(IMimePayload $payload) : IForm {
 		$data = $payload->isValid() ? $payload->get() : [];
 
 		$this->_processor->validate($data);
