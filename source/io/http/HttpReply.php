@@ -182,24 +182,8 @@ implements IHttpReply
 		return $this;
 	}
 
-	public function setBodyFromOB() : IReply {
-		if (ob_get_level() === 0) throw new \ErrorException();
-
-		$ob = ob_get_contents();
-
-		$this->_body = $ob !== false ? $ob : '';
-
-		return $this;
-	}
-
 
 	public function send() {
 		return $this->_driver->sendReply();
-	}
-
-	public function sendOB() {
-		return $this
-			->setBodyFromOB()
-			->send();
 	}
 }
