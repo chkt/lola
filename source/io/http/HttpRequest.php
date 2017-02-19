@@ -7,8 +7,9 @@ use lola\io\http\IHttpRequest;
 
 use lola\io\IRequest;
 use lola\io\IReply;
-use lola\io\http\IHttpCookies;
 use lola\io\IClient;
+use lola\io\mime\IMimeContainer;
+use lola\io\http\IHttpCookies;
 use lola\io\http\payload\IHttpPayload;
 
 
@@ -154,7 +155,7 @@ implements IHttpRequest
 		return $this->_properties['mime'];
 	}
 
-	public function setMime(string $mime) : IHttpRequest {
+	public function setMime(string $mime) : IMimeContainer {
 		if (!$this->_rules->isMime($mime)) throw new \ErrorException();
 
 		$this->_properties['mime'] = $mime;
@@ -169,7 +170,7 @@ implements IHttpRequest
 		return $this->_properties['encoding'];
 	}
 
-	public function setEncoding(string $encoding) : IHttpRequest {
+	public function setEncoding(string $encoding) : IMimeContainer {
 		if (!$this->_rules->isEncoding($encoding)) throw new \ErrorException();
 
 		$this->_properties['encoding'] = $encoding;
@@ -278,7 +279,7 @@ implements IHttpRequest
 		return $this->_body;
 	}
 
-	public function setBody(string $body) : IHttpRequest {
+	public function setBody(string $body) : IMimeContainer {
 		$this->_body = $body;
 
 		return $this;
