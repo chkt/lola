@@ -210,19 +210,6 @@ extends TestCase
 		$this->assertEquals($reply->getBody(), 'foo');
 	}
 
-	public function testSetBodyFromOB() {
-		$reply = new HttpReply($this->_driver);
-
-		ob_start();
-
-		print 'foo';
-
-		$this->assertEquals($reply->setBodyFromOB(), $reply);
-		$this->assertEquals($reply->getBody(), 'foo');
-
-		ob_end_clean();
-	}
-
 
 	public function testSend() {
 		$this->_driver->setReplyCallback(function(HttpReply& $reply) {
@@ -239,27 +226,5 @@ extends TestCase
 			->setEncoding('iso-8859-1')
 			->setBody('foo')
 			->send();
-	}
-
-	public function testSendOB() {
-		$this->_driver->setReplyCallback(function(HttpReply& $reply) {
-			$this->assertEquals($reply->getCode(), '404');
-			$this->assertEquals($reply->getMime(), 'text/html');
-			$this->assertEquals($reply->getEncoding(), 'iso-8859-1');
-			$this->assertEquals($reply->getBody(), 'bar');
-		});
-
-		ob_start();
-
-		print 'bar';
-
-		$this->_driver
-			->useReply()
-			->setCode('404')
-			->setMime('text/html')
-			->setEncoding('iso-8859-1')
-			->sendOB();
-
-		ob_end_clean();
 	}
 }
