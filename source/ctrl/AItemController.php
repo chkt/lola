@@ -4,8 +4,9 @@ namespace lola\ctrl;
 
 use lola\ctrl\AReplyController;
 
-use lola\io\http\IHttpDriver;
+use lola\io\mime\IMimeConfig;
 use lola\io\http\IHttpConfig;
+use lola\io\http\IHttpDriver;
 use lola\route\Route;
 use lola\ctrl\RESTItemRequestTransform;
 use lola\ctrl\RESTReplyTransform;
@@ -42,7 +43,7 @@ extends AReplyController
 		$this
 			->useReply()
 			->setCode(IHttpConfig::CODE_NOT_VALID)
-			->setMime(IHttpConfig::MIME_PLAIN)
+			->setMime(IMimeConfig::MIME_PLAIN)
 			->send();
 	}
 
@@ -50,7 +51,7 @@ extends AReplyController
 		$this
 			->useReply()
 			->setCode(IHttpConfig::CODE_NOT_AUTH)
-			->setMime(IHttpConfig::MIME_PLAIN)
+			->setMime(IMimeConfig::MIME_PLAIN)
 			->send();
 	}
 }
