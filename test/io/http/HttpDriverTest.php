@@ -24,10 +24,10 @@ extends TestCase
 		$this->assertInstanceOf('\lola\io\http\HttpRequest', $driver->useRequest());
 	}
 
-	public function testUsePayload() {
+	public function testUseRequestPayload() {
 		$driver = new HttpDriver();
 
-		$this->assertInstanceOf('\lola\io\http\payload\HttpPayload', $driver->usePayload());
+		$this->assertInstanceOf('\lola\io\mime\MimePayload', $driver->useRequestPayload());
 	}
 
 	public function testUseClient() {
