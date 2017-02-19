@@ -9,8 +9,8 @@ use lola\io\IRequest;
 use lola\io\IReply;
 use lola\io\IClient;
 use lola\io\mime\IMimeContainer;
+use lola\io\mime\IMimePayload;
 use lola\io\http\IHttpCookies;
-use lola\io\http\payload\IHttpPayload;
 
 
 
@@ -18,7 +18,7 @@ class HttpRequest
 implements IHttpRequest
 {
 
-	const VERSION = '0.5.0';
+	const VERSION = '0.6.1';
 
 
 
@@ -42,8 +42,8 @@ implements IHttpRequest
 	}
 
 
-	public function& usePayload() : IHttpPayload {
-		return $this->_driver->usePayload();
+	public function& usePayload() : IMimePayload {
+		return $this->_driver->useRequestPayload();
 	}
 
 	public function& useReply() : IReply {
