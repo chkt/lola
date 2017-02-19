@@ -1,16 +1,16 @@
 <?php
 
-namespace lola\io\http\payload;
+namespace lola\io\mime\parser;
 
-use lola\io\http\payload\IPayloadParser;
+use lola\io\mime\IMimeParser;
 
 
 
-final class JSONPayloadParser
-implements IPayloadParser
+final class JSONMimeParser
+implements IMimeParser
 {
 
-	const VERSION = '0.5.0';
+	const VERSION = '0.6.1';
 
 
 
