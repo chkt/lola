@@ -1,16 +1,17 @@
 <?php
 
 use PHPUnit\Framework\TestCase;
-use lola\io\http\payload\JSONPayloadParser;
+
+use lola\io\mime\parser\JSONMimeParser;
 
 
 
-final class JSONPayloadParserTest
+final class JSONMimeParserTest
 extends TestCase
 {
 
 	public function testParse() {
-		$ins = new JSONPayloadParser();
+		$ins = new JSONMimeParser();
 
 		$this->assertEquals([], $ins->parse('[]'));
 		$this->assertEquals([], $ins->parse('{}'));
@@ -26,7 +27,7 @@ extends TestCase
 	}
 
 	public function testStringify() {
-		$ins = new JSONPayloadParser();
+		$ins = new JSONMimeParser();
 
 		$this->assertEquals('[]', $ins->stringify([]));
 		$this->assertEquals('{"foo":1}', $ins->stringify([ 'foo' => 1 ]));

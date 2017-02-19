@@ -1,16 +1,17 @@
 <?php
 
 use PHPUnit\Framework\TestCase;
-use lola\io\http\payload\FormPayloadParser;
+
+use lola\io\mime\parser\FormMimeParser;
 
 
 
-final class FormPayloadParserTest
+final class FormMimeParserTest
 extends TestCase
 {
 
 	public function testParse() {
-		$ins = new FormPayloadParser();
+		$ins = new FormMimeParser();
 
 		$this->assertEquals([
 			'foo' => '1',
@@ -25,7 +26,7 @@ extends TestCase
 	}
 
 	public function testStringify() {
-		$ins = new FormPayloadParser();
+		$ins = new FormMimeParser();
 
 		$this->assertEquals('foo=1&bar=2&baz=3', $ins->stringify([
 			'foo' => 1,
