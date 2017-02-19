@@ -16,10 +16,6 @@ interface IReply
 
 	public function setBody(string $body) : IReply;
 
-	public function setBodyFromOB() : IReply;
-
 
 	public function send();
-
-	public function sendOB();
 }
