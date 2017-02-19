@@ -31,15 +31,6 @@ interface IHttpConfig
 	const METHOD_HEAD = 'HEAD';
 	const METHOD_OPTIONS = 'OPTIONS';
 
-	const MIME_PLAIN = 'text/plain';
-	const MIME_HTML = 'text/html';
-	const MIME_XML = 'application/xml';
-	const MIME_XHTML = 'application/xml+html';
-	const MIME_FORM = 'application/x-www-form-urlencoded';
-	const MIME_JSON = 'application/json';
-
-	const ENCODING_UTF8 = 'utf-8';
-
 	const CODE_OK = '200';
 	const CODE_NO_CONTENT = '204';
 	const CODE_MOVED_PERMANENT = '301';
@@ -70,10 +61,6 @@ interface IHttpConfig
 
 	public function isMethod($method) : bool;
 
-	public function isMime($mime) : bool;
-
-	public function isEncoding($encoding) : bool;
-
 	public function isCode($code) : bool;
 
 	public function isRedirectCode($code) : bool;
@@ -84,8 +71,6 @@ interface IHttpConfig
 	public function getCodeMessage(string $code) : string;
 
 	public function getMimeBody(string $mime, string $code, string $link = null) : string;
-
-	public function getMimePayloadParser(string $mime) : string;
 
 
 	public function hasRule(string $type, string $rule) : bool;
