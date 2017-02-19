@@ -3,13 +3,15 @@
 namespace lola\io\http;
 
 use lola\io\IRequest;
+use lola\io\mime\IMimeContainer;
+
 use lola\io\http\IHttpCookies;
 use lola\io\http\payload\IHttpPayload;
 
 
 
 interface IHttpRequest
-extends IRequest
+extends IRequest, IMimeContainer
 {
 
 	public function& usePayload() : IHttpPayload;
@@ -20,16 +22,6 @@ extends IRequest
 	public function getMethod() : string;
 
 	public function setMethod(string $method) : IHttpRequest;
-
-
-	public function getMime() : string;
-
-	public function setMime(string $mime) : IHttpRequest;
-
-
-	public function getEncoding() : string;
-
-	public function setEncoding(string $encoding) : IHttpRequest;
 
 
 	public function& useAcceptMimes() : array;
@@ -51,9 +43,4 @@ extends IRequest
 	public function getHeader(string $name) : string;
 
 	public function setHeader(string $name, string $value) : IHttpRequest;
-
-
-	public function getBody() : string;
-
-	public function setBody(string $body) : IHttpRequest;
 }
