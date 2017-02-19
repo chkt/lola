@@ -26,7 +26,7 @@ extends TestCase
 	public function testUsePayload() {
 		$request = new HttpRequest($this->_driver);
 
-		$this->assertEquals($this->_driver->usePayload(), $request->usePayload());
+		$this->assertEquals($this->_driver->useRequestPayload(), $request->usePayload());
 	}
 
 	public function testUseReply() {
