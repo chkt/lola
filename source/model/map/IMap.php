@@ -28,4 +28,9 @@ interface IMap
 	public function getString(string $key): string;
 
 	public function setString(string $key, string $value) : IMap;
+
+
+	public function removeKey(string $key) : IMap;
+
+	public function renameKey(string $key, string $to) : IMap;
 }
