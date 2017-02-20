@@ -79,4 +79,17 @@ implements IMap
 
 		return $this;
 	}
+
+
+	public function removeKey(string $key) : IMap {
+		$this->_resource->removeKey($this->_getId($key));
+
+		return $this;
+	}
+
+	public function renameKey(string $key, string $to) : IMap {
+		$this->_resource->renameKey($this->_getId($key), $this->_getId($to));
+
+		return $this;
+	}
 }
