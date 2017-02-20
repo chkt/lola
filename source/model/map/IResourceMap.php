@@ -28,4 +28,9 @@ interface IResourceMap
 	public function getString(string $key) : string;
 
 	public function setString(string $key, string $value) : IResourceMap;
+
+
+	public function removeKey(string $key) : IResourceMap;
+
+	public function renameKey(string $key, string $to) : IResourceMap;
 }
