@@ -242,4 +242,64 @@ extends TestCase
 		$this->assertEquals('foo.baz', $key);
 		$this->assertEquals('bang', $value);
 	}
+
+
+	public function testRemoveKey() {
+		$props = [
+			'bang.foo' => 1,
+			'bang.bar' => 2
+		];
+
+		$resource = $this->_mockResource();
+
+		$resource
+			->expects($this->any())
+			->method('removeKey')
+			->with($this->isType('string'))
+			->willReturnCallback(function(string $key) use (& $resource, & $props) {
+				if (array_key_exists($key, $props)) unset($props[$key]);
+
+				return $resource;
+			});
+
+		$map = $this->_mockMap($resource, 'bang');
+
+		$this->assertEquals($map, $map->removeKey('foo'));
+		$this->assertArrayNotHasKey('bang.foo', $props);
+		$this->assertEquals($map, $map->removeKey('bar'));
+		$this->assertArrayNotHasKey('bang.bar', $props);
+	}
+
+	public function testRenameKey() {
+		$props = [
+			'bang.foo' => 1,
+			'bang.bar' => 2
+		];
+
+		$resource = $this->_mockResource();
+
+		$resource
+			->expects($this->any())
+			->method('renameKey')
+			->with($this->isType('string'), $this->isType('string'))
+			->willReturnCallback(function(string $key, string $to) use (& $resource, & $props) {
+				if (array_key_exists($key, $props)) {
+					$props[$to] = $props[$key];
+					unset($props[$key]);
+				}
+
+				return $resource;
+			});
+
+		$map = $this->_mockMap($resource, 'bang');
+
+		$this->assertEquals($map, $map->renameKey('foo', 'baz'));
+		$this->assertArrayNotHasKey('bang.foo', $props);
+		$this->assertArrayHasKey('bang.baz', $props);
+		$this->assertEquals(1, $props['bang.baz']);
+		$this->assertEquals($map, $map->renameKey('bar', 'quux'));
+		$this->assertArrayNotHasKey('bang.bar', $props);
+		$this->assertArrayHasKey('bang.quux', $props);
+		$this->assertEquals(2, $props['bang.quux']);
+	}
 }
