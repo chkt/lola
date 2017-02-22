@@ -32,13 +32,13 @@ extends TestCase
 		$resource
 			->expects($this->at(0))
 			->method('hasKey')
-			->with($this->equalTo('foo.bar'))
+			->with($this->equalTo('foo_bar'))
 			->willReturn(true);
 
 		$resource
 			->expects($this->at(1))
 			->method('hasKey')
-			->with($this->equalTo('foo.baz'))
+			->with($this->equalTo('foo_baz'))
 			->willReturn(false);
 
 		$map = $this->_mockMap($resource);
@@ -54,13 +54,13 @@ extends TestCase
 		$resource
 			->expects($this->at(0))
 			->method('getBool')
-			->with($this->equalTo('foo.bar'))
+			->with($this->equalTo('foo_bar'))
 			->willReturn(true);
 
 		$resource
 			->expects($this->at(1))
 			->method('getBool')
-			->with($this->equalTo('foo.baz'))
+			->with($this->equalTo('foo_baz'))
 			->willReturn(false);
 
 		$map = $this->_mockMap($resource);
@@ -89,10 +89,10 @@ extends TestCase
 		$map = $this->_mockMap($resource);
 
 		$this->assertEquals($map, $map->setBool('bar', true));
-		$this->assertEquals('foo.bar', $key);
+		$this->assertEquals('foo_bar', $key);
 		$this->assertTrue($value);
 		$this->assertEquals($map, $map->setBool('baz', false));
-		$this->assertEquals('foo.baz', $key);
+		$this->assertEquals('foo_baz', $key);
 		$this->assertFalse($value);
 	}
 
@@ -103,13 +103,13 @@ extends TestCase
 		$resource
 			->expects($this->at(0))
 			->method('getInt')
-			->with($this->equalTo('foo.bar'))
+			->with($this->equalTo('foo_bar'))
 			->willReturn(0);
 
 		$resource
 			->expects($this->at(1))
 			->method('getInt')
-			->with($this->equalTo('foo.baz'))
+			->with($this->equalTo('foo_baz'))
 			->willReturn(1);
 
 		$map = $this->_mockMap($resource);
@@ -138,10 +138,10 @@ extends TestCase
 		$map = $this->_mockMap($resource);
 
 		$this->assertEquals($map, $map->setInt('bar', 1));
-		$this->assertEquals('foo.bar', $key);
+		$this->assertEquals('foo_bar', $key);
 		$this->assertEquals(1, $value);
 		$this->assertEquals($map, $map->setInt('baz', 2));
-		$this->assertEquals('foo.baz', $key);
+		$this->assertEquals('foo_baz', $key);
 		$this->assertEquals(2, $value);
 	}
 
@@ -152,13 +152,13 @@ extends TestCase
 		$resource
 			->expects($this->at(0))
 			->method('getFloat')
-			->with($this->equalTo('foo.bar'))
+			->with($this->equalTo('foo_bar'))
 			->willReturn(0.1);
 
 		$resource
 			->expects($this->at(1))
 			->method('getFloat')
-			->with($this->equalTo('foo.baz'))
+			->with($this->equalTo('foo_baz'))
 			->willReturn(1.1);
 
 		$map = $this->_mockMap($resource);
@@ -187,10 +187,10 @@ extends TestCase
 		$map = $this->_mockMap($resource);
 
 		$this->assertEquals($map, $map->setFloat('bar', 1.5));
-		$this->assertEquals('foo.bar', $key);
+		$this->assertEquals('foo_bar', $key);
 		$this->assertEquals(1.5, $value);
 		$this->assertEquals($map, $map->setFloat('baz', 2.5));
-		$this->assertEquals('foo.baz', $key);
+		$this->assertEquals('foo_baz', $key);
 		$this->assertEquals(2.5, $value);
 	}
 
@@ -201,13 +201,13 @@ extends TestCase
 		$resource
 			->expects($this->at(0))
 			->method('getString')
-			->with($this->equalTo('foo.bar'))
+			->with($this->equalTo('foo_bar'))
 			->willReturn('quux');
 
 		$resource
 			->expects($this->at(1))
 			->method('getString')
-			->with($this->equalTo('foo.baz'))
+			->with($this->equalTo('foo_baz'))
 			->willReturn('bang');
 
 		$map = $this->_mockMap($resource);
@@ -236,18 +236,18 @@ extends TestCase
 		$map = $this->_mockMap($resource);
 
 		$this->assertEquals($map, $map->setString('bar', 'quux'));
-		$this->assertEquals('foo.bar', $key);
+		$this->assertEquals('foo_bar', $key);
 		$this->assertEquals('quux', $value);
 		$this->assertEquals($map, $map->setString('baz', 'bang'));
-		$this->assertEquals('foo.baz', $key);
+		$this->assertEquals('foo_baz', $key);
 		$this->assertEquals('bang', $value);
 	}
 
 
 	public function testRemoveKey() {
 		$props = [
-			'bang.foo' => 1,
-			'bang.bar' => 2
+			'bang_foo' => 1,
+			'bang_bar' => 2
 		];
 
 		$resource = $this->_mockResource();
@@ -265,15 +265,15 @@ extends TestCase
 		$map = $this->_mockMap($resource, 'bang');
 
 		$this->assertEquals($map, $map->removeKey('foo'));
-		$this->assertArrayNotHasKey('bang.foo', $props);
+		$this->assertArrayNotHasKey('bang_foo', $props);
 		$this->assertEquals($map, $map->removeKey('bar'));
-		$this->assertArrayNotHasKey('bang.bar', $props);
+		$this->assertArrayNotHasKey('bang_bar', $props);
 	}
 
 	public function testRenameKey() {
 		$props = [
-			'bang.foo' => 1,
-			'bang.bar' => 2
+			'bang_foo' => 1,
+			'bang_bar' => 2
 		];
 
 		$resource = $this->_mockResource();
@@ -294,12 +294,12 @@ extends TestCase
 		$map = $this->_mockMap($resource, 'bang');
 
 		$this->assertEquals($map, $map->renameKey('foo', 'baz'));
-		$this->assertArrayNotHasKey('bang.foo', $props);
-		$this->assertArrayHasKey('bang.baz', $props);
-		$this->assertEquals(1, $props['bang.baz']);
+		$this->assertArrayNotHasKey('bang_foo', $props);
+		$this->assertArrayHasKey('bang_baz', $props);
+		$this->assertEquals(1, $props['bang_baz']);
 		$this->assertEquals($map, $map->renameKey('bar', 'quux'));
-		$this->assertArrayNotHasKey('bang.bar', $props);
-		$this->assertArrayHasKey('bang.quux', $props);
-		$this->assertEquals(2, $props['bang.quux']);
+		$this->assertArrayNotHasKey('bang_bar', $props);
+		$this->assertArrayHasKey('bang_quux', $props);
+		$this->assertEquals(2, $props['bang_quux']);
 	}
 }
