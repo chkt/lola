@@ -13,18 +13,29 @@ final class ProjectorTest
 extends TestCase
 {
 
-	private function _getProjection(array $data, array $transforms) {
-		$source = new StructuredData($data);
-
+	private function _mockProjector(array $transforms) : AProjector {
 		return $this
 			->getMockBuilder(AProjector::class)
-			->setConstructorArgs([ & $source, & $transforms ])
+			->setConstructorArgs([ & $transforms ])
 			->getMockForAbstractClass();
 	}
 
 
-	public function testGet() {
-		$ins = $this->_getProjection([
+	private function _produceSource(array $data) : StructuredData {
+		return new StructuredData($data);
+	}
+
+
+	public function testSetSource() {
+		$data = $this->_produceSource([]);
+		$ins = $this->_mockProjector([]);
+
+		$this->assertEquals($ins, $ins->setSource($data));
+	}
+
+
+	public function testGetProjection() {
+		$data = $this->_produceSource([
 			'foo' => 0,
 			'bar' => [ 1, 2, 3 ],
 			'baz' => [
@@ -32,20 +43,24 @@ extends TestCase
 				'bar' => 5,
 				'baz' => 6
 			]
-		], [
-			'fooProp' => function(StructuredData $data) {
-				return [ 'foo' => $data->useItem('foo') ];
-			},
-			'barProp' => function(StructuredData $data) {
-				return [ 'bar' => $data->useItem('bar') ];
-			},
-			'bazProp' => function(StructuredData $data) {
-				return [ 'baz' => $data->useItem('baz') ];
-			},
-			'quuxProp' => function(StructuredData $data) {
-				return [ 'quux' => $data->useItem('baz.baz') ];
-			}
 		]);
+
+		$ins = $this
+			->_mockProjector([
+				'fooProp' => function(StructuredData $data) {
+					return [ 'foo' => $data->useItem('foo') ];
+				},
+				'barProp' => function(StructuredData $data) {
+					return [ 'bar' => $data->useItem('bar') ];
+				},
+				'bazProp' => function(StructuredData $data) {
+					return [ 'baz' => $data->useItem('baz') ];
+				},
+				'quuxProp' => function(StructuredData $data) {
+					return [ 'quux' => $data->useItem('baz.baz') ];
+				}
+			])
+			->setSource($data);
 
 		$this->assertEquals([
 			'foo' => 0,
@@ -56,15 +71,15 @@ extends TestCase
 				'baz' => 6
 			],
 			'quux' => 6
-		], $ins->get());
+		], $ins->getProjection());
 
 		$this->assertEquals([
 			'foo' => 0
-		], $ins->get([ 'fooProp' ]));
+		], $ins->getProjection([ 'fooProp' ]));
 
 		$this->assertEquals([
 			'bar' => [ 1, 2, 3 ]
-		], $ins->get([ 'barProp' ]));
+		], $ins->getProjection([ 'barProp' ]));
 
 		$this->assertEquals([
 			'baz' => [
@@ -72,10 +87,10 @@ extends TestCase
 				'bar' => 5,
 				'baz' => 6
 			]
-		], $ins->get([ 'bazProp' ]));
+		], $ins->getProjection([ 'bazProp' ]));
 
 		$this->assertEquals([
 			'quux' => 6
-		], $ins->get([ 'quuxProp' ]));
+		], $ins->getProjection([ 'quuxProp' ]));
 	}
 }
