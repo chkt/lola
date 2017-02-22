@@ -7,5 +7,7 @@ namespace lola\type;
 interface IProjector
 {
 
-	public function get(array $selection = null)  : array;
+	public function setSource(StructuredData& $source) : IProjector;
+
+	public function getProjection(array $selection = null)  : array;
 }
