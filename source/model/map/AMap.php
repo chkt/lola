@@ -25,7 +25,7 @@ implements IMap
 
 
 	private function _getId(string $key) : string {
-		return implode('.', [
+		return implode('_', [
 			$this->_base,
 			$key
 		]);
