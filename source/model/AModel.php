@@ -4,6 +4,7 @@ namespace lola\model;
 
 use lola\model\IModel;
 use lola\model\IResource;
+use lola\type\IProjector;
 
 
 
@@ -17,22 +18,26 @@ implements IModel
 
 	private $_resource = null;
 	private $_data = null;
+	private $_projector;
 
 	private $_update = true;
 
 
-	public function __construct(IResource $resource) {
+	public function __construct(IResource $resource, IProjector $projector) {
 		$this->_resource = $resource;
-		$this->_data = null;
+		$this->_data = $resource->getData();
+		$this->_projector = $projector->setSource($this->_data);
 
 		$this->_update = true;
 	}
 
 
 	protected function& _useResource() {
-		if (is_null($this->_data)) $this->_data = $this->_resource->getData();
-
 		return $this->_data;
+	}
+
+	protected function& _useProjector() {
+		return $this->_projector;
 	}
 
 
@@ -83,7 +88,7 @@ implements IModel
 		return $this;
 	}
 
-	
+
 	public function isLive() {
 		return $this->_resource->isLive();
 	}
@@ -110,5 +115,12 @@ implements IModel
 		$this->_update = true;
 
 		return $this;
+	}
+
+
+	public function getProjection(array $selection = null) : array {
+		return $this
+			->_useProjector()
+			->getProjection($selection);
 	}
 }
