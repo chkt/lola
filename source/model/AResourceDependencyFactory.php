@@ -57,11 +57,6 @@ implements IDependencyFactory
 	}
 
 
-	protected function _getCreateDependencies(Array $config) {
-		return [];
-	}
-
-
 	protected function _produceProxy() {
 		if (
 			!array_key_exists('resource', $this->_config) ||
