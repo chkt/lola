@@ -41,4 +41,17 @@ extends TestCase
 		$this->assertTrue($step->wasTransformed());
 		$this->assertEquals([ 'foo' => 'BAR' ], $step->getTransformedResult());
 	}
+
+	public function testTransform() {
+		$step = $this->_produceStep('foo');
+
+		$step->validate([
+			'foo' => 'bar'
+		]);
+
+		$step->transform('baz');
+		$this->assertEquals([
+			'foo' => 'baz'
+		], $step->getTransformedResult());
+	}
 }
