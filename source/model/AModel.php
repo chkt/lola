@@ -17,27 +17,29 @@ implements IModel
 
 
 	private $_resource = null;
-	private $_data = null;
 	private $_projector;
 
+	private $_data = null;
 	private $_update = true;
 
 
 	public function __construct(IResource $resource, IProjector $projector) {
 		$this->_resource = $resource;
-		$this->_data = $resource->getData();
-		$this->_projector = $projector->setSource($this->_data);
+		$this->_projector = $projector;
 
+		$this->_data = null;
 		$this->_update = true;
 	}
 
 
 	protected function& _useResource() {
+		if (is_null($this->_data)) $this->_data = $this->_resource->getData();
+
 		return $this->_data;
 	}
 
 	protected function& _useProjector() {
-		return $this->_projector;
+		return $this->_projector->setSource($this->_useResource());
 	}
 
 
