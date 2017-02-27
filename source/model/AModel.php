@@ -39,7 +39,9 @@ implements IModel
 	}
 
 	protected function& _useProjector() {
-		return $this->_projector->setSource($this->_useResource());
+		$this->_projector->setSource($this->_useResource());
+
+		return $this->_projector;
 	}
 
 
