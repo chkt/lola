@@ -1,6 +1,6 @@
 <?php
 
-namespace lola\model;
+namespace lola\model\collection;
 
 use lola\inject\IDependencyFactory;
 use lola\inject\Injector;
