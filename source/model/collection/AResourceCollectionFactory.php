@@ -9,7 +9,7 @@ use lola\model\collection\IResourceCollection;
 
 
 
-abstract class AResourceCollectionDependencyFactory
+abstract class AResourceCollectionFactory
 implements IDependencyFactory
 {
 
