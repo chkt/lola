@@ -2,6 +2,7 @@
 
 namespace lola\model\collection;
 
+use lola\model\IResource;
 use lola\model\IResourceQuery;
 
 
@@ -14,19 +15,20 @@ interface IResourceCollection {
 
 
 
-	public function isLive();
+	public function isLive() : bool;
 
-	public function isDirty();
-
-
-	public function read(IResourceQuery $query, $limit, $offset = 0);
-
-	public function update();
+	public function isDirty() : bool;
 
 
-	public function getLength();
+	public function getLength() : int;
 
-	public function getIndexOf(IResourceQuery $query);
+	public function getIndexOf(IResourceQuery $query) : int;
 
-	public function& useItem($index);
+
+	public function read(IResourceQuery $query, int $limit, int $offset = 0) : IResourceCollection;
+
+	public function update() : IResourceCollection;
+
+
+	public function& useItem(int $index) : IResource;
 }
