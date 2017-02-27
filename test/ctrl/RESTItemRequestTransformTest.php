@@ -253,4 +253,13 @@ extends TestCase
 			->setTarget($ctrl)
 			->process();
 	}
+
+	public function testPostStates() {
+		$ctrl = $this->_getStatesController('POST', 'unavailable');
+		$trn = new RESTItemRequestTransform();
+
+		$trn
+			->setTarget($ctrl)
+			->process();
+	}
 }
