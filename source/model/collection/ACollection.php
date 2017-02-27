@@ -7,7 +7,7 @@ use lola\model\collection\ICollection;
 
 use lola\model\IModel;
 use lola\model\IResourceQuery;
-use lola\model\IResourceCollection;
+use lola\model\collection\IResourceCollection;
 
 
 
