@@ -3,11 +3,13 @@
 namespace lola\model\collection;
 
 use lola\type\AIterateable;
+use lola\inject\IInjector;
 use lola\model\collection\ICollection;
+use lola\model\collection\IResourceCollection;
 
 use lola\model\IModel;
+use lola\model\AResourceDependencyFactory;
 use lola\model\IResourceQuery;
-use lola\model\collection\IResourceCollection;
 
 
 
@@ -16,27 +18,43 @@ extends AIterateable
 implements ICollection
 {
 
-	private $_resource = null;
-	private $_factory = null;
+	private $_injector;
+	private $_resource;
+
+	private $_itemModel;
 
 
-	public function __construct(IResourceCollection $resource, Callable $itemFactory) {
+	public function __construct(
+		IInjector& $injector,
+		IResourceCollection& $resource,
+		string $itemModel
+	) {
 		parent::__construct();
 
-		$this->_resource = $resource;
-		$this->_factory = $itemFactory;
+		$this->_injector =& $injector;
+		$this->_resource =& $resource;
 
+		$this->_itemModel = $itemModel;
 		$this->_length = $resource->getLength();
 	}
 
 
-	protected function& _useItem($index) {
+	protected function _produceModel($index) : IModel {
+		$resource =& $this->_resource->useItem($index);
+
+		$model = $this->_injector->produce($this->_itemModel, [
+			'mode' => AResourceDependencyFactory::MODE_PASS,
+			'resource' => & $resource,
+		]);
+
+		return $model;
+	}
+
+
+	protected function& _useItem($index) : IModel {
 		$items =& $this->_items;
 
-		if (!array_key_exists($index, $items)) {
-			$resource =& $this->_resource->useItem($index);
-			$items[$index] = call_user_func_array($this->_factory, [ & $resource ]);
-		}
+		if (!array_key_exists($index, $items)) $items[$index] = $this->_produceModel($index);
 
 		return $items[$index];
 	}
