@@ -33,7 +33,7 @@ extends AValidationTransform
 	protected function _validate($source) {
 		if (!is_array($source)) throw new ValidationException($this->getId() . '.noarray', 1);
 
-		if (!array_key_exists($this->_prop, $source)) throw new ValidationException($this->getId(), '.noprop', 2);
+		if (!array_key_exists($this->_prop, $source)) throw new ValidationException($this->getId() . '.noprop', 2);
 
 		return $source[$this->_prop];
 	}
