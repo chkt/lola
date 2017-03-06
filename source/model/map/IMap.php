@@ -30,6 +30,21 @@ interface IMap
 	public function setString(string $key, string $value) : IMap;
 
 
+	public function getList(string $key) : array;
+
+	public function setList(string $key, array $list) : IMap;
+
+
+	public function getSet(string $key) : array;
+
+	public function setSet(string $key, array $set) : IMap;
+
+
+	public function getMap(string $key) : array;
+
+	public function setMap(string $key, array $hash) : IMap;
+
+
 	public function removeKey(string $key) : IMap;
 
 	public function renameKey(string $key, string $to) : IMap;
