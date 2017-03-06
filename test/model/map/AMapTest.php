@@ -244,6 +244,166 @@ extends TestCase
 	}
 
 
+	public function testGetList() {
+		$list0 = ['foo','bar','baz'];
+		$list1 = ['foo','bang','quux'];
+		$resource = $this->_mockResource();
+
+		$resource
+			->expects($this->at(0))
+			->method('getList')
+			->with($this->equalTo('foo_bar'))
+			->willReturn($list0);
+
+		$resource
+			->expects($this->at(1))
+			->method('getList')
+			->with($this->equalTo('foo_baz'))
+			->willReturn($list1);
+
+		$map = $this->_mockMap($resource);
+
+		$this->assertEquals($list0, $map->getList('bar'));
+		$this->assertEquals($list1, $map->getList('baz'));
+	}
+
+	public function testSetList() {
+		$list0 = [ 'foo', 'bar', 'baz' ];
+		$list1 = [ 'foo', 'quux', 'bang' ];
+
+		$key = '';
+		$value = null;
+		$resource = $this->_mockResource();
+
+		$resource
+			->expects($this->any())
+			->method('setList')
+			->with($this->isType('string'), $this->isType('array'))
+			->willReturnCallback(function (string $k, array $v) use (& $key, & $value, & $resource) : IResourceMap {
+				$key = $k;
+				$value = $v;
+
+				return $resource;
+			});
+
+		$map = $this->_mockMap($resource);
+
+		$this->assertEquals($map, $map->setList('bar', $list0));
+		$this->assertEquals('foo_bar', $key);
+		$this->assertEquals($list0, $value);
+		$this->assertEquals($map, $map->setList('baz', $list1));
+		$this->assertEquals('foo_baz', $key);
+		$this->assertEquals($list1, $value);
+	}
+
+
+	public function testGetSet() {
+		$set0 = [ 'foo', 'bar', 'baz' ];
+		$set1 = [ 'quux', 'bang', 'foo' ];
+		$resource = $this->_mockResource();
+
+		$resource
+			->expects($this->at(0))
+			->method('getSet')
+			->with($this->equalTo('foo_bar'))
+			->willReturn($set0);
+
+		$resource
+			->expects($this->at(1))
+			->method('getSet')
+			->with($this->equalTo('foo_baz'))
+			->willReturn($set1);
+
+		$map = $this->_mockMap($resource);
+
+		$this->assertEquals($set0, $map->getSet('bar'));
+		$this->assertEquals($set1, $map->getSet('baz'));
+	}
+
+	public function testSetSet() {
+		$set0 = [ 'foo', 'bar', 'baz' ];
+		$set1 = [ 'quux', 'bang', 'foo' ];
+
+		$key = '';
+		$value = null;
+		$resource = $this->_mockResource();
+
+		$resource
+			->expects($this->any())
+			->method('setSet')
+			->with($this->isType('string'), $this->isType('array'))
+			->willReturnCallback(function(string $k, array $v) use (& $key, & $value, & $resource) : IResourceMap {
+				$key = $k;
+				$value = $v;
+
+				return $resource;
+			});
+
+		$map = $this->_mockMap($resource);
+
+		$this->assertEquals($map, $map->setSet('bar', $set0));
+		$this->assertEquals('foo_bar', $key);
+		$this->assertEquals($set0, $value);
+		$this->assertEquals($map, $map->setSet('baz', $set1));
+		$this->assertEquals('foo_baz', $key);
+		$this->assertEquals($set1, $value);
+	}
+
+
+	public function testGetMap() {
+		$map0 = [ 'foo' => 1, 'bar' => 2 ];
+		$map1 = [ 'baz' => 3, 'bang' => 4 ];
+
+		$resource = $this->_mockResource();
+
+		$resource
+			->expects($this->at(0))
+			->method('getMap')
+			->with($this->equalTo('foo_bar'))
+			->willReturn($map0);
+
+		$resource
+			->expects($this->at(1))
+			->method('getMap')
+			->with($this->equalTo('foo_baz'))
+			->willReturn($map1);
+
+		$map = $this->_mockMap($resource);
+
+		$this->assertEquals($map0, $map->getMap('bar'));
+		$this->assertEquals($map1, $map->getMap('baz'));
+	}
+
+	public function testSetMap() {
+		$map0 = [ 'foo' => 1, 'bar' => 2 ];
+		$map1 = [ 'baz' => 3, 'quux' => 4 ];
+
+		$key = '';
+		$value = null;
+		$resource = $this->_mockResource();
+
+		$resource
+			->expects($this->any())
+			->method('setMap')
+			->with($this->isType('string'), $this->isType('array'))
+			->willReturnCallback(function(string $k, array $v) use (& $key, & $value, & $resource) : IResourceMap {
+				$key = $k;
+				$value = $v;
+
+				return $resource;
+			});
+
+		$map = $this->_mockMap($resource);
+
+		$this->assertEquals($map, $map->setMap('bar', $map0));
+		$this->assertEquals('foo_bar', $key);
+		$this->assertEquals($map0, $value);
+		$this->assertEquals($map, $map->setMap('baz', $map1));
+		$this->assertEquals('foo_baz', $key);
+		$this->assertEquals($map1, $value);
+	}
+
+
 	public function testRemoveKey() {
 		$props = [
 			'bang_foo' => 1,
