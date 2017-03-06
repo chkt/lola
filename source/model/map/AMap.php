@@ -81,6 +81,39 @@ implements IMap
 	}
 
 
+	public function getList(string $key) : array {
+		return $this->_resource->getList($this->_getId($key));
+	}
+
+	public function setList(string $key, array $list) : IMap {
+		$this->_resource->setList($this->_getId($key), $list);
+
+		return $this;
+	}
+
+
+	public function getSet(string $key) : array {
+		return $this->_resource->getSet($this->_getId($key));
+	}
+
+	public function setSet(string $key, array $set) : IMap {
+		$this->_resource->setSet($this->_getId($key), $set);
+
+		return $this;
+	}
+
+
+	public function getMap(string $key) : array {
+		return $this->_resource->getMap($this->_getId($key));
+	}
+
+	public function setMap(string $key, array $map) : IMap {
+		$this->_resource->setMap($this->_getId($key), $map);
+
+		return $this;
+	}
+
+
 	public function removeKey(string $key) : IMap {
 		$this->_resource->removeKey($this->_getId($key));
 
