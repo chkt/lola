@@ -3,6 +3,7 @@
 namespace lola\model\collection;
 
 use lola\type\AIterateable;
+use lola\type\IProjectable;
 use lola\inject\IInjector;
 use lola\model\collection\ICollection;
 use lola\model\collection\IResourceCollection;
@@ -15,7 +16,7 @@ use lola\model\IResourceQuery;
 
 abstract class ACollection
 extends AIterateable
-implements ICollection
+implements ICollection, IProjectable
 {
 
 	private $_injector;
@@ -81,5 +82,14 @@ implements ICollection
 		$this->_resource->update();
 
 		return $this;
+	}
+
+
+	public function getProjection(array $selection = []) : array {
+		$res = [];
+
+		for ($item =& $this->useFirst(); !is_null($item); $item =& $this->useNext()) $res[] = $item->getProjection($selection);
+
+		return $res;
 	}
 }
