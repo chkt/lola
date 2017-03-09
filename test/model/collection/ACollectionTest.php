@@ -101,6 +101,22 @@ extends TestCase
 	}
 
 
+	public function testGetLength() {
+		$injector = $this->_mockInjector();
+		$resource = $this->_mockResourceCollection();
+
+		$resource
+			->expects($this->once())
+			->method('getLength')
+			->with()
+			->willReturn(2);
+
+		$collection = $this->_mockCollection($injector, $resource, 'foo');
+
+		$this->assertEquals(2, $collection->getLength());
+	}
+
+
 	public function testGetProjection() {
 		$injector = $this->_mockInjector();
 
