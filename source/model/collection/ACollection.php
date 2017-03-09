@@ -2,7 +2,7 @@
 
 namespace lola\model\collection;
 
-use lola\type\AIterateable;
+use lola\type\ASizedIterateable;
 use lola\type\IProjectable;
 use lola\inject\IInjector;
 use lola\model\collection\ICollection;
@@ -15,7 +15,7 @@ use lola\model\IResourceQuery;
 
 
 abstract class ACollection
-extends AIterateable
+extends ASizedIterateable
 implements ICollection, IProjectable
 {
 
@@ -23,6 +23,9 @@ implements ICollection, IProjectable
 	private $_resource;
 
 	private $_itemModel;
+	
+	private $_items;
+	private $_length;
 
 
 	public function __construct(
@@ -36,6 +39,8 @@ implements ICollection, IProjectable
 		$this->_resource =& $resource;
 
 		$this->_itemModel = $itemModel;
+
+		$this->_items = [];
 		$this->_length = $resource->getLength();
 	}
 
@@ -52,7 +57,7 @@ implements ICollection, IProjectable
 	}
 
 
-	protected function& _useItem($index) : IModel {
+	protected function& _useItem(int $index) {
 		$items =& $this->_items;
 
 		if (!array_key_exists($index, $items)) $items[$index] = $this->_produceModel($index);
@@ -63,6 +68,11 @@ implements ICollection, IProjectable
 
 	public function isLive() : bool {
 		return $this->_resource->isLive();
+	}
+
+
+	public function getLength() : int {
+		return $this->_length;
 	}
 
 
@@ -88,7 +98,7 @@ implements ICollection, IProjectable
 	public function getProjection(array $selection = []) : array {
 		$res = [];
 
-		for ($item =& $this->useFirst(); !is_null($item); $item =& $this->useNext()) $res[] = $item->getProjection($selection);
+		foreach ($this->iterate() as & $item) $res[] = $item->getProjection($selection);
 
 		return $res;
 	}
