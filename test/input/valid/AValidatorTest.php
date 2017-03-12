@@ -8,6 +8,7 @@ use lola\input\valid\IValidationInterceptor;
 use lola\input\valid\ValidationException;
 use lola\input\valid\AValidationStep;
 use lola\input\valid\AValidationTransform;
+use lola\input\valid\AValidationCatchingTransform;
 use lola\input\valid\AValidator;
 
 
@@ -53,6 +54,33 @@ extends TestCase
 			->method('_transform')
 			->with($this->anything(), $this->anything())
 			->willReturnCallback($transform);
+
+		return $step;
+	}
+
+	private function _mockCatchableTransform(AValidationStep $next, callable $test, callable $transform, callable $recover) {
+		$step = $this
+			->getMockBuilder(AValidationCatchingTransform::class)
+			->setConstructorArgs([ $next ])
+			->getMockForAbstractClass();
+
+		$step
+			->expects($this->any())
+			->method('_validate')
+			->with($this->anything())
+			->willReturnCallback($test);
+
+		$step
+			->expects($this->any())
+			->method('_transform')
+			->with($this->anything(), $this->anything())
+			->willReturnCallback($transform);
+
+		$step
+			->expects($this->any())
+			->method('_recover')
+			->with($this->isInstanceOf(ValidationException::class))
+			->willReturnCallback($recover);
 
 		return $step;
 	}
@@ -292,6 +320,33 @@ extends TestCase
 			'foo' => [ 'baz' => 1 ],
 			'bar' => [ 'baz' => 2 ]
 		], $validator->getResult());
+	}
+
+	public function testValidateCatchable() {
+		$step2 = $this->_mockStep(function($value) {
+			throw new ValidationException('ouch', 1);
+		});
+
+		$step1 = $this->_mockTransform($step2, function($value) {
+			return 'bar';
+		}, function($source, $result) {
+			return $result;
+		});
+
+		$step0 = $this->_mockCatchableTransform($step1, function($value) {
+			return $value;
+		}, function($source, $result) {
+			return $result;
+		}, function(ValidationException $ex) {
+			return 'bang';
+		});
+
+		$validator = $this->_mockValidator([ $step0 ]);
+
+		$validator->validate('foo');
+
+		$this->assertTrue($validator->isValid());
+		$this->assertEquals('bang', $validator->getResult());
 	}
 
 	public function testValidateInterceptor() {
