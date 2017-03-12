@@ -7,6 +7,7 @@ use lola\input\valid\IValidationStep;
 
 
 interface IValidationTransform
+extends IValidationStep
 {
 
 	public function wasTransformed() : bool;
