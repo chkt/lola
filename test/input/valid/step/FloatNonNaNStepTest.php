@@ -30,6 +30,10 @@ extends TestCase
 		$this->assertEquals(0.0, $step->getSource());
 		$this->assertEquals(0.0, $step->getResult());
 
+		$step->validate(INF);
+		$this->assertTrue($step->isValid());
+		$this->assertEquals(INF, $step->getResult());
+
 		$step->validate(NAN);
 		$this->assertFalse($step->isValid());
 		$this->assertNan($step->getResult());
