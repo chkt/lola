@@ -161,6 +161,11 @@ extends TestCase
 	}
 
 
+	public function _produceException(string $message, int $code) {
+		return new ValidationException($message, $code);
+	}
+
+
 	public function testWasValidated() {
 		$validator = $this->_mockValidator();
 
@@ -292,6 +297,65 @@ extends TestCase
 		]);
 
 		$this->assertEquals(0, count($validator->getFailures()));
+	}
+
+
+	public function testHasChain() {
+		$validator = $this->_mockValidator([
+			'foo' => $this->_produceChain('foo', 'baz'),
+			'bar' => $this->_produceChain('bar', 'baz')
+		]);
+
+		$this->assertTrue($validator->hasChain('foo'));
+		$this->assertTrue($validator->hasChain('bar'));
+		$this->assertFalse($validator->hasChain('baz'));
+	}
+
+	public function testIsChainValid() {
+		$validator = $this->_mockValidator([
+			'foo' => $this->_produceChain('foo', 'baz'),
+			'bar' => $this->_produceChain('bar', 'baz')
+		]);
+
+		$this->assertFalse($validator->isChainValid('foo'));
+		$this->assertFalse($validator->isChainValid('bar'));
+
+		$validator->validate([
+			'foo' => [ 'baz' => '1' ],
+			'bar' => [ 'baz' => 'bang' ]
+		]);
+
+		$this->assertTrue($validator->isChainValid('foo'));
+		$this->assertFalse($validator->isChainValid('bar'));
+	}
+
+	public function testGetChainResult() {
+		$validator = $this
+			->_mockValidator([
+				'foo' => $this->_produceChain('foo', 'baz'),
+				'bar' => $this->_produceChain('bar', 'baz')
+			])
+			->validate([
+				'foo' => [ 'baz' => '1' ],
+				'bar' => [ 'baz' => '2' ]
+			]);
+
+		$this->assertEquals(1, $validator->getChainResult('foo'));
+		$this->assertEquals(2, $validator->getChainResult('bar'));
+	}
+
+	public function testGetChainFailure() {
+		$validator = $this
+			->_mockValidator([
+				'foo' => $this->_produceChain('foo', 'baz'),
+				'bar' => $this->_produceChain('bar', 'baz')
+			])
+			->validate([
+				'foo' => [ 'baz' => 'bang' ],
+				'bar' => [ 'baz' => '2' ]
+			]);
+
+		$this->assertEquals($this->_produceException('MALFORMED', 3), $validator->getChainFailure('foo'));
 	}
 
 
