@@ -67,6 +67,21 @@ extends TestCase
 		$this->assertTrue($step0->wasRecovered());
 	}
 
+	public function testWasRecovered_null() {
+		$step1 = $this->_mockTest();
+		$step0 = $this->_mockTransform($step1, function($value) {
+			return $value;
+		}, function(ValidationException $ex) {
+			return null;
+		});
+
+		$step0
+			->validate('foo')
+			->recover($this->_produceException());
+
+		$this->assertTrue($step0->wasRecovered());
+	}
+
 	public function testGetRecoveredResult() {
 		$step1 = $this->_mockTest();
 		$step0 = $this->_mockTransform($step1, function($value) {
