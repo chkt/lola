@@ -60,6 +60,49 @@ implements IValidator
 	}
 
 
+	public function hasChain(string $name) : bool {
+		return array_key_exists($name, $this->_steps);
+	}
+
+
+	private function _resolveChain(string $name) : IValidationStep {
+		if (!$this->hasChain($name)) throw new \ErrorException();
+
+		for (
+			$step = $this->_steps[$name];
+			$step instanceof IValidationTransform;
+			$step = $step->getNextStep()
+		) {
+			if (
+				!$step->isValid() ||
+				$step instanceof IValidationCatchingTransform &&
+				$step->wasRecovered()
+			) return $step;
+		}
+
+		return $step;
+	}
+
+
+	public function isChainValid(string $name) : bool {
+		return $this
+			->_resolveChain($name)
+			->isValid();
+	}
+
+	public function getChainResult(string $name) {
+		return $this
+			->_resolveChain($name)
+			->getResult();
+	}
+
+	public function getChainFailure(string $name) : IValidationException {
+		return $this
+			->_resolveChain($name)
+			->getError();
+	}
+
+
 	private function _recoverChain(
 		IValidationException $ex,
 		array& $chain,
