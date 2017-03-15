@@ -4,17 +4,17 @@ namespace test\input\valid\step;
 
 use PHPUnit\Framework\TestCase;
 
-use lola\input\valid\step\StringNonEmptyStep;
+use lola\input\valid\step\IsStringNonEmpty;
 use lola\input\valid\ValidationException;
 
 
 
-final class StringNonEmptyStepTest
+final class IsStringNonEmptyTest
 extends TestCase
 {
 
 	private function _produceStep() {
-		return new StringNonEmptyStep();
+		return new IsStringNonEmpty();
 	}
 
 	private function _produceException(string $message, int $code) {
