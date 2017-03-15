@@ -2,14 +2,14 @@
 
 namespace lola\input\valid\step;
 
-use lola\input\valid\AValidationStep;
+use lola\input\valid\AValidationTransform;
 
 use lola\input\valid\ValidationException;
 
 
 
-final class StringEqualsStep
-extends AValidationStep
+final class IsStringEqual
+extends AValidationTransform
 {
 
 	private $_value;
