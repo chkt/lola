@@ -2,14 +2,14 @@
 
 namespace lola\input\valid\step;
 
-use lola\input\valid\AValidationStep;
+use lola\input\valid\AValidationTransform;
 
 use lola\input\valid\ValidationException;
 
 
 
-final class UintStep
-extends AValidationStep
+final class IsUint
+extends AValidationTransform
 {
 
 	public function getId() : string {
