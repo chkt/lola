@@ -4,9 +4,7 @@ namespace lola\input\valid;
 
 use lola\input\valid\IValidator;
 
-use lola\input\valid\IValidationStep;
 use lola\input\valid\IValidationTransform;
-use lola\input\valid\IValidationCatchingTransform;
 use lola\input\valid\IValidationInterceptor;
 
 
@@ -15,16 +13,11 @@ abstract class AValidator
 implements IValidator
 {
 
-	const VERSION = '0.6.0';
-
-
-
 	private $_steps;
 	private $_interceptor;
 
 	private $_source;
 	private $_result;
-
 	private $_failures;
 
 
@@ -64,105 +57,10 @@ implements IValidator
 		return array_key_exists($name, $this->_steps);
 	}
 
-
-	private function _resolveChain(string $name) : IValidationStep {
+	public function& useChain(string $name) : IValidationTransform {
 		if (!$this->hasChain($name)) throw new \ErrorException();
 
-		for (
-			$step = $this->_steps[$name];
-			$step instanceof IValidationTransform;
-			$step = $step->getNextStep()
-		) {
-			if (
-				!$step->isValid() ||
-				$step instanceof IValidationCatchingTransform &&
-				$step->wasRecovered()
-			) return $step;
-		}
-
-		return $step;
-	}
-
-
-	public function isChainValid(string $name) : bool {
-		return $this
-			->_resolveChain($name)
-			->isValid();
-	}
-
-	public function getChainResult(string $name) {
-		return $this
-			->_resolveChain($name)
-			->getResult();
-	}
-
-	public function getChainFailure(string $name) : IValidationException {
-		return $this
-			->_resolveChain($name)
-			->getError();
-	}
-
-
-	private function _recoverChain(
-		IValidationException $ex,
-		array& $chain,
-		IValidationCatchingTransform& $recovery
-	) {
-		for ($i = count($chain) - 1; $i > -1; $i -= 1) {
-			if ($chain[$i] !== $recovery) continue;
-
-			array_splice($chain, $i, count($chain) - $i);
-
-			$recovery->recover($ex);
-
-			return $recovery->getRecoveredResult();
-		}
-	}
-
-
-	private function _processChain(IValidationStep $step, & $origin) : AValidator {
-		$stack = [];
-		$recover = null;
-		$value = $origin;
-
-		while (true) {
-			$step->validate($value);
-
-			if (!is_null($this->_interceptor)) $this->_interceptor->intercept($step);
-
-			if (!$step->isValid()) {
-				if (!is_null($recover)) {
-					$value = $this->_recoverChain($step->getError(), $stack, $recover);
-
-					break;
-				}
-
-				$this->_failures[] = $step->getError();
-
-				return $this;
-			}
-
-			$value = $step->getResult();
-
-			if (!($step instanceof IValidationTransform)) break;
-
-			if ($step instanceof IValidationCatchingTransform) $recover = $step;
-
-			$stack[] = $step;
-			$step = $step->getNextStep();
-		}
-
-		while (!empty($stack)) {
-			$step = array_pop($stack);
-
-			$value = $step
-				->transform($value)
-				->getTransformedResult();
-		}
-
-		$origin = $value;
-
-		return $this;
+		return $this->_steps[$name];
 	}
 
 
@@ -171,7 +69,14 @@ implements IValidator
 		$this->_result = $value;
 		$this->_failures = [];
 
-		foreach ($this->_steps as $step) $this->_processChain($step, $value);
+		foreach ($this->_steps as $name => & $step) {
+			$step->validate($value);
+
+			if (!is_null($this->_interceptor)) $this->_interceptor->intercept($name, $step);
+
+			if ($step->isValid()) $value = $step->getResult();
+			else $this->_failures[] = $step->getError();
+		}
 
 		$this->_result = $value;
 
@@ -180,11 +85,11 @@ implements IValidator
 
 
 	public function reset() : IValidator {
-		foreach ($this->_steps as $step) $step->reset();
-
 		$this->_source = null;
 		$this->_result = null;
 		$this->_failures = [];
+
+		foreach ($this->_steps as $step) $step->reset();
 
 		return $this;
 	}
