@@ -4,7 +4,7 @@ namespace lola\input\valid;
 
 use lola\type\IProjectable;
 
-use lola\input\valid\IValidationException;
+use lola\input\valid\IValidationTransform;
 
 
 
@@ -26,11 +26,7 @@ extends IProjectable
 
 	public function hasChain(string $name) : bool;
 
-	public function isChainValid(string $name) : bool;
-
-	public function getChainResult(string $name);
-
-	public function getChainFailure(string $name) : IValidationException;
+	public function& useChain(string $name) : IValidationTransform;
 
 
 	public function validate($value) : IValidator;
