@@ -4,17 +4,17 @@ namespace test\input\valid\step;
 
 use PHPUnit\Framework\TestCase;
 
-use lola\input\valid\step\ConstraintStep;
+use lola\input\valid\step\Constraint;
 use lola\input\valid\ValidationException;
 
 
 
-final class ConstraintStepTest
+final class ConstraintTest
 extends TestCase
 {
 
-	private function _produceStep(array $constraint = []) : ConstraintStep {
-		return new ConstraintStep($constraint);
+	private function _produceStep(array $constraint = []) : Constraint {
+		return new Constraint($constraint);
 	}
 
 	private function _produceException(string $message, int $code) {
