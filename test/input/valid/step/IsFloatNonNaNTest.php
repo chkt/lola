@@ -4,17 +4,17 @@ namespace test\input\valid\step;
 
 use PHPUnit\Framework\TestCase;
 
-use lola\input\valid\step\FloatNonNaNStep;
+use lola\input\valid\step\IsFloatNonNaN;
 use lola\input\valid\ValidationException;
 
 
 
-final class FloatNonNaNStepTest
+final class IsFloatNonNaNTest
 extends TestCase
 {
 
 	private function _produceStep() {
-		return new FloatNonNaNStep();
+		return new IsFloatNonNaN();
 	}
 
 	private function _produceException(string $message, int $code) {
