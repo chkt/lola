@@ -5,16 +5,16 @@ namespace test\input\valid\step;
 use PHPUnit\Framework\TestCase;
 
 use lola\input\valid\ValidationException;
-use lola\input\valid\step\UintStep;
+use lola\input\valid\step\IsUint;
 
 
 
-final class UintStepTest
+final class UintTest
 extends TestCase
 {
 
 	private function _produceStep() {
-		return new UintStep();
+		return new IsUint();
 	}
 
 	private function _produceException(string $message, int $code) {
