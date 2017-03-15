@@ -2,14 +2,14 @@
 
 namespace lola\input\valid\step;
 
-use lola\input\valid\AValidationCatchingTransform;
+use lola\input\valid\AValidationRecoveryTransform;
 
 use lola\input\valid\IValidationException;
 
 
 
-final class NullableTransform
-extends AValidationCatchingTransform
+final class Nullable
+extends AValidationRecoveryTransform
 {
 
 	public function getId() : string {
@@ -20,10 +20,7 @@ extends AValidationCatchingTransform
 	protected function _validate($source) {
 		return $source;
 	}
-
-	protected function _transform($source, $result) {
-		return $result;
-	}
+	
 
 	protected function _recover(IValidationException $ex) {
 		return null;
