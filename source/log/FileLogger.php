@@ -313,9 +313,7 @@ implements IInjectable, ILogger
 		$tags = $this->_buildRequest($ctrl->useRequest());
 		$tags = array_merge($tags, $this->_buildReply($ctrl->useReply()));
 
-		return $this
-			->logTags($tags)
-			->logTags(self::_buildClient($ctrl->useRequest()->useClient()));
+		return $this->logTags($tags);
 	}
 
 
