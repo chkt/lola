@@ -4,16 +4,16 @@ namespace test\input\valid\step;
 
 use PHPUnit\Framework\TestCase;
 
-use lola\input\valid\step\NoopValidationStep;
+use lola\input\valid\step\Noop;
 
 
 
-final class NoopValidationStepTest
+final class NoopTest
 extends TestCase
 {
 
 	private function _produceStep() {
-		return new NoopValidationStep();
+		return new Noop();
 	}
 
 
