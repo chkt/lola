@@ -83,7 +83,7 @@ extends TestCase
 			->willReturn($this->_mockResource());
 
 		$resource
-			->expects($this->exactly(1))
+			->expects($this->any())
 			->method('getLength')
 			->with()
 			->willReturn(1);
@@ -101,6 +101,44 @@ extends TestCase
 	}
 
 
+	public function testHasItems() {
+		$injector = $this->_mockInjector();
+		$resource = $this->_mockResourceCollection();
+
+		$live = true;
+		$num = 3;
+
+		$resource
+			->expects($this->any())
+			->method('isLive')
+			->with()
+			->willReturnReference($live);
+
+		$resource
+			->expects($this->any())
+			->method('getLength')
+			->with()
+			->willReturnReference($num);
+
+		$collection = $this->_mockCollection($injector, $resource, 'foo');
+
+		$this->assertEquals(true, $collection->hasItems());
+
+		$num = 0;
+
+		$this->assertEquals(false, $collection->hasItems());
+
+		$live = false;
+		$resource
+			->expects($this->any())
+			->method('getLength')
+			->with()
+			->willThrowException(new \ErrorException());
+
+		$this->assertEquals(false, $collection->hasItems());
+	}
+
+
 	public function testGetLength() {
 		$injector = $this->_mockInjector();
 		$resource = $this->_mockResourceCollection();
@@ -114,6 +152,22 @@ extends TestCase
 		$collection = $this->_mockCollection($injector, $resource, 'foo');
 
 		$this->assertEquals(2, $collection->getLength());
+	}
+
+	public function testGetLength_error() {
+		$injector = $this->_mockInjector();
+		$resource = $this->_mockResourceCollection();
+
+		$resource
+			->expects($this->once())
+			->method('getLength')
+			->with()
+			->willThrowException(new \ErrorException());
+
+		$this->expectException(\ErrorException::class);
+
+		$collection = $this->_mockCollection($injector, $resource, 'foo');
+		$collection->getLength();
 	}
 
 
