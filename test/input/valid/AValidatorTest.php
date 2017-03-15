@@ -6,9 +6,8 @@ use PHPUnit\Framework\TestCase;
 
 use lola\input\valid\IValidationInterceptor;
 use lola\input\valid\ValidationException;
-use lola\input\valid\AValidationStep;
 use lola\input\valid\AValidationTransform;
-use lola\input\valid\AValidationCatchingTransform;
+use lola\input\valid\AValidationRecoveryTransform;
 use lola\input\valid\AValidator;
 
 
@@ -25,7 +24,7 @@ extends TestCase
 		};
 
 		$step = $this
-			->getMockBuilder(AValidationStep::class)
+			->getMockBuilder(AValidationTransform::class)
 			->getMockForAbstractClass();
 
 		$step
@@ -37,10 +36,11 @@ extends TestCase
 		return $step;
 	}
 
-	private function _mockTransform(AValidationStep $next, callable $test, callable $transform) {
+	private function _mockTransform(AValidationTransform $next, callable $test, callable $transform) {
 		$step = $this
 			->getMockBuilder(AValidationTransform::class)
 			->setConstructorArgs([ $next ])
+			->setMethods([ '_transform' ])
 			->getMockForAbstractClass();
 
 		$step
@@ -58,10 +58,11 @@ extends TestCase
 		return $step;
 	}
 
-	private function _mockCatchableTransform(AValidationStep $next, callable $test, callable $transform, callable $recover) {
+	private function _mockCatchableTransform(AValidationTransform $next, callable $test, callable $transform, callable $recover) {
 		$step = $this
-			->getMockBuilder(AValidationCatchingTransform::class)
+			->getMockBuilder(AValidationRecoveryTransform::class)
 			->setConstructorArgs([ $next ])
+			->setMethods([ '_transform' ])
 			->getMockForAbstractClass();
 
 		$step
@@ -94,10 +95,8 @@ extends TestCase
 		$interceptor
 			->expects($this->any())
 			->method('intercept')
-			->with($this->isInstanceOf(AValidationStep::class))
-			->willReturnCallback(function(AValidationStep $step) use ($fn) {
-				call_user_func($fn, $step);
-			});
+			->with($this->isType('string'), $this->isInstanceOf(AValidationTransform::class))
+			->willReturnCallback($fn);
 
 		return $interceptor;
 	}
@@ -311,51 +310,28 @@ extends TestCase
 		$this->assertFalse($validator->hasChain('baz'));
 	}
 
-	public function testIsChainValid() {
+	public function testUseChain() {
+		$step0 = $this->_produceChain('foo', 'baz');
+		$step1 = $this->_produceChain('bar', 'baz');
+
+		$validator = $this->_mockValidator([
+			'foo' => $step0,
+			'bar' => $step1
+		]);
+
+		$this->assertEquals($step0, $validator->useChain('foo'));
+		$this->assertEquals($step1, $validator->useChain('bar'));
+	}
+
+	public function testUseChain_error() {
 		$validator = $this->_mockValidator([
 			'foo' => $this->_produceChain('foo', 'baz'),
 			'bar' => $this->_produceChain('bar', 'baz')
 		]);
 
-		$this->assertFalse($validator->isChainValid('foo'));
-		$this->assertFalse($validator->isChainValid('bar'));
+		$this->expectException(\ErrorException::class);
 
-		$validator->validate([
-			'foo' => [ 'baz' => '1' ],
-			'bar' => [ 'baz' => 'bang' ]
-		]);
-
-		$this->assertTrue($validator->isChainValid('foo'));
-		$this->assertFalse($validator->isChainValid('bar'));
-	}
-
-	public function testGetChainResult() {
-		$validator = $this
-			->_mockValidator([
-				'foo' => $this->_produceChain('foo', 'baz'),
-				'bar' => $this->_produceChain('bar', 'baz')
-			])
-			->validate([
-				'foo' => [ 'baz' => '1' ],
-				'bar' => [ 'baz' => '2' ]
-			]);
-
-		$this->assertEquals(1, $validator->getChainResult('foo'));
-		$this->assertEquals(2, $validator->getChainResult('bar'));
-	}
-
-	public function testGetChainFailure() {
-		$validator = $this
-			->_mockValidator([
-				'foo' => $this->_produceChain('foo', 'baz'),
-				'bar' => $this->_produceChain('bar', 'baz')
-			])
-			->validate([
-				'foo' => [ 'baz' => 'bang' ],
-				'bar' => [ 'baz' => '2' ]
-			]);
-
-		$this->assertEquals($this->_produceException('MALFORMED', 3), $validator->getChainFailure('foo'));
+		$validator->useChain('baz');
 	}
 
 
@@ -369,7 +345,7 @@ extends TestCase
 		$this->assertEquals('oof', $validator->getResult());
 	}
 
-	public function testValidateChain() {
+	public function testValidate_chain() {
 		$validator = $this->_mockValidator([
 			$this->_produceChain('foo', 'baz'),
 			$this->_produceChain('bar', 'baz')
@@ -386,33 +362,6 @@ extends TestCase
 		], $validator->getResult());
 	}
 
-	public function testValidateCatchable() {
-		$step2 = $this->_mockStep(function($value) {
-			throw new ValidationException('ouch', 1);
-		});
-
-		$step1 = $this->_mockTransform($step2, function($value) {
-			return 'bar';
-		}, function($source, $result) {
-			return $result;
-		});
-
-		$step0 = $this->_mockCatchableTransform($step1, function($value) {
-			return $value;
-		}, function($source, $result) {
-			return $result;
-		}, function(ValidationException $ex) {
-			return 'bang';
-		});
-
-		$validator = $this->_mockValidator([ $step0 ]);
-
-		$validator->validate('foo');
-
-		$this->assertTrue($validator->isValid());
-		$this->assertEquals('bang', $validator->getResult());
-	}
-
 	public function testValidateInterceptor() {
 		$count = 0;
 
@@ -424,11 +373,17 @@ extends TestCase
 			return $value;
 		});
 
-		$interceptor = $this->_mockInterceptor(function(AValidationStep $step) use ($step0, $step1, & $count) {
-			$this->assertEquals(++$count % 2 === 1 ? $step0 : $step1, $step);
+		$interceptor = $this->_mockInterceptor(function (string $chain, AValidationTransform $step) use ($step0, $step1, & $count) {
+			$odd = ++$count % 2 === 1;
+
+			$this->assertEquals($odd ? 'foo' : 'bar', $chain);
+			$this->assertEquals($odd ? $step0 : $step1, $step);
 		});
 
-		$validator = $this->_mockValidator([ $step0, $step1 ], $interceptor);
+		$validator = $this->_mockValidator([
+			'foo' =>$step0,
+			'bar' => $step1
+		], $interceptor);
 
 		$validator
 			->validate('foo')
@@ -463,7 +418,7 @@ extends TestCase
 		$this->assertEquals($validator, $validator->assert());
 	}
 
-	public function testAssertThrow() {
+	public function testAssert_error() {
 		$validator = $this
 			->_mockValidator([
 				$this->_produceChain('foo', 'baz'),
