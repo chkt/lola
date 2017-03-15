@@ -2,6 +2,8 @@
 
 namespace lola\input\valid;
 
+use lola\input\valid\IValidationException;
+
 
 
 interface IValidationTransform
