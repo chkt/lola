@@ -23,9 +23,8 @@ implements ICollection, IProjectable
 	private $_resource;
 
 	private $_itemModel;
-	
+
 	private $_items;
-	private $_length;
 
 
 	public function __construct(
@@ -41,7 +40,6 @@ implements ICollection, IProjectable
 		$this->_itemModel = $itemModel;
 
 		$this->_items = [];
-		$this->_length = $resource->getLength();
 	}
 
 
@@ -70,9 +68,13 @@ implements ICollection, IProjectable
 		return $this->_resource->isLive();
 	}
 
+	public function hasItems() : bool {
+		return $this->isLive() && $this->getLength() !== 0;
+	}
+
 
 	public function getLength() : int {
-		return $this->_length;
+		return $this->_resource->getLength();
 	}
 
 
