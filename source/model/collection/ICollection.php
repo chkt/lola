@@ -12,6 +12,8 @@ interface ICollection
 
 	public function isLive() : bool;
 
+	public function hasItems() : bool;
+	
 
 	public function hasItem(IResourceQuery $query) : bool;
 
