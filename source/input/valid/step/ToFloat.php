@@ -8,10 +8,9 @@ use lola\input\valid\ValidationException;
 
 
 
-final class FloatTransform
+final class ToFloat
 extends AValidationTransform
 {
-
 
 	public function getId() : string {
 		return 'float';
@@ -22,9 +21,5 @@ extends AValidationTransform
 		if (is_array($source) || is_object($source)) throw new ValidationException($this->getId() . 'nonScalar', 1);
 
 		return (float) $source;
-	}
-
-	protected function _transform($source, $result) {
-		return $result;
 	}
 }
