@@ -2,12 +2,12 @@
 
 namespace lola\input\valid\step;
 
-use lola\input\valid\AValidationStep;
+use lola\input\valid\AValidationTransform;
 
 
 
-final class NoopValidationStep
-extends AValidationStep
+final class Noop
+extends AValidationTransform
 {
 
 	public function getId() : string {
