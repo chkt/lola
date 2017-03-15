@@ -2,21 +2,22 @@
 
 namespace lola\input\valid\step;
 
-use lola\input\valid\AValidationStep;
+use lola\input\valid\AValidationTransform;
+use lola\input\valid\IValidationTransform;
 
 use lola\input\valid\ValidationException;
 
 
 
-final class ConstraintStep
-extends AValidationStep
+final class Constraint
+extends AValidationTransform
 {
 
 	private $_constraint;
 
 
-	public function __construct(array $constraint) {
-		parent::__construct();
+	public function __construct(array $constraint, IValidationTransform $next = null) {
+		parent::__construct($next);
 
 		$this->_constraint = $constraint;
 	}
