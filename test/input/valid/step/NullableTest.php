@@ -4,7 +4,6 @@ namespace test\input\valid\step;
 
 use PHPUnit\Framework\TestCase;
 
-use lola\input\valid\ValidationException;
 use lola\input\valid\step\Nullable;
 use lola\input\valid\step\IsStringNonEmpty;
 
@@ -18,10 +17,6 @@ extends TestCase
 		$next = new IsStringNonEmpty();
 
 		return new Nullable($next);
-	}
-
-	private function _produceException(string $message = '', int $code = 0) {
-		return new ValidationException($message, $code);
 	}
 
 
