@@ -5,16 +5,16 @@ namespace test\input\valid\step;
 use PHPUnit\Framework\TestCase;
 
 use lola\input\valid\ValidationException;
-use lola\input\valid\step\StringEqualsStep;
+use lola\input\valid\step\IsStringEqual;
 
 
 
-final class StringEqualsStepTest
+final class IsStringEqualTest
 extends TestCase
 {
 
-	private function _produceStep(string $value = 'foo') : StringEqualsStep {
-		return new StringEqualsStep($value);
+	private function _produceStep(string $value = 'foo') : IsStringEqual {
+		return new IsStringEqual($value);
 	}
 
 	private function _produceException(string $message = '', int $code = 0) {
