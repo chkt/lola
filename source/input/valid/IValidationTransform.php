@@ -21,6 +21,8 @@ interface IValidationTransform
 
 	public function& useNextStep() : IValidationTransform;
 
+	public function& useTerminalStep() : IValidationTransform;
+
 
 	public function getSource();
 
