@@ -4,7 +4,7 @@ namespace test\input\form;
 
 use PHPUnit\Framework\TestCase;
 
-use lola\input\valid\AValidationStep;
+use lola\input\valid\AValidationTransform;
 use lola\input\form\Field;
 use lola\input\form\ValidationInterceptor;
 
@@ -14,9 +14,9 @@ final class ValidationInterceptorTest
 extends TestCase
 {
 
-	public function _mockValidationStep($id) {
+	public function _mockValidationStep($id) : AValidationTransform {
 		$step = $this
-			->getMockBuilder(AValidationStep::class)
+			->getMockBuilder(AValidationTransform::class)
 			->getMockForAbstractClass();
 
 		$step
@@ -36,7 +36,7 @@ extends TestCase
 		return $step;
 	}
 
-	private function _produceField($name) {
+	private function _produceField($name) : Field {
 		return new Field($name);
 	}
 
@@ -56,13 +56,13 @@ extends TestCase
 
 		$interceptor = new ValidationInterceptor($map);
 
-		$this->assertEquals($interceptor, $interceptor->intercept($step0));
+		$this->assertEquals($interceptor, $interceptor->intercept('foo', $step0));
 		$this->assertEquals($step0, $field0->useValidation());
 
-		$this->assertEquals($interceptor, $interceptor->intercept($step1));
+		$this->assertEquals($interceptor, $interceptor->intercept('bar', $step1));
 		$this->assertEquals($step1, $field1->useValidation());
 
-		$this->assertEquals($interceptor, $interceptor->intercept($step2));
+		$this->assertEquals($interceptor, $interceptor->intercept('baz', $step2));
 		$this->assertEquals($step2, $field0->useValidation());
 	}
 }
