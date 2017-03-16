@@ -27,6 +27,13 @@ implements IValidationRecoveryTransform
 	}
 
 
+	public function& useTerminalStep() : IValidationTransform {
+		if ($this->wasRecovered()) return $this;
+
+		return parent::useTerminalStep();
+	}
+
+
 	abstract protected function _recover(IValidationException $exception);
 
 
