@@ -64,6 +64,16 @@ implements IValidationTransform
 		return $this->_nextStep;
 	}
 
+	public function& useTerminalStep() : IValidationTransform {
+		if (!$this->hasNextStep()) return $this;
+
+		$next =& $this->useNextStep();
+
+		if (!$next->wasValidated()) return $this;
+		else if (!$next->isValid()) return $next;
+		else return $next->useTerminalStep();
+	}
+
 
 	abstract protected function _validate($source);
 
