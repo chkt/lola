@@ -5,13 +5,10 @@ namespace test\input\form;
 use PHPUnit\Framework\TestCase;
 
 use lola\input\valid\IValidationInterceptor;
-use lola\input\valid\ValidationException;
-use lola\input\valid\AValidationStep;
 use lola\input\valid\AValidator;
-use lola\input\valid\step\NoopValidationStep;
-use lola\input\valid\step\ArrayPropTransform;
-use lola\input\valid\step\StringNonEmptyStep;
-use lola\input\valid\step\ConstraintStep;
+use lola\input\valid\step\ArrayPropSelect;
+use lola\input\valid\step\IsStringNonEmpty;
+use lola\input\valid\step\Constraint;
 use lola\input\form\Field;
 use lola\input\form\ValidationInterceptor;
 use lola\input\form\Processor;
@@ -38,8 +35,8 @@ extends TestCase
 		$field1 = new Field('bar', [ '1' ]);
 		$field2 = new Field('baz', [], Field::FLAG_SUBMIT);
 
-		$step0 = new ArrayPropTransform('foo', new ConstraintStep(['bang', 'quux', 'barf']));
-		$step1 = new ArrayPropTransform('bar', new StringNonEmptyStep());
+		$step0 = new ArrayPropSelect('foo', new Constraint(['bang', 'quux', 'barf']));
+		$step1 = new ArrayPropSelect('bar', new IsStringNonEmpty());
 
 		$interceptor = $this->_produceInterceptor([
 			'arrayProp.foo' => & $field0,
