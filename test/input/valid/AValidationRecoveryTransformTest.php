@@ -125,4 +125,18 @@ extends TestCase
 		$this->assertTrue($step0->wasRecovered());
 		$this->assertEquals('bang', $step0->getResult());
 	}
+
+	public function testUseTerminalStep() {
+		$step0 = $this->_produceTestChain();
+		$step1 = $step0->useNextStep();
+		$step2 = $step1->useNextStep();
+
+		$this->assertEquals($step0, $step0->useTerminalStep());
+
+		$step0->validate(['foo' => '1']);
+		$this->assertEquals($step2, $step0->useTerminalStep());
+
+		$step0->validate('foo');
+		$this->assertEquals($step0, $step0->useTerminalStep());
+	}
 }
