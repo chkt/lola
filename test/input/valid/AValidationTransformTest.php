@@ -167,6 +167,22 @@ extends TestCase
 		$step0->useNextStep();
 	}
 
+	public function testUseTerminalStep() {
+		$step0 = $this->_produceTestChain();
+		$step1 = $step0->useNextStep();
+
+		$this->assertEquals($step0, $step0->useTerminalStep());
+
+		$step0->validate('foo');
+		$this->assertEquals($step0, $step0->useTerminalStep());
+
+		$step0->validate(['foo' => 1]);
+		$this->assertEquals($step1, $step0->useTerminalStep());
+
+		$step0->validate(['foo' => '1']);
+		$this->assertEquals($step1, $step0->useTerminalStep());
+	}
+
 
 	public function testGetSource() {
 		$step0 = $this->_produceTestChain();
