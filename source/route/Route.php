@@ -11,13 +11,13 @@ use lola\type\Stack;
 
 
 class Route implements IInjectable {
-	
+
 	/**
 	 * The version string
 	 */
 	const VERSION = '0.1.0';
-	
-	
+
+
 	/**
 	 * Gets the dependency configuration
 	 * @param array $config The config seed
@@ -31,16 +31,16 @@ class Route implements IInjectable {
 			'data' => $config
 		]];
 	}
-	
-	
-	
-	
+
+
+
+
 	/**
 	 * The locator reference
 	 * @var ProviderProvider
 	 */
 	private $_locator = null;
-	
+
 	/**
 	 * The route parameters
 	 * @var array
@@ -48,10 +48,10 @@ class Route implements IInjectable {
 	private $_param  = null;
 	/**
 	 * The route identity data
-	 * @var array 
+	 * @var array
 	 */
 	private $_data   = null;
-	
+
 	/**
 	 * The route controller name
 	 * @var string
@@ -67,13 +67,13 @@ class Route implements IInjectable {
 	 * @var string
 	 */
 	private $_viewName   = '';
-	
+
 	/**
 	 * The route environment data
 	 * @var array
 	 */
 	private $_vars   = null;
-	
+
 	/**
 	 * The route model data
 	 * @var Collection|null
@@ -84,8 +84,8 @@ class Route implements IInjectable {
 	 * @var Stack|null
 	 */
 	private $_result = null;
-	
-	
+
+
 	/**
 	 * Creates a new instance
 	 * @param ProviderProvider $locator
@@ -95,25 +95,25 @@ class Route implements IInjectable {
 		$ctrl = array_key_exists('ctrl', $config) ? $config['ctrl'] : '';
 		$action = array_key_exists('action', $config) ? $config['action'] : '';
 		$view = array_key_exists('view', $config) ? $config['view'] : '';
-		
+
 		if (!is_string($ctrl) || !is_string($action) || !is_string($view)) throw new \ErrorException();
-		
+
 		$this->_locator =& $locator;
-		
+
 		$this->_param = new Collection(array_key_exists('params', $config) ? $config['params'] : []);
 		$this->_data = new Collection(array_key_exists('data', $config) ? $config['data'] : []);
-		
+
 		$this->_ctrlName = $ctrl;
 		$this->_actionName = $action;
 		$this->_viewName = $view;
-				
+
 		$this->_vars = new Collection();
-		
+
 		$this->_models = null;
 		$this->_result = null;
 	}
-	
-	
+
+
 	/**
 	 * Sets a route parameter
 	 * @param string $name  The parameter name
@@ -122,10 +122,10 @@ class Route implements IInjectable {
 	 */
 	public function setParam($name, $value) {
 		$this->_param->setItem($name, $value);
-		
+
 		return $this;
 	}
-	
+
 	/**
 	 * Sets multiple route parameters
 	 * @param array $params The parameters dictionary
@@ -133,7 +133,7 @@ class Route implements IInjectable {
 	 */
 	public function setParams(Array $params) {
 		$this->_param->getItems($params);
-		
+
 		return $this;
 	}
 
@@ -142,10 +142,10 @@ class Route implements IInjectable {
 	 * @param string $name
 	 * @return bool
 	 */
-	public function hasParam($name) {		
+	public function hasParam($name) {
 		return $this->_param->hasItem($name);
 	}
-	
+
 	/**
 	 * Gets a route parameter
 	 * @param string $name The parameter name
@@ -154,7 +154,7 @@ class Route implements IInjectable {
 	public function getParam($name) {
 		return $this->_param->getItem($name);
 	}
-	
+
 	/**
 	 * Gets multiple route parameters
 	 * @param array $names (optional) The parameter names
@@ -163,7 +163,7 @@ class Route implements IInjectable {
 	public function getParams(Array $names = null) {
 		return $this->_param->getItems($names);
 	}
-	
+
 	/**
 	 * Gets a reference to the route params
 	 * @return array
@@ -171,8 +171,8 @@ class Route implements IInjectable {
 	public function& useParams() {
 		return $this->_param->useItems();
 	}
-	
-	
+
+
 	/**
 	 * Sets a route identity datum
 	 * @param string $name  The data name
@@ -181,10 +181,10 @@ class Route implements IInjectable {
 	 */
 	public function setRouteDatum($name, $value) {
 		$this->_data->setItem($name, $value);
-		
+
 		return $this;
 	}
-	
+
 	/**
 	 * Sets route identity data
 	 * @param array $data The route identity data
@@ -192,10 +192,10 @@ class Route implements IInjectable {
 	 */
 	public function setRouteData(Array $data) {
 		$this->_data->setItems($data);
-	
+
 		return $this;
 	}
-	
+
 	/**
 	 * Returns true if route identity datum $name exists, false otherwise
 	 * @param string $name
@@ -204,7 +204,7 @@ class Route implements IInjectable {
 	public function hasRouteDatum($name) {
 		return $this->_data->hasItem($name);
 	}
-	
+
 	/**
 	 * Gets a route identity datum
 	 * @param string $name The data name
@@ -213,7 +213,7 @@ class Route implements IInjectable {
 	public function getRouteDatum($name) {
 		return $this->_data->getItem($name);
 	}
-	
+
 	/**
 	 * Gets multiple route identity data
 	 * @param array $names The data names
@@ -222,7 +222,7 @@ class Route implements IInjectable {
 	public function getRouteData(Array $names = null) {
 		return $this->_data->getItems($names);
 	}
-	
+
 	/**
 	 * Gets a reference to the route identity data array
 	 * @return array
@@ -230,8 +230,8 @@ class Route implements IInjectable {
 	public function &useRouteData() {
 		return $this->_data->useItems();
 	}
-	
-	
+
+
 	/**
 	 * Sets the controller name
 	 * @param string $name
@@ -239,13 +239,13 @@ class Route implements IInjectable {
 	 * @throws \ErrorException if $name is not a nonempty string
 	 */
 	public function setCtrl($name) {
-		if (!is_string($name) || empty($name) || !is_null($this->_ctrl)) throw new \ErrorException();
-		
+		if (!is_string($name) || empty($name)) throw new \ErrorException();
+
 		$this->_ctrlName = $name;
-		
+
 		return $this;
 	}
-	
+
 	/**
 	 * Gets the controller name
 	 * @return string
@@ -253,8 +253,8 @@ class Route implements IInjectable {
 	public function getCtrl() {
 		return $this->_ctrlName;
 	}
-	
-	
+
+
 	/**
 	 * Sets the route controller action
 	 * @param string $action The controller action
@@ -263,12 +263,12 @@ class Route implements IInjectable {
 	 */
 	public function setAction($action) {
 		if (!is_string($action) || empty($action)) throw new \ErrorException();
-		
+
 		$this->_actionName = $action;
-		
+
 		return $this;
 	}
-	
+
 	/**
 	 * Gets the route controller action name
 	 * @return string
@@ -276,8 +276,8 @@ class Route implements IInjectable {
 	public function getAction() {
 		return $this->_actionName;
 	}
-	
-	
+
+
 	/**
 	 * Sets the route view
 	 * @param string $view The view name
@@ -286,12 +286,12 @@ class Route implements IInjectable {
 	 */
 	public function setView($view) {
 		if (!is_string($view)) throw new \ErrorException();
-		
+
 		$this->_viewName = $view;
-		
+
 		return $this;
 	}
-	
+
 	/**
 	 * Gets the route view
 	 * @return string
@@ -299,8 +299,8 @@ class Route implements IInjectable {
 	public function getView() {
 		return $this->_viewName;
 	}
-	
-	
+
+
 	/**
 	 * Sets an environment variable
 	 * @param string $name The var name
@@ -309,10 +309,10 @@ class Route implements IInjectable {
 	 */
 	public function setVar($name, $value) {
 		$this->_vars->setItem($name, $value);
-		
+
 		return $this;
 	}
-	
+
 	/**
 	 * Sets multiple environment variables
 	 * @param array $vars The vars
@@ -320,10 +320,10 @@ class Route implements IInjectable {
 	 */
 	public function setVars(Array $vars) {
 		$this->_vars->setItems($vars);
-		
+
 		return $this;
 	}
-	
+
 	/**
 	 * Gets an environment variable
 	 * @param string $name The var name
@@ -332,7 +332,7 @@ class Route implements IInjectable {
 	public function getVar($name) {
 		return $this->_vars->getItem($name);
 	}
-	
+
 	/**
 	 * Gets multiple environment variables
 	 * @param array $names The var names
@@ -341,15 +341,15 @@ class Route implements IInjectable {
 	public function getVars(Array $names = null) {
 		return $this->_vars->getItems($names);
 	}
-	
-	/**	
+
+	/**
 	 * Gets a reference to the environment variable array
 	 * @return array
 	 */
 	public function &useVars() {
 		return $this->_vars->useItems();
 	}
-	
+
 
 	/**
 	 * Returns a reference to the collected models of the route
@@ -357,33 +357,31 @@ class Route implements IInjectable {
 	 */
 	public function& useActionData() {
 		if (is_null($this->_models)) $this->_models = new Collection();
-		
+
 		return $this->_models;
 	}
-	
-	
+
+
 	/**
 	 * Returns a reference to the stacked action results of the route
 	 * @return Stack
 	 */
 	public function& useActionResult() {
 		if (is_null($this->_result)) $this->_result = new Stack();
-		
+
 		return $this->_result;
 	}
-	
-	
+
+
 	/**
 	 * Executes the route
 	 * @return mixed
 	 */
 	public function enter(Callable $fn = null) {
-		$ctrl = $this->_locator
-			->using('controller')
-			->using($this->_ctrlName);
-		
-		if (!is_null($fn)) call_user_func($fn, $ctrl);
-		
+		$ctrl = $this->_locator->locate('controller', $this->_ctrlName);
+
+		if (!is_null($fn)) call_user_func_array($fn, [& $ctrl ]);
+
 		$ctrl->enter($this);
 	}
 }
