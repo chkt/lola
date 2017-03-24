@@ -16,7 +16,7 @@ extends AValidationTransform
 	private $_index;
 
 
-	public function __construct(IValidationTransform& $next) {
+	public function __construct(IValidationTransform $next) {
 		parent::__construct($next);
 
 		$this->_index = -1;
