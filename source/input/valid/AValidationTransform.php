@@ -83,36 +83,29 @@ implements IValidationTransform
 
 
 	protected function _validateNextStep(IValidationTransform& $next, $source) {
-		$result = $this->getSource();
+		if (!$next->validate($source)->isValid()) throw $next->getError();
 
-		$next->validate($source);
-
-		if ($next->isValid()) $result = $this->_transform($this->getSource(), $next->getResult());
-		else $this->_error = $next->getError();
-
-		return $result;
+		return $this->_transform($this->getSource(), $next->getResult());
 	}
 
 
 	public function validate($source) : IValidationTransform {
-		$this->_validated = false;
+		$this->_validated = true;
 		$this->_source = $source;
 		$this->_result = $source;
 		$this->_error = null;
 
 		try {
 			$result = $this->_validate($source);
+
+			if ($this->hasNextStep()) $result = $this->_validateNextStep($this->useNextStep(), $result);
 		}
 		catch (IValidationException $ex) {
-			$this->_validated = true;
 			$this->_error = $ex;
 
 			return $this;
 		}
 
-		if ($this->hasNextStep()) $result = $this->_validateNextStep($this->useNextStep(), $result);
-
-		$this->_validated = true;
 		$this->_result = $result;
 
 		return $this;
