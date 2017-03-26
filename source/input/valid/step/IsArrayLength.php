@@ -9,7 +9,7 @@ use lola\input\valid\ValidationException;
 
 
 
-final class ArrayLength
+final class IsArrayLength
 extends AValidationTransform
 {
 

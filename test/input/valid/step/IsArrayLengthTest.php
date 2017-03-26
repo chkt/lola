@@ -6,16 +6,16 @@ use PHPUnit\Framework\TestCase;
 
 use lola\input\valid\AValidationTransform;
 use lola\input\valid\ValidationException;
-use lola\input\valid\step\ArrayLength;
+use lola\input\valid\step\IsArrayLength;
 
 
 
-final class ArrayLengthTest
+final class IsArrayLengthTest
 extends TestCase
 {
 
 	private function _produceTransform(int $length, AValidationTransform $next = null) {
-		return new ArrayLength($length, $next);
+		return new IsArrayLength($length, $next);
 	}
 
 	private function _produceException(string $message = '', int $code = 0) {
