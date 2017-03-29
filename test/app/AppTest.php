@@ -6,7 +6,7 @@ use PHPUnit\Framework\TestCase;
 
 use lola\app\App;
 
-use lola\inject\Injector;
+use lola\inject\IInjector;
 use lola\prov\ProviderProvider;
 
 
@@ -33,7 +33,7 @@ extends TestCase
 
 		$injector = $app->useInjector();
 
-		$this->assertInstanceOf(Injector::class, $injector);
+		$this->assertInstanceOf(IInjector::class, $injector);
 		$this->assertEquals($injector, $app->useInjector());
 	}
 
