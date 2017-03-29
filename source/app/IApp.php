@@ -2,7 +2,7 @@
 
 namespace lola\app;
 
-use lola\inject\Injector;
+use lola\inject\IInjector;
 use lola\prov\ProviderProvider;
 
 
@@ -14,7 +14,7 @@ interface IApp {
 
 
 
-	public function& useInjector() : Injector;
+	public function& useInjector() : IInjector;
 
 	public function& useLocator() : ProviderProvider;
 
