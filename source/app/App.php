@@ -5,6 +5,7 @@ namespace lola\app;
 use \lola\app\TAppBase;
 use \lola\app\TAppFile;
 
+use lola\inject\IInjector;
 use lola\inject\Injector;
 use lola\prov\ProviderProvider;
 
@@ -41,7 +42,7 @@ implements IApp
 	 * Return a reference to the injector associated with the instance
 	 * @returns Injector
 	 */
-	public function& useInjector() : Injector {
+	public function& useInjector() : IInjector {
 		if (is_null($this->_injector)) $this->_injector = new Injector($this->useLocator(), [
 			'app' => & $this
 		]);
