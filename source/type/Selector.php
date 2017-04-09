@@ -175,7 +175,7 @@ extends ASizedIterateable
 	}
 
 
-	public function getLength() {
+	public function getLength() : int {
 		return $this->_length;
 	}
 
