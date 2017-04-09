@@ -2,6 +2,7 @@
 
 namespace lola\model\collection;
 
+use lola\type\query\IDataQuery;
 use lola\model\IResource;
 use lola\model\IResourceQuery;
 
@@ -22,7 +23,7 @@ interface IResourceCollection {
 
 	public function getLength() : int;
 
-	public function getIndexOf(IResourceQuery $query) : int;
+	public function getIndexOf(IDataQuery $query) : int;
 
 
 	public function read(IResourceQuery $query, int $limit, int $offset = 0) : IResourceCollection;
