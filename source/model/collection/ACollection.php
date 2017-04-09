@@ -8,9 +8,9 @@ use lola\inject\IInjector;
 use lola\model\collection\ICollection;
 use lola\model\collection\IResourceCollection;
 
+use lola\type\query\IDataQuery;
 use lola\model\IModel;
 use lola\model\AResourceDependencyFactory;
-use lola\model\IResourceQuery;
 
 
 
@@ -78,11 +78,11 @@ implements ICollection, IProjectable
 	}
 
 
-	public function hasItem(IResourceQuery $query) : bool {
+	public function hasItem(IDataQuery $query) : bool {
 		return $this->_resource->getIndexOf($query) !== -1;
 	}
 
-	public function& useItem(IResourceQuery $query) : IModel {
+	public function& useItem(IDataQuery $query) : IModel {
 		$index = $this->_resource->getIndexOf($query);
 		$null = null;
 
