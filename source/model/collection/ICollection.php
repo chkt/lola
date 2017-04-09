@@ -3,7 +3,7 @@
 namespace lola\model\collection;
 
 use lola\model\IModel;
-use lola\model\IResourceQuery;
+use lola\type\query\IDataQuery;
 
 
 
@@ -13,11 +13,11 @@ interface ICollection
 	public function isLive() : bool;
 
 	public function hasItems() : bool;
-	
 
-	public function hasItem(IResourceQuery $query) : bool;
 
-	public function& useItem(IResourceQuery $query) : IModel;
+	public function hasItem(IDataQuery $query) : bool;
+
+	public function& useItem(IDataQuery $query) : IModel;
 
 
 	public function update() : ICollection;
