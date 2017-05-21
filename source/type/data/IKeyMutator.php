@@ -9,5 +9,5 @@ interface IKeyMutator
 
 	public function hasKey(string $key) : bool;
 
-	public function removeKey(string $key) : IDataAccessor;
+	public function removeKey(string $key) : IKeyMutator;
 }
