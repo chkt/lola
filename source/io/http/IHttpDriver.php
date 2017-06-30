@@ -19,6 +19,8 @@ extends IRequestReplyDriver
 
 	public function& useRequestPayload() : IMimePayload;
 
+	public function& useReplyPayload() : IMimePayload;
+
 	public function& useCookies() : IHttpCookies;
 
 

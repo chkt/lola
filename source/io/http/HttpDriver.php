@@ -2,7 +2,6 @@
 
 namespace lola\io\http;
 
-use lola\io\http\IHttpDriver;
 use lola\inject\IInjectable;
 
 use lola\type\IStateTransform;
@@ -10,15 +9,8 @@ use lola\io\IRequest;
 use lola\io\IReply;
 use lola\io\IClient;
 use lola\io\mime\IMimePayload;
-use lola\io\http\IHttpCookies;
-use lola\io\http\IHttpRequestResource;
-use lola\io\http\IHttpConfig;
 
 use lola\io\mime\MimePayload;
-use lola\io\http\HttpRequest;
-use lola\io\http\HttpClient;
-use lola\io\http\HttpReply;
-use lola\io\http\HttpCookies;
 
 
 
@@ -36,6 +28,7 @@ implements IHttpDriver, IInjectable
 	private $_requestPayload;
 	private $_client;
 	private $_reply;
+	private $_replyPayload;
 	private $_cookies;
 
 	private $_config;
@@ -80,6 +73,12 @@ implements IHttpDriver, IInjectable
 		if (is_null($this->_reply)) $this->_reply = new HttpReply($this);
 
 		return $this->_reply;
+	}
+
+	public function& useReplyPayload() : IMimePayload {
+		if (is_null($this->_replyPayload)) $this->_replyPayload = new MimePayload($this->useReply(), $this->useConfig());
+
+		return $this->_replyPayload;
 	}
 
 	public function& useCookies() : IHttpCookies {
