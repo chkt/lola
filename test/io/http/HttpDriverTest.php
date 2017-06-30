@@ -1,9 +1,12 @@
 <?php
 
+namespace test\io\http;
+
 use PHPUnit\Framework\TestCase;
 
 use lola\inject\IInjectable;
 use lola\io\http\HttpDriver;
+use lola\io\mime\IMimePayload;
 
 
 
@@ -17,6 +20,12 @@ extends TestCase
 		$this->assertEquals([], HttpDriver::getDependencyConfig([]));
 		$this->assertInstanceOf(IInjectable::class, $driver);
 	}
+
+
+	private function _produceDriver() {
+		return new HttpDriver();
+	}
+
 
 	public function testUseRequest() {
 		$driver = new HttpDriver();
@@ -40,6 +49,23 @@ extends TestCase
 		$driver = new HttpDriver();
 
 		$this->assertInstanceOf('\lola\io\http\HttpReply', $driver->useReply());
+	}
+
+	public function testUseReplyPayload() {
+		$driver = $this->_produceDriver();
+		$reply =& $driver->useReply();
+		$payload =& $driver->useReplyPayload();
+
+		$this->assertInstanceOf(IMimePayload::class, $payload);
+
+		$reply
+			->setMime('application/json')
+			->setEncoding('utf-8')
+			->setBody('{"foo":"bar"}');
+
+		$this->assertEquals([
+			'foo' => 'bar'
+		], $payload->get());
 	}
 
 	public function testUseCookies() {
