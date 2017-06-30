@@ -1,12 +1,11 @@
 <?php
 
-require_once 'MockDriver.php';
+namespace test\io\http;
 
 use PHPUnit\Framework\TestCase;
 
 use lola\io\http\IHttpConfig;
 use lola\io\http\HttpReply;
-use test\io\http\MockDriver;
 
 
 
@@ -26,6 +25,17 @@ extends TestCase
 			->addRule(IHttpConfig::RULE_ENCODING, 'iso-8859-1');
 	}
 
+
+	private function _produceReply() {
+		return new HttpReply($this->_driver);
+	}
+
+
+	public function testUsePayload() {
+		$reply = $this->_produceReply();
+
+		$this->assertEquals($this->_driver->useReplyPayload(), $reply->usePayload());
+	}
 
 	public function testUseRequest() {
 		$reply = new HttpReply($this->_driver);
