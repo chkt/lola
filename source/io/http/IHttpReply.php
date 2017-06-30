@@ -5,12 +5,15 @@ namespace lola\io\http;
 use lola\io\IReply;
 use lola\io\mime\IMimeContainer;
 
-use lola\io\http\IHttpCookies;
+use lola\io\mime\IMimePayload;
+
 
 
 interface IHttpReply
 extends IReply, IMimeContainer
 {
+
+	public function& usePayload() : IMimePayload;
 
 	public function& useCookies() : IHttpCookies;
 

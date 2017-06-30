@@ -2,14 +2,10 @@
 
 namespace lola\io\http;
 
-use lola\io\http\IHttpReply;
-
 use lola\io\IRequest;
 use lola\io\mime\IMimeConfig;
 use lola\io\mime\IMimeContainer;
-use lola\io\http\IHttpDriver;
-use lola\io\http\IHttpCookies;
-use lola\io\http\IHttpConfig;
+use lola\io\mime\IMimePayload;
 
 
 
@@ -46,6 +42,10 @@ implements IHttpReply
 		$this->_body = '';
 	}
 
+
+	public function& usePayload() : IMimePayload {
+		return $this->_driver->useReplyPayload();
+	}
 
 	public function& useRequest() : IRequest {
 		return $this->_driver->useRequest();
