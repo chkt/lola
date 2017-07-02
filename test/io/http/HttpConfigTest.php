@@ -22,6 +22,8 @@ extends TestCase
 			'bar' => 'x',
 			'baz' => 'y'
 		]), 'foo;bar=x;baz=y');
+
+		$this->assertEquals('foo', HttpConfig::buildHeader('foo', []));
 	}
 
 	public function testInjectHeader() {
