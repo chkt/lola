@@ -1,35 +1,73 @@
 <?php
 
-require_once('MockRequestResource.php');
+namespace test\io\http;
 
 use PHPUnit\Framework\TestCase;
 
+use lola\io\connect\IConnection;
+use lola\io\connect\Connection;
+use lola\io\http\IHttpMessage;
+use lola\io\http\IHttpDriver;
 use lola\io\http\HttpClient;
-use lola\io\http\HttpDriver;
-use test\io\http\MockRequestResource;
+use lola\io\http\HttpMessage;
 
 
 
-class HttpClientTest
+final class HttpClientTest
 extends TestCase
 {
 
-	private $_driver;
+	private function _produceConnection(array $data = null) : IConnection {
+		if (is_null($data)) $data = [
+			'client' => [
+				'ip' => '127.0.0.1'
+			]
+		];
 
+		return new Connection($data);
+	}
 
-	public function __construct() {
-		parent::__construct();
+	private function _produceMessage(array $headers = null) : IHttpMessage {
+		if (is_null($headers)) $headers = [
+			IHttpMessage::HEADER_DATE => ['Thu, 01 Jan 1970 08:37:42 GMT'],
+			IHttpMessage::HEADER_USER_AGENT => ['Mozilla/5.0']
+		];
 
-		$request = new MockRequestResource();
-		$driver = new HttpDriver();
-		$driver->setRequestResource($request);
+		return new HttpMessage('', $headers);
+	}
 
-		$this->_driver = $driver;
+	private function _mockDriver(IConnection $connection = null, IHttpMessage $message = null) : IHttpDriver {
+		if (is_null($connection)) $connection = $this->_produceConnection();
+		if (is_null($message)) $message = $this->_produceMessage();
+
+		$driver = $this
+			->getMockBuilder(IHttpDriver::class)
+			->getMock();
+
+		$driver
+			->expects($this->any())
+			->method('useConnection')
+			->with()
+			->willReturnReference($connection);
+
+		$driver
+			->expects($this->any())
+			->method('useRequestMessage')
+			->with()
+			->willReturnReference($message);
+
+		return $driver;
+	}
+
+	private function _produceClient(IHttpDriver $driver = null) {
+		if (is_null($driver)) $driver = $this->_mockDriver();
+
+		return new HttpClient($driver);
 	}
 
 
 	public function testIsIP4() {
-		$client = new HttpClient($this->_driver);
+		$client = $this->_produceClient();
 
 		$this->assertTrue($client->isIP4());
 
@@ -39,7 +77,7 @@ extends TestCase
 	}
 
 	public function testIsIP6() {
-		$client = new HttpClient($this->_driver);
+		$client = $this->_produceClient();
 
 		$this->assertFalse($client->isIP6());
 
@@ -49,41 +87,43 @@ extends TestCase
 	}
 
 	public function testGetIP() {
-		$client = new HttpClient($this->_driver);
+		$client = $this->_produceClient();
 
-		$this->assertEquals($client->getIP(), '127.0.0.1');
+		$this->assertEquals('127.0.0.1', $client->getIP());
 	}
 
 	public function testSetIP() {
-		$client = new HttpClient($this->_driver);
+		$client = $this->_produceClient();
 
-		$this->assertEquals($client->setIP('::1'), $client);
-		$this->assertEquals($client->getIP(), '::1');
+		$this->assertSame($client, $client->setIP('::1'));
+		$this->assertEquals('::1', $client->getIP());
 	}
 
 	public function testGetUA() {
-		$client = new HttpClient($this->_driver);
+		$client = $this->_produceClient();
 
 		$this->assertEquals($client->getUA(), 'Mozilla/5.0');
 	}
 
 	public function testSetUA() {
-		$client = new HttpClient($this->_driver);
+		$client = $this->_produceClient();
 
-		$this->assertEquals($client->setUA('foo'), $client);
-		$this->assertEquals($client->getUA(), 'foo');
+		$this->assertSame($client, $client->setUA('foo'));
+		$this->assertEquals('foo', $client->getUA());
 	}
 
 	public function testGetTime() {
-		$client = new HttpClient($this->_driver);
+		$client = $this->_produceClient();
 
-		$this->assertEquals($client->getTime(), 2);
+		$time = 8 * 3600 + 37 * 60 + 42;
+
+		$this->assertEquals($time, $client->getTime());
 	}
 
 	public function testSetTime() {
-		$client = new HttpClient($this->_driver);
+		$client = $this->_produceClient();
 
-		$this->assertEquals($client->setTime(3), $client);
-		$this->assertEquals($client->gettime(), 3);
+		$this->assertSame($client, $client->setTime(3));
+		$this->assertEquals(3, $client->gettime());
 	}
 }
