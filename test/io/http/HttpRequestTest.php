@@ -1,11 +1,22 @@
 <?php
 
-require_once('MockDriver.php');
+namespace test\io\http;
 
 use PHPUnit\Framework\TestCase;
 
+use lola\io\connect\IConnection;
+use lola\io\connect\Connection;
+use lola\io\http\IHttpConfig;
+use lola\io\http\IHttpMessage;
+use lola\io\http\IHttpRequest;
+use lola\io\http\IHttpReply;
+use lola\io\http\IHttpClient;
+use lola\io\http\IHttpCookies;
+use lola\io\http\IHttpDriver;
+use lola\io\http\HttpConfig;
+use lola\io\http\HttpMessage;
 use lola\io\http\HttpRequest;
-use test\io\http\MockDriver;
+use lola\io\mime\IMimePayload;
 
 
 
@@ -13,230 +24,326 @@ class HttpRequestTest
 extends TestCase
 {
 
-	private $_driver;
+	private function _produceConnection(array $data = null) : IConnection {
+		if (is_null($data)) $data = [
+			'ts' => 3,
+			'tls' => true,
+			'host' => [
+				'name' => 'sub.domain.tld'
+			]
+		];
 
+		return new Connection($data);
+	}
 
-	public function __construct() {
-		parent::__construct();
+	private function _produceConfig() : IHttpConfig {
+		return new HttpConfig();
+	}
 
-		$this->_driver = new MockDriver();
+	private function _produceMessage(string $line = null, array $headers = null, string $body = null) {
+		if (is_null($line)) $line = 'GET /path/to/resource?foo=bar&baz=quux HTTP/1.1';
+		if (is_null($headers)) $headers = [
+			IHttpMessage::HEADER_CONTENT_TYPE => ['text/plain;charset=iso-8859-1'],
+			IHttpMessage::HEADER_ACCEPT_MIME => ['text/plain,text/html;q=0.5'],
+			IHttpMessage::HEADER_ACCEPT_LANGUAGE => ['en,en-us;q=0.9'],
+			'Header-1' => ['foo'],
+			'Header-2' => ['bar']
+		];
+		if (is_null($body)) $body = '{"items":[]}';
+
+		return new HttpMessage($line, $headers, $body);
+	}
+
+	private function _produceMock(string $qname) {
+		return $this->getMockBuilder($qname)->getMock();
+	}
+
+	private function _mockDriver(IConnection $connection = null, IHttpMessage $message = null) : IHttpDriver {
+		if (is_null($connection)) $connection = $this->_produceConnection();
+		if (is_null($message)) $message = $this->_produceMessage();
+
+		$config = $this->_produceConfig();
+		$payload = $this->_produceMock(IMimePayload::class);
+		$reply = $this->_produceMock(IHttpReply::class);
+		$client = $this->_produceMock(IHttpClient::class);
+		$cookies = $this->_produceMock(IHttpCookies::class);
+
+		$driver = $this
+			->getMockBuilder(IHttpDriver::class)
+			->getMock();
+
+		$driver
+			->expects($this->any())
+			->method('useConnection')
+			->with()
+			->willReturnReference($connection);
+
+		$driver
+			->expects($this->any())
+			->method('useConfig')
+			->with()
+			->willReturnReference($config);
+
+		$driver
+			->expects($this->any())
+			->method('useRequestPayload')
+			->with()
+			->willReturnReference($payload);
+
+		$driver
+			->expects($this->any())
+			->method('useRequestMessage')
+			->with()
+			->willReturnReference($message);
+
+		$driver
+			->expects($this->any())
+			->method('useReply')
+			->with()
+			->willReturnReference($reply);
+
+		$driver
+			->expects($this->any())
+			->method('useClient')
+			->with()
+			->willReturnReference($client);
+
+		$driver
+			->expects($this->any())
+			->method('useCookies')
+			->with()
+			->willReturnReference($cookies);
+
+		return $driver;
+	}
+
+	private function _produceRequest(IHttpDriver $driver = null) : IHttpRequest {
+		if (is_null($driver)) $driver = $this->_mockDriver();
+
+		return new HttpRequest($driver);
 	}
 
 
 	public function testUsePayload() {
-		$request = new HttpRequest($this->_driver);
+		$driver = $this->_mockDriver();
+		$request = $this->_produceRequest($driver);
 
-		$this->assertEquals($this->_driver->useRequestPayload(), $request->usePayload());
+		$this->assertSame($driver->useRequestPayload(), $request->usePayload());
 	}
 
 	public function testUseReply() {
-		$request = new HttpRequest($this->_driver);
+		$driver = $this->_mockDriver();
+		$request = $this->_produceRequest($driver);
 
-		$this->assertEquals($this->_driver->useReply(), $request->useReply());
+		$this->assertSame($driver->useReply(), $request->useReply());
 	}
 
 	public function testUseCookies() {
-		$request = new HttpRequest($this->_driver);
+		$driver = $this->_mockDriver();
+		$request = $this->_produceRequest($driver);
 
-		$this->assertEquals($this->_driver->useCookies(), $request->useCookies());
+		$this->assertSame($driver->useCookies(), $request->useCookies());
 	}
 
 	public function testUseClient() {
-		$request = new HttpRequest($this->_driver);
+		$driver = $this->_mockDriver();
+		$request = $this->_produceRequest($driver);
 
-		$this->assertEquals($this->_driver->useClient(), $request->useClient());
+		$this->assertSame($driver->useClient(), $request->useClient());
 	}
 
 
 	public function testGetTime() {
-		$request = new HttpRequest($this->_driver);
+		$request = $this->_produceRequest();
 
-		$this->assertEquals($request->getTime(), 3);
+		$this->assertEquals(3, $request->getTime());
 	}
 
 	public function testSetTime() {
-		$request = new HttpRequest($this->_driver);
+		$request = $this->_produceRequest();
 
-		$this->assertEquals($request->setTime(4), $request);
-		$this->assertEquals($request->getTime(), 4);
+		$this->assertSame($request, $request->setTime(4));
+		$this->assertEquals(4, $request->getTime());
 	}
 
-	public function testGetProtocol() {
-		$request = new HttpRequest($this->_driver);
+	public function testGetTLS() {
+		$request = $this->_produceRequest();
 
-		$this->assertEquals($request->getProtocol(), 'http');
+		$this->assertTrue($request->getTLS());
 	}
 
-	public function testSetProtocol() {
-		$request = new HttpRequest($this->_driver);
+	public function testSetTLS() {
+		$request = $this->_produceRequest();
 
-		$this->assertEquals($request->setProtocol('https'), $request);
-		$this->assertEquals($request->getProtocol(), 'https');
+		$this->assertSame($request, $request->setTLS(false));
+		$this->assertFalse($request->getTLS());
 	}
 
 	public function testGetHostName() {
-		$request = new HttpRequest($this->_driver);
+		$request = $this->_produceRequest();
 
-		$this->assertEquals($request->getHostName(), 'sub.domain.tld');
+		$this->assertEquals('sub.domain.tld', $request->getHostName());
 	}
 
 	public function testSetHostName() {
-		$request = new HttpRequest($this->_driver);
+		$request = $this->_produceRequest();
 
-		$this->assertEquals($request->setHostName('foo'), $request);
-		$this->assertEquals($request->getHostName(), 'foo');
+		$this->assertSame($request, $request->setHostName('foo'));
+		$this->assertEquals('foo', $request->getHostName());
 	}
 
 	public function testGetPath() {
-		$request = new HttpRequest($this->_driver);
+		$request = $this->_produceRequest();
 
-		$this->assertEquals($request->getPath(), '/path/to/resource');
+		$this->assertEquals('/path/to/resource', $request->getPath());
 	}
 
 	public function testSetPath() {
-		$request = new HttpRequest($this->_driver);
+		$request = $this->_produceRequest();
 
-		$this->assertEquals($request->setPath('foo/bar/baz'), $request);
-		$this->assertEquals($request->getPath(), 'foo/bar/baz');
+		$this->assertSame($request, $request->setPath('foo/bar/baz'));
+		$this->assertEquals('foo/bar/baz', $request->getPath());
 	}
 
-	public function testUseQuery() {
-		$request = new HttpRequest($this->_driver);
+	public function testGetQuery() {
+		$request = $this->_produceRequest();
 
-		$this->assertEquals($request->useQuery(), [
+		$this->assertEquals([
 			'foo' => 'bar',
 			'baz' => 'quux'
-		]);
+		], $request->getQuery());
 	}
 
 	public function testSetQuery() {
-		$request = new HttpRequest($this->_driver);
+		$request = $this->_produceRequest();
 
 		$query = [
 			'a' => 'b',
 			'c' => 'd'
 		];
 
-		$this->assertEquals($request->setQuery($query), $request);
-		$this->assertEquals($request->useQuery(), $query);
+		$this->assertSame($request, $request->setQuery($query));
+		$this->assertEquals($query, $request->getQuery());
 	}
 
 	public function testGetMethod() {
-		$request = new HttpRequest($this->_driver);
+		$request = $this->_produceRequest();
 
-		$this->assertEquals($request->getMethod(), 'GET');
+		$this->assertEquals('GET', $request->getMethod());
 	}
 
 	public function testSetMethod() {
-		$request = new HttpRequest($this->_driver);
+		$request = $this->_produceRequest();
 
-		$this->assertEquals($request->setMethod('POST'), $request);
-		$this->assertEquals($request->getMethod(), 'POST');
+		$this->assertSame($request, $request->setMethod('POST'));
+		$this->assertEquals('POST', $request->getMethod());
 	}
 
 	public function testGetMime() {
-		$request = new HttpRequest($this->_driver);
+		$request = $this->_produceRequest();
 
-		$this->assertEquals($request->getMime(), 'text/plain');
+		$this->assertEquals('text/plain', $request->getMime());
 	}
 
 	public function testSetMime() {
-		$request = new HttpRequest($this->_driver);
+		$request = $this->_produceRequest();
 
-		$this->assertEquals($request->setMime('text/html'), $request);
-		$this->assertEquals($request->getMime(), 'text/html');
+		$this->assertSame($request, $request->setMime('text/html'));
+		$this->assertEquals('text/html', $request->getMime());
 	}
 
 	public function testGetEncoding() {
-		$request = new HttpRequest($this->_driver);
+		$request = $this->_produceRequest();
 
-		$this->assertEquals($request->getEncoding(), 'iso-8859-1');
+		$this->assertEquals('iso-8859-1', $request->getEncoding());
 	}
 
 	public function testSetEncoding() {
-		$request = new HttpRequest($this->_driver);
+		$request = $this->_produceRequest();
 
-		$this->assertEquals($request->setEncoding('utf-8'), $request);
-		$this->assertEquals($request->getEncoding(), 'utf-8');
+		$this->assertSame($request, $request->setEncoding('utf-8'));
+		$this->assertEquals('utf-8', $request->getEncoding());
 	}
 
-	public function testUseAcceptMimes() {
-		$request = new HttpRequest($this->_driver);
 
-		$this->assertEquals($request->useAcceptMimes(), [
+	public function testGetAcceptMimes() {
+		$request = $this->_produceRequest();
+
+		$this->assertEquals([
 			'text/plain' => 1.0,
 			'text/html' => 0.5
-		]);
+		], $request->getAcceptMimes());
 	}
 
 	public function testGetPreferedAcceptMime() {
-		$request = new HttpRequest($this->_driver);
+		$request = $this->_produceRequest();
 
-		$this->assertEquals($request->getPreferedAcceptMime([
+		$this->assertEquals('text/html', $request->getPreferedAcceptMime([
 			'application/json',
 			'application/xml',
 			'text/html'
-		]), 'text/html');
+		]));
 
-		$this->assertEquals($request->getPreferedAcceptMime([
+		$this->assertEquals('', $request->getPreferedAcceptMime([
 			'application/json',
 			'application/xml'
-		]), '');
+		]));
 	}
 
 	public function testSetAcceptMimes() {
-		$request = new HttpRequest($this->_driver);
+		$request = $this->_produceRequest();
 
 		$map = [
 			'application/json' => 1.0,
 			'application/xml' => 0.5
 		];
 
-		$this->assertEquals($request->setAcceptMimes($map), $request);
-		$this->assertEquals($request->useAcceptMimes(), $map);
+		$this->assertSame($request, $request->setAcceptMimes($map));
+		$this->assertEquals($map, $request->getAcceptMimes());
 	}
 
-	public function testUseAcceptLanguages() {
-		$request = new HttpRequest($this->_driver);
 
-		$this->assertEquals($request->useAcceptLanguages(), [
+	public function testGetAcceptLanguages() {
+		$request = $this->_produceRequest();
+
+		$this->assertEquals([
 			'en' => 1.0,
 			'en-us' => 0.9
-		]);
+		], $request->getAcceptLanguages());
 	}
 
 	public function testGetPreferedAcceptLanguage() {
-		$request = new HttpRequest($this->_driver);
+		$request = $this->_produceRequest();
 
-		$this->assertEquals($request->getPreferedAcceptLanguage([
+		$this->assertEquals('en-us', $request->getPreferedAcceptLanguage([
 			'es',
 			'de',
 			'fr',
 			'en-us'
-		]), 'en-us');
+		]));
 
-		$this->assertEquals($request->getPreferedAcceptLanguage([
+		$this->assertEquals('', $request->getPreferedAcceptLanguage([
 			'es',
 			'de',
 			'fr'
-		]), '');
+		]));
 	}
 
 	public function testSetAcceptLanguages() {
-		$request = new HttpRequest($this->_driver);
+		$request = $this->_produceRequest();
 
 		$map = [
 			'es' => 1.0,
 			'es-es' => 0.9
 		];
 
-		$this->assertEquals($request->setAcceptLanguages($map), $request);
-		$this->assertEquals($request->useAcceptLanguages(), $map);
+		$this->assertSame($request, $request->setAcceptLanguages($map));
+		$this->assertEquals($map, $request->getAcceptLanguages());
 	}
 
 
 	public function testHasHeader() {
-		$request = new HttpRequest($this->_driver);
+		$request = $this->_produceRequest();
 
 		$this->assertTrue($request->hasHeader('Header-1'));
 		$this->assertTrue($request->hasHeader('Header-2'));
@@ -244,53 +351,53 @@ extends TestCase
 	}
 
 	public function testGetHeader() {
-		$request = new HttpRequest($this->_driver);
+		$request = $this->_produceRequest();
 
-		$this->assertEquals($request->getHeader('Content-Type'), 'text/plain;charset=iso-8859-1');
-		$this->assertEquals($request->getHeader('Accept'), 'text/plain,text/html;q=0.5');
-		$this->assertEquals($request->getHeader('Accept-Language'), 'en,en-us;q=0.9');
-		$this->assertEquals($request->getHeader('Header-1'), 'foo');
-		$this->assertEquals($request->getHeader('Header-2'), 'bar');
+		$this->assertEquals('text/plain;charset=iso-8859-1', $request->getHeader('Content-Type'));
+		$this->assertEquals('text/plain,text/html;q=0.5', $request->getHeader('Accept'));
+		$this->assertEquals('en,en-us;q=0.9', $request->getHeader('Accept-Language'));
+		$this->assertEquals('foo', $request->getHeader('Header-1'));
+		$this->assertEquals('bar', $request->getHeader('Header-2'));
 	}
 
 	public function testSetHeader() {
-		$request = new HttpRequest($this->_driver);
+		$request = $this->_produceRequest();
 
-		$this->assertEquals($request->setHeader('Content-Type', 'application/json;charset=utf-8'), $request);
-		$this->assertEquals($request->getHeader('Content-Type'), 'application/json;charset=utf-8');
-		$this->assertEquals($request->getMime(), 'application/json');
-		$this->assertEquals($request->getEncoding(), 'utf-8');
+		$this->assertSame($request, $request->setHeader('Content-Type', 'application/json;charset=utf-8'));
+		$this->assertEquals('application/json;charset=utf-8', $request->getHeader('Content-Type'));
+		$this->assertEquals('application/json', $request->getMime());
+		$this->assertEquals('utf-8', $request->getEncoding());
 
-		$this->assertEquals($request->setHeader('Accept', 'application/json,application/xml;q=0.5'), $request);
-		$this->assertEquals($request->getHeader('Accept'), 'application/json,application/xml;q=0.5');
-		$this->assertEquals($request->useAcceptMimes(), [
+		$this->assertSame($request, $request->setHeader('Accept', 'application/json,application/xml;q=0.5'));
+		$this->assertEquals('application/json,application/xml;q=0.5', $request->getHeader('Accept'));
+		$this->assertEquals([
 			'application/json' => 1.0,
 			'application/xml' => 0.5
-		]);
+		], $request->getAcceptMimes());
 
-		$this->assertEquals($request->setHeader('Accept-Language', 'es,es-es;q=0.9'), $request);
-		$this->assertEquals($request->getHeader('Accept-Language'), 'es,es-es;q=0.9');
-		$this->assertEquals($request->useAcceptLanguages(), [
+		$this->assertSame($request, $request->setHeader('Accept-Language', 'es,es-es;q=0.9'));
+		$this->assertEquals('es,es-es;q=0.9', $request->getHeader('Accept-Language'));
+		$this->assertEquals([
 			'es' => 1.0,
 			'es-es' => 0.9
-		]);
+		], $request->getAcceptLanguages());
 
-		$this->assertEquals($request->setHeader('Header-3', 'baz'), $request);
+		$this->assertSame($request, $request->setHeader('Header-3', 'baz'));
 		$this->assertTrue($request->hasHeader('Header-3'));
-		$this->assertEquals($request->getHeader('Header-3'), 'baz');
+		$this->assertEquals('baz', $request->getHeader('Header-3'));
 	}
 
 
 	public function testGetBody() {
-		$request = new HttpRequest($this->_driver);
+		$request = $this->_produceRequest();
 
-		$this->assertEquals($request->getBody(), '{"items":[]}');
+		$this->assertEquals('{"items":[]}', $request->getBody());
 	}
 
 	public function testSetBody() {
-		$request = new HttpRequest($this->_driver);
+		$request = $this->_produceRequest();
 
-		$this->assertEquals($request->setBody('foo-bar-baz'), $request);
-		$this->assertEquals($request->getBody(), 'foo-bar-baz');
+		$this->assertSame($request, $request->setBody('foo-bar-baz'));
+		$this->assertEquals('foo-bar-baz', $request->getBody());
 	}
 }
