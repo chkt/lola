@@ -2,9 +2,6 @@
 
 namespace lola\io\http;
 
-use lola\io\http\IHttpCookies;
-use lola\io\http\IHttpDriver;
-
 
 
 class HttpCookies
@@ -12,7 +9,7 @@ implements IHttpCookies
 {
 
 	private $_driver;
-	private $_source;
+	private $_requestCookies;
 
 	private $_state;
 	private $_value;
@@ -25,7 +22,7 @@ implements IHttpCookies
 
 	public function __construct(IHttpDriver& $driver) {
 		$this->_driver =& $driver;
-		$this->_source = $driver->useRequestResource();
+		$this->_requestCookies = null;
 
 		$this->_state = [];
 		$this->_value = [];
@@ -53,8 +50,33 @@ implements IHttpCookies
 	}
 
 
+	private function _parseRawCookies() {
+		$header = $this->_driver
+			->useRequestMessage()
+			->getHeader(IHttpMessage::HEADER_COOKIE);
+
+		$res = [];
+
+		parse_str(str_replace(';', '&', $header), $res);
+
+		return $res;
+	}
+
+	private function _getMessageCookieState($name) : int {
+		if (is_null($this->_requestCookies)) $this->_requestCookies = $this->_parseRawCookies();
+
+		return array_key_exists($name, $this->_requestCookies) ? 0x01 : 0x00;
+	}
+
+	private function _getMessageCookieValue($name) : string {
+		if (is_null($this->_requestCookies)) $this->_requestCookies = $this->_parseRawCookies();
+
+		return array_key_exists($name, $this->_requestCookies) ? $this->_requestCookies[$name] : '';
+	}
+
+
 	public function hasCookie(string $name) : bool {
-		if (!array_key_exists($name, $this->_state)) $this->_state[$name] = $this->_source->hasCookie($name) ? 0x01 : 0x00;
+		if (!array_key_exists($name, $this->_state)) $this->_state[$name] = $this->_getMessageCookieState($name);
 
 		return ($this->_state[$name] & 0x01) === 0x01;
 	}
@@ -77,11 +99,11 @@ implements IHttpCookies
 
 
 	public function getValue(string $name) : string {
-		if (!array_key_exists($name, $this->_state)) $this->_state[$name] = $this->_source->hasCookie($name) ? 0x01 : 0x00;
+		if (!array_key_exists($name, $this->_state)) $this->_state[$name] = $this->_getMessageCookieState($name);
 
 		if (($this->_state[$name] & 0x01) === 0x00) return '';
 
-		if (!array_key_exists($name, $this->_value)) $this->_value[$name] = $this->_source->getCookie($name);
+		if (!array_key_exists($name, $this->_value)) $this->_value[$name] = $this->_getMessageCookieValue($name);
 
 		return $this->_value[$name];
 	}
