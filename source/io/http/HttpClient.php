@@ -2,10 +2,8 @@
 
 namespace lola\io\http;
 
-use lola\io\http\IHttpDriver;
-use lola\io\http\IHttpClient;
-
 use lola\io\IClient;
+use lola\io\connect\IConnection;
 
 
 
@@ -13,21 +11,17 @@ class HttpClient
 implements IHttpClient
 {
 
-	const VERSION = '0.5.0';
-
-
-
 	private $_driver;
-	private $_source;
 
-	private $_properties;
+	private $_connection;
+	private $_message;
 
 
 	public function __construct(IHttpDriver& $driver) {
 		$this->_driver =& $driver;
-		$this->_source = $driver->useRequestResource();
 
-		$this->_properties = [];
+		$this->_connection = $driver->useConnection();
+		$this->_message = $driver->useRequestMessage();
 	}
 
 
@@ -41,43 +35,37 @@ implements IHttpClient
 
 
 	public function getIP() : string {
-		if (!array_key_exists('ip', $this->_properties)) $this->_properties['ip'] = $this->_source->getClientIP();
-
-		return $this->_properties['ip'];
+		return $this->_connection->getString(IConnection::CLIENT_IP);
 	}
 
 	public function setIP(string $ip) : IClient {
 		if (filter_var($ip, FILTER_VALIDATE_IP) === false) throw new \ErrorException();
 
-		$this->_properties['ip'] = $ip;
+		$this->_connection->setString(IConnection::CLIENT_IP, $ip);
 
 		return $this;
 	}
 
 
 	public function getUA() : string {
-		if (!array_key_exists('ua', $this->_properties)) $this->_properties['ua'] = $this->_source->getClientUA();
-
-		return $this->_properties['ua'];
+		return $this->_message->getHeader(IHttpMessage::HEADER_USER_AGENT);
 	}
 
 	public function setUA(string $ua) : IClient {
-		$this->_properties['ua'] = $ua;
+		$this->_message->setHeader(IHttpMessage::HEADER_USER_AGENT, $ua);
 
 		return $this;
 	}
 
 
 	public function getTime() : int {
-		if (!array_key_exists('time', $this->_properties)) $this->_properties['time'] = $this->_source->getClientTime();
-
-		return $this->_properties['time'];
+		return strtotime($this->_message->getHeader(IHttpMessage::HEADER_DATE));
 	}
 
 	public function setTime(int $time) : IHttpClient {
 		if ($time < 0) throw new \ErrorException();
 
-		$this->_properties['time'] = $time;
+		$this->_message->setHeader(IHttpMessage::HEADER_DATE, gmdate('D, d M Y H:i:s T', $time));
 
 		return $this;
 	}
