@@ -2,6 +2,7 @@
 
 namespace lola\io\http;
 
+use lola\inject\IInjector;
 use lola\inject\IInjectable;
 
 use lola\type\IStateTransform;
@@ -19,10 +20,12 @@ implements IHttpDriver, IInjectable
 {
 
 	static public function getDependencyConfig(array $config) {
-		return [];
+		return [ 'injector:' ];
 	}
 
 
+
+	private $_injector;
 
 	private $_request;
 	private $_requestPayload;
@@ -32,12 +35,14 @@ implements IHttpDriver, IInjectable
 	private $_cookies;
 
 	private $_config;
-	private $_requestResource;
+	private $_requestMessage;
 	private $_replyResource;
 	private $_transform;
 
 
-	public function __construct() {
+	public function __construct(IInjector& $injector) {
+		$this->_injector =& $injector;
+
 		$this->_request = null;
 		$this->_requestPayload = null;
 		$this->_client = null;
@@ -45,7 +50,7 @@ implements IHttpDriver, IInjectable
 		$this->_cookies = null;
 
 		$this->_config = null;
-		$this->_requestResource = null;
+		$this->_requestMessage = null;
 		$this->_replyResource = null;
 		$this->_transform = null;
 	}
@@ -101,14 +106,16 @@ implements IHttpDriver, IInjectable
 	}
 
 
-	public function& useRequestResource() : IHttpRequestResource {
-		if (is_null($this->_requestResource)) $this->_requestResource = new HttpRequestResource();
+	public function& useRequestMessage() : IHttpMessage {
+		if (is_null($this->_requestMessage)) $this->_requestMessage = $this->_injector
+			->produce(RemoteRequestFactory::class)
+			->getMessage();
 
-		return $this->_requestResource;
+		return $this->_requestMessage;
 	}
 
-	public function setRequestResource(IHttpRequestResource& $resource) : IHttpDriver {
-		$this->_requestResource =& $resource;
+	public function setRequestMessage(IHttpMessage& $message) : IHttpDriver {
+		$this->_requestMessage =& $message;
 
 		return $this;
 	}

@@ -5,11 +5,8 @@ namespace lola\io\http;
 use lola\io\IRequestReplyDriver;
 
 use lola\type\IStateTransform;
+use lola\io\connect\IConnection;
 use lola\io\mime\IMimePayload;
-use lola\io\http\IHttpCookies;
-use lola\io\http\IHttpConfig;
-use lola\io\http\IHttpRequestResource;
-use lola\io\http\IHttpReplyResource;
 
 
 
@@ -29,9 +26,9 @@ extends IRequestReplyDriver
 	public function setConfig(IHttpConfig& $config) : IHttpDriver;
 
 
-	public function& useRequestResource() : IHttpRequestResource;
+	public function& useRequestMessage() : IHttpMessage;
 
-	public function setRequestResource(IHttpRequestResource& $resource) : IHttpDriver;
+	public function setRequestMessage(IHttpMessage& $message) : IHttpDriver;
 
 
 	public function& useReplyResource() : IHttpReplyResource;
