@@ -24,6 +24,13 @@ extends TestCase
 		]), 'foo;bar=x;baz=y');
 	}
 
+	public function testInjectHeader() {
+		$header = 'application/json;charset=iso-8859-1';
+
+		$this->assertEquals('application/json;charset=utf-8', HttpConfig::injectHeader($header, ['charset' => 'utf-8']));
+		$this->assertEquals('text/html;charset=iso-8859-1', HttpConfig::injectHeader($header, [HttpConfig::HEADER_PARAM_DEFAULT => 'text/html']));
+	}
+
 	public function testParseWeightedHeader() {
 		$this->assertEquals(HttpConfig::parseWeightedHeader('foo,bar,quux;q=0.1,baz;q=0.5'), [
 			'foo' => 1.0,
