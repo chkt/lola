@@ -5,8 +5,8 @@ namespace lola\input\form;
 use lola\input\form\IField;
 
 use lola\input\valid\IValidateable;
-use lola\input\valid\IValidationStep;
-use lola\input\valid\step\NoopValidationStep;
+use lola\input\valid\IValidationTransform;
+use lola\input\valid\step\Noop;
 
 
 
@@ -112,16 +112,16 @@ implements IField
 	}
 
 
-	public function& useValidation() : IValidationStep {
+	public function& useValidation() : IValidationTransform {
 		if (is_null($this->_validation)) {
-			$this->_validation = new NoopValidationStep();
+			$this->_validation = new Noop();
 			$this->_validation->validate($this->isMultiValue() ? $this->getValues() : $this->getValue());
 		}
 
 		return $this->_validation;
 	}
 
-	public function setValidation(IValidationStep& $step) : IValidateable {
+	public function setValidation(IValidationTransform& $step) : IValidateable {
 		$this->_validation =& $step;
 
 		return $this;

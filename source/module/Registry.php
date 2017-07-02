@@ -29,6 +29,8 @@ implements IInjectable
 	private $_defered = null;
 	private $_modules = null;
 
+	private $_dependencyStack;
+
 
 	/**
 	 * @param IApp $app
@@ -39,6 +41,8 @@ implements IInjectable
 
 		$this->_defered = [];
 		$this->_modules = [];
+
+		$this->_dependencyStack = [];
 	}
 
 
@@ -132,11 +136,39 @@ implements IInjectable
 
 
 	/**
+	 * Resolves the named dependencies in $deps
+	 * @param string $name The module name
+	 * @param array $deps The dependencies
+	 * @return Registry
+	 * @throws \ErrorException if $deps is not an array of nonempty strings
+	 * @throws \ErrorException if any string in $deps will create a dependency loop
+	 */
+	private function _resolveDependencies(string $name, array $deps) : Registry {
+		array_push($this->_dependencyStack, $name);
+
+		foreach ($deps as $dep) {
+			if (!is_string($dep) || empty($dep)) throw new \ErrorException('MOD: malformed dependency');
+
+			if (array_key_exists($dep, $this->_modules)) continue;
+
+			if (in_array($dep, $this->_dependencyStack)) throw new \ErrorException('MOD: circular dependency');
+
+			$this->_loadModule($dep);
+		}
+
+		array_pop($this->_dependencyStack);
+
+		return $this;
+	}
+
+
+	/**
 	 * Loads the module referenced by $name
 	 * @param string $name The module name
+	 * @returns Registry
 	 * @throws \ErrorException if the module referenced by name is not an instance of IModule
 	 */
-	private function _loadModule($name) {
+	private function _loadModule($name) : Registry {
 		$qname = '\\' . $name . '\\' . 'Module';
 
 		$loader = $this->_useInjector()->produce($qname);
@@ -145,13 +177,7 @@ implements IInjectable
 
 		$module = $loader->getModuleConfig();
 
-		if (array_key_exists('config', $module)) {
-			$this->_applyConfig($module['config']);
-
-			unset($module['config']);
-		}
-
-		$this->_modules[$name] = $module;
+		return $this->injectModule($name, $module);
 	}
 
 	/**
@@ -184,12 +210,18 @@ implements IInjectable
 	/**
 	 * Injects $module to registry
 	 * @param string $name The module name
-	 * @param array $module The module config
+	 * @param array $module The module description
 	 * @return Registry
-	 * @throws \ErrorException if $name is not a nonempty string
+	 * @throws \ErrorException if $name is empty
 	 */
-	public function injectModule($name, $module) {
-		if (!is_string($name) || empty($name)) throw new \ErrorException();
+	public function injectModule(string $name, array $module) : Registry {
+		if (empty($name)) throw new \ErrorException();
+
+		if (array_key_exists('depend', $module)) {
+			$this->_resolveDependencies($name, $module['depend']);
+
+			unset($module['depend']);
+		}
 
 		if (array_key_exists('config', $module)) {
 			$this->_applyConfig($module['config']);

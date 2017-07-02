@@ -12,112 +12,82 @@ use lola\type\IIterateable;
 abstract class AIterateable
 implements IIterateable
 {
-	/**
-	 * The version string
-	 */
-	const VERSION = '0.2.1';
-	
-	
-	
-	/**
-	 * The iterateable items
-	 * @var array
-	 */
-	protected $_items = null;
-	
+
 	/**
 	 * The iteration cursor position
 	 * @var int
 	 */
-	protected $_cursor = 0;
-	/**
-	 * The iterateable length
-	 * @var type 
-	 */
-	protected $_length = 0;
-	
-	
+	private $_cursor;
+
+
 	/**
 	 * Creates a new instance
 	 */
 	public function __construct() {
-		$this->_items = [];
-		
 		$this->_cursor = 0;
-		$this->_length = 0;
 	}
-	
-	
+
+
 	/**
-	 * Returns a reference to the item at $index
-	 * @param int $index - The item index
-	 * @return mixed
+	 * Returns true if the item at $index exists, false otherwise
+	 * @param int $index - The iteration index
+	 * @return bool;
 	 */
-	protected function& _useItem($index) {
-		return $this->_items[$index];
-	}
-	
-	
+	abstract protected function _hasItem(int $index) : bool;
+
+
 	/**
 	 * Returns the current cursor position
 	 * @return int
 	 */
-	public function getIndex() {
+	public function getIndex() : int {
 		return $this->_cursor;
 	}
-	
+
 	/**
-	 * Returns the current iterateable length
-	 * @return int
+	 * Sets the iteration index to $index
+	 * @param int $index - The new iteration index
+	 * @return AIterateable
 	 */
-	public function getLength() {
-		return $this->_length;
+	protected function _setIndex(int $index) : AIterateable {
+		$this->_cursor = $index;
+
+		return $this;
 	}
-	
-	
+
+
 	/**
 	 * Returns a reference to the item at $index
 	 * @param int $index - The iteration index
-	 * @return mixed
-	 * @throws \ErrorException - if $index is not a positive integer
 	 */
-	public function& useIndex($index) {
-		if (!is_int($index) || $index < 0) throw new \ErrorException();
-		
-		if ($index >= $this->_length) {
-			$null = null;
-			
-			return $null;
-		}
-		
-		$this->_cursor = $index;
-		
-		return $this->_useItem($index);
+	abstract protected function& _useItem(int $index);
+
+
+	/**
+	 * Returns a reference to the item at $index if item exists, null otherwise
+	 * @param int $index - The iteration index
+	 * @return mixed
+	 */
+	public function& useIndex(int $index) {
+		$this->_setIndex($index);
+
+		if ($this->_hasItem($index)) return $this->_useItem($index);
+
+		$null = null;
+
+		return $null;
 	}
-	
+
 	/**
 	 * Returns a reference to the item relative to the current iteration position by $offset
 	 * @param int $offset - The offset to the iteration index
 	 * @return mixed
-	 * @throws \ErrorException - if $offset is not an integer
 	 */
-	public function& useOffset($offset) {
-		if (!is_int($offset)) throw new \ErrorException();
-		
-		$cursor = $this->_cursor + $offset;
-		
-		if ($cursor < 0 || $cursor >= $this->_length) {
-			$null = null;
-			
-			return $null;
-		}
-		
-		$this->_cursor = $cursor;
-		
-		return $this->_useItem($cursor);
+	public function& useOffset(int $offset) {
+		return $this->useIndex($this->getIndex() + $offset);
 	}
-	
-	
+
+
 	/**
 	 * Returns a reference to the first item
 	 * @return mixed
@@ -125,7 +95,7 @@ implements IIterateable
 	public function& useFirst() {
 		return $this->useIndex(0);
 	}
-	
+
 	/**
 	 * Returns a reference to the previous item relative to the iteration index
 	 * @return mixed
@@ -133,7 +103,7 @@ implements IIterateable
 	public function& usePrev() {
 		return $this->useOffset(-1);
 	}
-	
+
 	/**
 	 * Returns a reference to the next item relative to the iteration index
 	 * @return mixed
@@ -141,12 +111,18 @@ implements IIterateable
 	public function& useNext() {
 		return $this->useOffset(1);
 	}
-	
+
+
 	/**
-	 * Return a reference to the last item
-	 * @return mixed
+	 * Yields all items in order
 	 */
-	public function& useLast() {
-		return $this->useIndex($this->_length - 1);
+	public function& iterate() {
+		$this->_setIndex(0);
+
+		for (
+			$item =& $this->useFirst();
+			!is_null($item);
+			$item =& $this->useNext()
+		) yield $this->getIndex() => $item;
 	}
 }

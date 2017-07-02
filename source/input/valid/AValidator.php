@@ -4,6 +4,7 @@ namespace lola\input\valid;
 
 use lola\input\valid\IValidator;
 
+use lola\input\valid\IValidationTransform;
 use lola\input\valid\IValidationInterceptor;
 
 
@@ -12,16 +13,11 @@ abstract class AValidator
 implements IValidator
 {
 
-	const VERSION = '0.6.0';
-
-
-
 	private $_steps;
 	private $_interceptor;
 
 	private $_source;
 	private $_result;
-
 	private $_failures;
 
 
@@ -57,40 +53,14 @@ implements IValidator
 	}
 
 
-	private function _processChain(IValidationStep $step, & $origin) : AValidator {
-		$stack = [];
-		$value = $origin;
+	public function hasChain(string $name) : bool {
+		return array_key_exists($name, $this->_steps);
+	}
 
-		while (true) {
-			$step->validate($value);
+	public function& useChain(string $name) : IValidationTransform {
+		if (!$this->hasChain($name)) throw new \ErrorException();
 
-			if (!is_null($this->_interceptor)) $this->_interceptor->intercept($step);
-
-			if (!$step->isValid()) {
-				$this->_failures[] = $step->getError();
-
-				return $this;
-			}
-
-			$value = $step->getResult();
-
-			if (!($step instanceof IValidationTransform)) break;
-
-			$stack[] = $step;
-			$step = $step->getNextStep();
-		}
-
-		while (!empty($stack)) {
-			$step = array_pop($stack);
-
-			$value = $step
-				->transform($value)
-				->getTransformedResult();
-		}
-
-		$origin = $value;
-
-		return $this;
+		return $this->_steps[$name];
 	}
 
 
@@ -99,7 +69,14 @@ implements IValidator
 		$this->_result = $value;
 		$this->_failures = [];
 
-		foreach ($this->_steps as $step) $this->_processChain($step, $value);
+		foreach ($this->_steps as $name => & $step) {
+			$step->validate($value);
+
+			if (!is_null($this->_interceptor)) $this->_interceptor->intercept($name, $step);
+
+			if ($step->isValid()) $value = $step->getResult();
+			else $this->_failures[] = $step->getError();
+		}
 
 		$this->_result = $value;
 
@@ -108,11 +85,11 @@ implements IValidator
 
 
 	public function reset() : IValidator {
-		foreach ($this->_steps as $step) $step->reset();
-
 		$this->_source = null;
 		$this->_result = null;
 		$this->_failures = [];
+
+		foreach ($this->_steps as $step) $step->reset();
 
 		return $this;
 	}

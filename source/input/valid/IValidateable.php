@@ -2,14 +2,14 @@
 
 namespace lola\input\valid;
 
-use lola\input\valid\IValidationStep;
+use lola\input\valid\IValidationTransform;
 
 
 
 interface IValidateable
 {
 
-	public function& useValidation() : IValidationStep;
+	public function& useValidation() : IValidationTransform;
 
-	public function setValidation(IValidationStep& $validation) : IValidateable;
+	public function setValidation(IValidationTransform& $validation) : IValidateable;
 }

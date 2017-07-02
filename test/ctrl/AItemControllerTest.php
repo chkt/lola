@@ -78,6 +78,12 @@ extends TestCase
 		$this->assertInstanceOf('\lola\ctrl\RESTReplyTransform', $ctrl->useReplyTransform());
 	}
 
+	public function testInvalidAction() {
+		$this
+			->_getController('400', 'text/plain')
+			->invalidAction($this->_getRoute());
+	}
+
 	public function testUnavailableAction() {
 		$this
 			->_getController('400', 'text/plain')

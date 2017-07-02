@@ -2,25 +2,25 @@
 
 namespace lola\type;
 
+use lola\type\IGenerateable;
 
 
-interface IIterateable {
-	
-	public function getIndex();
-	
-	public function getLength();
-	
-	
-	public function& useIndex($index);
-	
-	public function& useOffset($offset);
-	
-	
+
+interface IIterateable
+extends IGenerateable
+{
+
+	public function getIndex() : int;
+
+
+	public function& useIndex(int $index);
+
+	public function& useOffset(int $offset);
+
+
 	public function& useFirst();
-	
-	public function& useLast();
-	
+
 	public function& usePrev();
-	
+
 	public function& useNext();
 }

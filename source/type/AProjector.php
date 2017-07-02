@@ -18,15 +18,24 @@ implements IProjector
 	private $_transforms;
 
 
-	public function __construct(StructuredData& $source, array $transforms = []) {
-		$this->_source =& $source;
+	public function __construct(array $transforms = []) {
+		$this->_source = null;
 
 		$this->_keys = array_keys($transforms);
 		$this->_transforms = array_values($transforms);
 	}
 
 
-	public function get(array $selection = null) : array {
+	public function setSource(StructuredData& $source) : IProjector {
+		$this->_source =& $source;
+
+		return $this;
+	}
+
+
+	public function getProjection(array $selection = null) : array {
+		if (is_null($this->_source)) throw new \ErrorException();
+
 		$keys = $this->_keys;
 		$trns = $this->_transforms;
 		$res = [];

@@ -5,8 +5,8 @@ namespace test\input\form;
 use PHPUnit\Framework\TestCase;
 
 use lola\input\form\Field;
-use lola\input\valid\AValidationStep;
-use lola\input\valid\step\NoopValidationStep;
+use lola\input\valid\AValidationTransform;
+use lola\input\valid\step\Noop;
 
 
 
@@ -14,14 +14,14 @@ final class FieldTest
 extends TestCase
 {
 
-	private function _mockValidationStep() {
+	private function _mockValidationStep() : AValidationTransform {
 		return $this
-			->getMockBuilder(AValidationStep::class)
+			->getMockBuilder(AValidationTransform::class)
 			->getMockForAbstractClass();
 	}
 
 
-	private function _produceField($name = 'foo', $values = [], $flags = Field::FLAG_NONE) {
+	private function _produceField($name = 'foo', $values = [], $flags = Field::FLAG_NONE) : Field {
 		return new Field($name, $values, $flags);
 	}
 
@@ -226,7 +226,7 @@ extends TestCase
 
 		$step0 =& $field->useValidation();
 
-		$this->assertInstanceOf(NoopValidationStep::class, $step0);
+		$this->assertInstanceOf(Noop::class, $step0);
 
 		$step1 = $this->_mockValidationStep();
 

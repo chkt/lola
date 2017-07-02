@@ -31,7 +31,6 @@ extends ControllerTransform
 			self::STEP_RESOLVE => [
 				'transform' => 'resolve',
 				'next' => [
-					self::STEP_SUCCESS => self::STEP_END,
 					'read' => self::STEP_READ,
 					'create' => self::STEP_CREATE,
 					self::STEP_FAIL => self::STEP_UNAVAILABLE

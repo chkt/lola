@@ -2,19 +2,36 @@
 
 namespace lola\input\valid;
 
-use lola\input\valid\IValidationStep;
+use lola\input\valid\IValidationException;
 
 
 
 interface IValidationTransform
 {
 
-	public function wasTransformed() : bool;
+	public function wasValidated() : bool;
 
-	public function getNextStep() : IValidationStep;
-
-	public function getTransformedResult();
+	public function isValid() : bool;
 
 
-	public function transform($result) : IValidationTransform;
+	public function getId() : string;
+
+
+	public function hasNextStep() : bool;
+
+	public function& useNextStep() : IValidationTransform;
+
+	public function& useTerminalStep() : IValidationTransform;
+
+
+	public function getSource();
+
+	public function getResult();
+
+	public function getError() : IValidationException;
+
+
+	public function validate($source) : IValidationTransform;
+
+	public function reset() : IValidationTransform;
 }

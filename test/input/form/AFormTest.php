@@ -7,9 +7,9 @@ use PHPUnit\Framework\TestCase;
 use lola\io\mime\IMimePayload;
 use lola\input\valid\IValidationInterceptor;
 use lola\input\valid\AValidator;
-use lola\input\valid\step\ArrayPropTransform;
-use lola\input\valid\step\ConstraintStep;
-use lola\input\valid\step\StringNonEmptyStep;
+use lola\input\valid\step\ArrayPropSelect;
+use lola\input\valid\step\Constraint;
+use lola\input\valid\step\IsStringNonEmpty;
 use lola\input\form\Field;
 use lola\input\form\ValidationInterceptor;
 use lola\input\form\AForm;
@@ -52,8 +52,8 @@ extends TestCase
 		$field1 = new Field('bar', [ '1' ]);
 		$field2 = new Field('baz', [], Field::FLAG_SUBMIT);
 
-		$step0 = new ArrayPropTransform('foo', new ConstraintStep(['bang', 'barf']));
-		$step1 = new ArrayPropTransform('bar', new StringNonEmptyStep());
+		$step0 = new ArrayPropSelect('foo', new Constraint(['bang', 'barf']));
+		$step1 = new ArrayPropSelect('bar', new IsStringNonEmpty());
 
 		$interceptor = new ValidationInterceptor([
 			'arrayProp.foo' => & $field0,

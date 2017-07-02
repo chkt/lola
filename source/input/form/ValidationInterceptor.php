@@ -5,7 +5,7 @@ namespace lola\input\form;
 use lola\input\valid\IValidationInterceptor;
 
 use lola\input\valid\IValidateable;
-use lola\input\valid\IValidationStep;
+use lola\input\valid\IValidationTransform;
 
 
 
@@ -21,11 +21,9 @@ implements IValidationInterceptor
 	}
 
 
-	public function intercept(IValidationStep& $step) : IValidationInterceptor {
-		$id = $step->getId();
-
-		if (array_key_exists($id, $this->_map)) {
-			$ins = $this->_map[$id];
+	public function intercept(string $chain, IValidationTransform& $step) : IValidationInterceptor {
+		if (array_key_exists($chain, $this->_map)) {
+			$ins = $this->_map[$chain];
 
 			if (!($ins instanceof IValidateable)) throw new \ErrorException();
 

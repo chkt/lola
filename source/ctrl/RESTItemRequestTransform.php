@@ -37,7 +37,7 @@ extends ControllerTransform
 					'read' => self::STEP_READ,
 					'update' => self::STEP_UPDATE,
 					'delete' => self::STEP_DELETE,
-					'unavailable' => self::STEP_UNAVAILABLE
+					self::STEP_FAIL => self::STEP_UNAVAILABLE
 				]
 			],
 			self::STEP_CREATE => [
@@ -67,6 +67,9 @@ extends ControllerTransform
 					self::STEP_SUCCESS => self::STEP_END,
 					self::STEP_FAIL => self::STEP_UNAVAILABLE
 				]
+			],
+			self::STEP_UNAVAILABLE => [
+				'transform' => 'unavailable'
 			]
 		]);
 	}

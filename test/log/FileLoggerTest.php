@@ -97,15 +97,6 @@ extends TestCase
 				return true;
 			});
 
-		$errorLog
-			->expects($this->at(1))
-			->with($this->isType('string'))
-			->willReturnCallback(function($string) {
-				$this->assertEquals("\033[35m\033[1m~\033[0m Mozilla/5.0 ", $string);
-
-				return true;
-			});
-
 		$logger = new FileLogger();
 		$driver = new MockDriver();
 
