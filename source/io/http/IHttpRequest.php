@@ -6,7 +6,6 @@ use lola\io\IRequest;
 use lola\io\mime\IMimeContainer;
 
 use lola\io\mime\IMimePayload;
-use lola\io\http\IHttpCookies;
 
 
 
@@ -24,14 +23,14 @@ extends IRequest, IMimeContainer
 	public function setMethod(string $method) : IHttpRequest;
 
 
-	public function& useAcceptMimes() : array;
+	public function getAcceptMimes() : array;
 
 	public function getPreferedAcceptMime(array $mimes) : string;
 
 	public function setAcceptMimes(array $mimes) : IHttpRequest;
 
 
-	public function& useAcceptLanguages() : array;
+	public function getAcceptLanguages() : array;
 
 	public function getPreferedAcceptLanguage(array $langs) : string;
 
@@ -43,4 +42,6 @@ extends IRequest, IMimeContainer
 	public function getHeader(string $name) : string;
 
 	public function setHeader(string $name, string $value) : IHttpRequest;
+
+	public function resetHeader(string $name) : IHttpRequest;
 }
