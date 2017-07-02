@@ -8,6 +8,7 @@ interface IHttpMessage {
 
 	const HEADER_ACCEPT_LANGUAGE = 'Accept-Language';
 	const HEADER_ACCEPT_MIME = 'Accept';
+	const HEADER_CONTENT_LENGTH = 'Content-Length';
 	const HEADER_CONTENT_TYPE = 'Content-Type';
 	const HEADER_COOKIE = 'Cookie';
 	const HEADER_DATE = 'Date';
@@ -42,7 +43,7 @@ interface IHttpMessage {
 	public function removeHeader(string $name, int $index = 0) : IHttpMessage;
 
 
-	public function iterateHeaders() : \Generator;
+	public function iterateHeaders(array $order = []) : \Generator;
 
 
 	public function getBody() : string;

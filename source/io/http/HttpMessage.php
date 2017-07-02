@@ -111,8 +111,16 @@ implements IHttpMessage
 	}
 
 
-	public function iterateHeaders() : \Generator {
+	public function iterateHeaders(array $order = []) : \Generator {
 		$headers = $this->_headers;
+
+		foreach ($order as $name) {
+			if (!array_key_exists($name, $headers)) continue;
+
+			foreach($headers[$name] as $item) yield $name => $item;
+
+			unset($headers[$name]);
+		}
 
 		foreach ($headers as $name => $items) {
 			foreach ($items as $item) yield $name => $item;
