@@ -6,6 +6,8 @@ use PHPUnit\Framework\TestCase;
 
 use lola\inject\IInjector;
 use lola\inject\IInjectable;
+use lola\io\connect\IConnection;
+use lola\io\connect\IConnectionFactory;
 use lola\io\http\IHttpMessage;
 use lola\io\http\IHttpMessageFactory;
 use lola\io\http\HttpDriver;
@@ -17,6 +19,22 @@ use lola\io\mime\IMimePayload;
 class HttpDriverTest
 extends TestCase
 {
+
+	private function _mockConnectionFactory() : IConnectionFactory {
+		$ins = $this
+			->getMockBuilder(IConnectionFactory::class)
+			->getMock();
+
+		$ins
+			->expects($this->any())
+			->method('getConnection')
+			->with()
+			->willReturnCallback(function() {
+				return new \lola\io\connect\Connection();
+			});
+
+		return $ins;
+	}
 
 	private function _mockMessageFactory() : IHttpMessageFactory {
 		$ins = $this
@@ -43,10 +61,12 @@ extends TestCase
 			->expects($this->any())
 			->method('produce')
 			->with($this->logicalOr(
+				$this->equalTo(\lola\io\connect\RemoteConnectionFactory::class),
 				$this->equalTo(\lola\io\http\RemoteRequestFactory::class)
 			))
 			->willReturnCallback(function(string $qname) {
 				switch($qname) {
+					case \lola\io\connect\RemoteConnectionFactory::class : return $this->_mockConnectionFactory();
 					case \lola\io\http\RemoteRequestFactory::class : return $this->_mockMessageFactory();
 				}
 			});
@@ -127,6 +147,21 @@ extends TestCase
 
 		$this->assertEquals($driver, $driver->setConfig($config));
 		$this->assertEquals($config, $driver->useConfig());
+	}
+
+
+	public function testUseConnection() {
+		$driver = $this->_produceDriver();
+
+		$this->assertInstanceOf(IConnection::class, $driver->useConnection());
+	}
+
+	public function testSetConnection() {
+		$driver = $this->_produceDriver();
+		$connection = new \lola\io\connect\Connection();
+
+		$this->assertSame($driver, $driver->setConnection($connection));
+		$this->assertSame($connection, $driver->useConnection());
 	}
 
 
