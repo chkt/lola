@@ -23,6 +23,8 @@ implements IMimeConfig, IHttpConfig
 	}
 
 	static public function buildHeader(string $default, array $params) : string {
+		if (count($params) === 0) return $default;
+
 		$res = [];
 
 		foreach ($params as $name => $value) $res[] = $name . '=' . $value;
