@@ -1,11 +1,13 @@
 <?php
 
-require_once('MockDriver.php');
+namespace test\io\http;
 
 use PHPUnit\Framework\TestCase;
 
+use lola\io\http\IHttpMessage;
+use lola\io\http\IHttpDriver;
+use lola\io\http\HttpMessage;
 use lola\io\http\HttpCookies;
-use test\io\http\MockDriver;
 
 
 
@@ -13,17 +15,45 @@ class HttpCookiesTest
 extends TestCase
 {
 
-	private $_driver = null;
+	private function _produceMessage(array $cookies = null) {
+		if (is_null($cookies)) $cookies = [
+			'a=foo',
+			'b=bar'
+		];
 
+		$headers = [
+			IHttpMessage::HEADER_COOKIE => [ implode('; ', $cookies) ]
+		];
 
-	public function __construct() {
-		parent::__construct();
-
-		$this->_driver = new MockDriver();
+		return new HttpMessage('', $headers);
 	}
 
+
+	private function _mockDriver(IHttpMessage $message = null) : IHttpDriver {
+		if (is_null($message)) $message = $this->_produceMessage();
+
+		$driver = $this
+			->getMockBuilder(IHttpDriver::class)
+			->getMock();
+
+		$driver
+			->expects($this->any())
+			->method('useRequestMessage')
+			->with()
+			->willReturnReference($message);
+
+		return $driver;
+	}
+
+	private function _produceCookies(IHttpDriver $driver = null) {
+		if (is_null($driver)) $driver = $this->_mockDriver();
+
+		return new HttpCookies($driver);
+	}
+
+
 	public function testHasChanges() {
-		$cookies = new HttpCookies($this->_driver);
+		$cookies = $this->_produceCookies();
 
 		$this->assertFalse($cookies->hasChanges());
 
@@ -33,7 +63,7 @@ extends TestCase
 	}
 
 	public function testGetChangedNames() {
-		$cookies = new HttpCookies($this->_driver);
+		$cookies = $this->_produceCookies();
 
 		$this->assertEquals($cookies->getChangedNames(), []);
 
@@ -45,7 +75,7 @@ extends TestCase
 	}
 
 	public function testHasCookie() {
-		$cookies = new HttpCookies($this->_driver);
+		$cookies = $this->_produceCookies();
 
 		$this->assertTrue($cookies->hasCookie('a'));
 		$this->assertTrue($cookies->hasCookie('b'));
@@ -57,7 +87,7 @@ extends TestCase
 	}
 
 	public function testIsUpdated() {
-		$cookies = new HttpCookies($this->_driver);
+		$cookies = $this->_produceCookies();
 
 		$this->assertFalse($cookies->isUpdated('a'));
 		$this->assertFalse($cookies->isUpdated('b'));
@@ -69,7 +99,7 @@ extends TestCase
 	}
 
 	public function testIsRemoved() {
-		$cookies = new HttpCookies($this->_driver);
+		$cookies = $this->_produceCookies();
 
 		$this->assertFalse($cookies->isRemoved('a'));
 		$this->assertFalse($cookies->isRemoved('b'));
@@ -81,7 +111,7 @@ extends TestCase
 	}
 
 	public function testIsSecure() {
-		$cookies = new HttpCookies($this->_driver);
+		$cookies = $this->_produceCookies();
 
 		$this->assertFalse($cookies->isSecure('a'));
 		$this->assertFalse($cookies->isSecure('b'));
@@ -95,7 +125,7 @@ extends TestCase
 	}
 
 	public function testIsHttpOnly() {
-		$cookies = new HttpCookies($this->_driver);
+		$cookies = $this->_produceCookies();
 
 		$this->assertFalse($cookies->isHttpOnly('a'));
 		$this->assertFalse($cookies->isHttpOnly('b'));
@@ -109,7 +139,7 @@ extends TestCase
 	}
 
 	public function testGetValue() {
-		$cookies = new HttpCookies($this->_driver);
+		$cookies = $this->_produceCookies();
 
 		$this->assertEquals($cookies->getValue('a'), 'foo');
 		$this->assertEquals($cookies->getValue('b'), 'bar');
@@ -126,7 +156,7 @@ extends TestCase
 	}
 
 	public function testGetExpiry() {
-		$cookies = new HttpCookies($this->_driver);
+		$cookies = $this->_produceCookies();
 
 		$this->assertEquals($cookies->getExpiry('a'), 0);
 		$this->assertEquals($cookies->getExpiry('b'), 0);
@@ -143,7 +173,7 @@ extends TestCase
 	}
 
 	public function testGetPath() {
-		$cookies = new HttpCookies($this->_driver);
+		$cookies = $this->_produceCookies();
 
 		$this->assertEquals($cookies->getPath('a'), '');
 		$this->assertEquals($cookies->getPath('b'), '');
@@ -162,7 +192,7 @@ extends TestCase
 	}
 
 	public function testGetDomain() {
-		$cookies = new HttpCookies($this->_driver);
+		$cookies = $this->_produceCookies();
 
 		$this->assertEquals($cookies->getDomain('a'), '');
 		$this->assertEquals($cookies->getDomain('b'), '');
@@ -181,7 +211,7 @@ extends TestCase
 	}
 
 	public function testSet() {
-		$cookies = new HttpCookies($this->_driver);
+		$cookies = $this->_produceCookies();
 
 		$this->assertFalse($cookies->hasCookie('c'));
 		$this->assertEquals($cookies->set('c', 'baz'), $cookies);
@@ -203,7 +233,7 @@ extends TestCase
 	}
 
 	public function testReset() {
-		$cookies = new HttpCookies($this->_driver);
+		$cookies = $this->_produceCookies();
 
 		$cookies->set('c', 'quux', 1234, [
 			'http' => true,
