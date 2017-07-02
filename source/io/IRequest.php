@@ -20,9 +20,9 @@ interface IRequest
 	public function setTime(int $time) : IRequest;
 
 
-	public function getProtocol() : string;
+	public function getTLS() : bool;
 
-	public function setProtocol(string $protocol) : IRequest;
+	public function setTLS(bool $tls) : IRequest;
 
 
 	public function getHostName() : string;
@@ -35,7 +35,7 @@ interface IRequest
 	public function setPath(string $path) : IRequest;
 
 
-	public function& useQuery() : array;
+	public function getQuery() : array;
 
 	public function setQuery(array $query) : IRequest;
 }
