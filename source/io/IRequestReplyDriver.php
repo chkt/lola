@@ -2,9 +2,7 @@
 
 namespace lola\io;
 
-use lola\io\IRequest;
-use lola\io\IReply;
-use lola\io\IClient;
+use lola\io\connect\IConnection;
 
 
 
@@ -16,6 +14,11 @@ interface IRequestReplyDriver
 	public function& useReply() : IReply;
 
 	public function& useClient() : IClient;
+
+
+	public function& useConnection() : IConnection;
+
+	public function setConnection(IConnection& $connection) : IRequestReplyDriver;
 
 
 	public function sendReply();

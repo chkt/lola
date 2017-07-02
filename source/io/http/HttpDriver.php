@@ -5,10 +5,12 @@ namespace lola\io\http;
 use lola\inject\IInjector;
 use lola\inject\IInjectable;
 
+use lola\io\IRequestReplyDriver;
 use lola\type\IStateTransform;
 use lola\io\IRequest;
 use lola\io\IReply;
 use lola\io\IClient;
+use lola\io\connect\IConnection;
 use lola\io\mime\IMimePayload;
 
 use lola\io\mime\MimePayload;
@@ -35,6 +37,7 @@ implements IHttpDriver, IInjectable
 	private $_cookies;
 
 	private $_config;
+	private $_connection;
 	private $_requestMessage;
 	private $_replyResource;
 	private $_transform;
@@ -50,6 +53,7 @@ implements IHttpDriver, IInjectable
 		$this->_cookies = null;
 
 		$this->_config = null;
+		$this->_connection = null;
 		$this->_requestMessage = null;
 		$this->_replyResource = null;
 		$this->_transform = null;
@@ -101,6 +105,21 @@ implements IHttpDriver, IInjectable
 
 	public function setConfig(IHttpConfig& $config) : IHttpDriver {
 		$this->_config = $config;
+
+		return $this;
+	}
+
+
+	public function& useConnection() : IConnection {
+		if (is_null($this->_connection)) $this->_connection = $this->_injector
+			->produce(\lola\io\connect\RemoteConnectionFactory::class)
+			->getConnection();
+
+		return $this->_connection;
+	}
+
+	public function setConnection(IConnection & $connection) : IRequestReplyDriver {
+		$this->_connection = $connection;
 
 		return $this;
 	}
