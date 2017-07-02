@@ -62,12 +62,14 @@ extends TestCase
 			->method('produce')
 			->with($this->logicalOr(
 				$this->equalTo(\lola\io\connect\RemoteConnectionFactory::class),
-				$this->equalTo(\lola\io\http\RemoteRequestFactory::class)
+				$this->equalTo(\lola\io\http\RemoteRequestFactory::class),
+				$this->equalTo(\lola\io\http\RemoteReplyFactory::class)
 			))
 			->willReturnCallback(function(string $qname) {
 				switch($qname) {
 					case \lola\io\connect\RemoteConnectionFactory::class : return $this->_mockConnectionFactory();
 					case \lola\io\http\RemoteRequestFactory::class : return $this->_mockMessageFactory();
+					case \lola\io\http\RemoteReplyFactory::class : return new $qname();
 				}
 			});
 
@@ -175,23 +177,23 @@ extends TestCase
 		$driver = $this->_produceDriver();
 		$message = new HttpMessage('');
 
-		$this->assertEquals($driver, $driver->setRequestMessage($message));
+		$this->assertSame($driver, $driver->setRequestMessage($message));
 		$this->assertSame($message, $driver->useRequestMessage());
 	}
 
 
-	public function testUseReplyResource() {
+	public function testUseReplyMessage() {
 		$driver = $this->_produceDriver();
 
-		$this->assertInstanceOf('\lola\io\http\HttpReplyResource', $driver->useReplyResource());
+		$this->assertInstanceOf(IHttpMessage::class, $driver->useReplyMessage());
 	}
 
-	public function testSetReplyResource() {
+	public function testSetReplyMessage() {
 		$driver = $this->_produceDriver();
-		$resource = new \lola\io\http\HttpReplyResource();
+		$message = new HttpMessage('');
 
-		$this->assertEquals($driver, $driver->setReplyResource($resource));
-		$this->assertEquals($resource, $driver->useReplyResource());
+		$this->assertSame($driver, $driver->setReplyMessage($message));
+		$this->assertSame($message, $driver->useReplyMessage());
 	}
 
 	public function testUseReplyTransform() {

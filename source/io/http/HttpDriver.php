@@ -39,7 +39,7 @@ implements IHttpDriver, IInjectable
 	private $_config;
 	private $_connection;
 	private $_requestMessage;
-	private $_replyResource;
+	private $_replyMessage;
 	private $_transform;
 
 
@@ -55,7 +55,7 @@ implements IHttpDriver, IInjectable
 		$this->_config = null;
 		$this->_connection = null;
 		$this->_requestMessage = null;
-		$this->_replyResource = null;
+		$this->_replyMessage = null;
 		$this->_transform = null;
 	}
 
@@ -140,14 +140,16 @@ implements IHttpDriver, IInjectable
 	}
 
 
-	public function& useReplyResource() : IHttpReplyResource {
-		if (is_null($this->_replyResource)) $this->_replyResource = new HttpReplyResource();
+	public function& useReplyMessage() : IHttpMessage {
+		if (is_null($this->_replyMessage)) $this->_replyMessage = $this->_injector
+			->produce(RemoteReplyFactory::class)
+			->getMessage();
 
-		return $this->_replyResource;
+		return $this->_replyMessage;
 	}
 
-	public function setReplyResource(IHttpReplyResource& $resource) : IHttpDriver {
-		$this->_replyResource =& $resource;
+	public function setReplyMessage(IHttpMessage& $message) : IHttpDriver {
+		$this->_replyMessage =& $message;
 
 		return $this;
 	}
