@@ -144,10 +144,23 @@ extends TestCase
 
 
 	public function testIterateHeaders() {
-		$headers = $this->_produceMockHeaders();
+		$location = [ '/path/to/resource'];
+		$cookie = [
+			'foo=bah',
+			'bang=;Expires=Thu, 01 Jan 1970 00:00:00 GMT'
+		];
+		$date = [ 'Thu, 01 Jan 1970 00:00:10 GMT' ];
+
+		$headers = [
+			IHttpMessage::HEADER_LOCATION => $location,
+			IHttpMessage::HEADER_SET_COOKIE => $cookie,
+			IHttpMessage::HEADER_DATE => $date
+		];
 		$message = $this->_produceMessage('', $headers);
 
-		$iterator = $message->iterateHeaders();
+		$iterator = $message->iterateHeaders([
+			IHttpMessage::HEADER_DATE
+		]);
 
 		$this->assertInstanceOf(\Generator::class, $iterator);
 
@@ -159,7 +172,11 @@ extends TestCase
 			$cmp[$name][] = $value;
 		}
 
-		$this->assertEquals($cmp, $headers);
+		$this->assertEquals([
+			IHttpMessage::HEADER_DATE => $date,
+			IHttpMessage::HEADER_SET_COOKIE => $cookie,
+			IHttpMessage::HEADER_LOCATION => $location
+		], $cmp);
 	}
 
 
