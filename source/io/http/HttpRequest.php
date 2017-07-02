@@ -2,15 +2,12 @@
 
 namespace lola\io\http;
 
-use lola\io\http\IHttpDriver;
-use lola\io\http\IHttpRequest;
-
 use lola\io\IRequest;
 use lola\io\IReply;
 use lola\io\IClient;
+use lola\io\connect\IConnection;
 use lola\io\mime\IMimeContainer;
 use lola\io\mime\IMimePayload;
-use lola\io\http\IHttpCookies;
 
 
 
@@ -18,27 +15,19 @@ class HttpRequest
 implements IHttpRequest
 {
 
-	const VERSION = '0.6.1';
-
-
-
 	private $_driver;
-	private $_source;
 	private $_rules;
 
-	private $_properties;
-	private $_headers;
-	private $_body;
+	private $_connection;
+	private $_message;
 
 
 	public function __construct(IHttpDriver& $driver) {
 		$this->_driver =& $driver;
-		$this->_source = $driver->useRequestResource();
 		$this->_rules = $driver->useConfig();
 
-		$this->_properties = [];
-		$this->_headers = [];
-		$this->_body = null;
+		$this->_connection = $driver->useConnection();
+		$this->_message = $driver->useRequestMessage();
 	}
 
 
@@ -60,133 +49,131 @@ implements IHttpRequest
 
 
 	public function getTime() : int {
-		if (!array_key_exists('time', $this->_properties)) $this->_properties['time'] = $this->_source->getTime();
-
-		return $this->_properties['time'];
+		return $this->_connection->getInt(IConnection::CONNECTION_TIME);
 	}
 
 	public function setTime(int $time) : IRequest {
 		if ($time < 0) throw new \ErrorException();
 
-		$this->_properties['time'] = $time;
+		$this->_connection->setInt(IConnection::CONNECTION_TIME, $time);
 
 		return $this;
 	}
 
 
-	public function getProtocol() : string {
-		if (!array_key_exists('protocol', $this->_properties)) $this->_properties['protocol'] = $this->_source->getProtocol();
-
-		return $this->_properties['protocol'];
+	public function getTLS() : bool {
+		return $this->_connection->getBool(IConnection::CONNECTION_TLS);
 	}
 
-	public function setProtocol(string $protocol) : IRequest {
-		if (!$this->_rules->isProtocol($protocol)) throw new \ErrorException();
-
-		$this->_properties['protocol'] = $protocol;
+	public function setTLS(bool $tls) : IRequest {
+		$this->_connection->setBool(IConnection::CONNECTION_TLS, $tls);
 
 		return $this;
 	}
 
 
 	public function getHostName() : string {
-		if (!array_key_exists('host', $this->_properties)) $this->_properties['host'] = $this->_source->getHostName();
-
-		return $this->_properties['host'];
+		return $this->_connection->getString(IConnection::HOST_NAME);
 	}
 
 	public function setHostName(string $hostName) : IRequest {
-		if (empty($hostName)) throw new \ErrorException();
-
-		$this->_properties['host'] = $hostName;
+		$this->_connection->setString(IConnection::HOST_NAME, $hostName);
 
 		return $this;
 	}
 
 
 	public function getPath() : string {
-		if (!array_key_exists('path', $this->_properties)) $this->_properties['path'] = $this->_source->getPath();
-
-		return $this->_properties['path'];
+		return parse_url(explode(' ', $this->_message->getStartLine(), 3)[1], PHP_URL_PATH);
 	}
 
 	public function setPath(string $path) : IRequest {
-		$this->_properties['path'] = $path;
+		$line = explode(' ', $this->_message->getStartLine(), 3);
+		$uri = explode('?', $line[1], 2);
+		$uri[0] = $path;
+		$line[1] = implode('?', $uri);
+
+		$this->_message->setStartLine(implode(' ', $line));
 
 		return $this;
 	}
 
 
-	public function& useQuery() : array {
-		if (!array_key_exists('query', $this->_properties)) $this->_properties['query'] = $this->_source->getQuery();
+	public function getQuery() : array {
+		$res = [];
 
-		return $this->_properties['query'];
+		parse_str(parse_url(explode(' ', $this->_message->getStartLine(), 3)[1], PHP_URL_QUERY), $res);
+
+		return $res;
 	}
 
 	public function setQuery(array $query) : IRequest {
-		foreach ($query as $key => $value) {
-			if (!is_string($value)) throw new \ErrorException();
-		}
+		$line = explode(' ', $this->_message->getStartLine(), 3);
+		$uri = explode('?', $line[1], 2);
+		$uri[1] = http_build_query($query, '', '&', PHP_QUERY_RFC3986);
+		$line[1] = implode('?', $uri);
 
-		$this->_properties['query'] = $query;
+		$this->_message->setStartLine(implode(' ', $line));
 
 		return $this;
 	}
 
 
 	public function getMethod() : string {
-		if (!array_key_exists('method', $this->_properties)) $this->_properties['method'] = $this->_source->getMethod();
-
-		return $this->_properties['method'];
+		return explode(' ', $this->_message->getStartLine(), 3)[0];
 	}
 
 	public function setMethod(string $method) : IHttpRequest {
 		if (!$this->_rules->isMethod($method)) throw new \ErrorException();
 
-		$this->_properties['method'] = $method;
+		$line = explode(' ', $this->_message->getStartLine(), 3);
+		$line[0] = $method;
+
+		$this->_message->setStartLine(implode(' ', $line));
 
 		return $this;
 	}
 
 
 	public function getMime() : string {
-		if (!array_key_exists('mime', $this->_properties)) $this->_properties['mime'] = $this->_source->getMime();
-
-		return $this->_properties['mime'];
+		return HttpConfig::parseHeader($this->_message->getHeader(IHttpMessage::HEADER_CONTENT_TYPE))[IHttpConfig::HEADER_PARAM_DEFAULT];
 	}
 
 	public function setMime(string $mime) : IMimeContainer {
 		if (!$this->_rules->isMime($mime)) throw new \ErrorException();
 
-		$this->_properties['mime'] = $mime;
+		$this->_message->setHeader(
+			IHttpMessage::HEADER_CONTENT_TYPE,
+			HttpConfig::injectHeader($this->_message->getHeader(IHttpMessage::HEADER_CONTENT_TYPE), [ IHttpConfig::HEADER_PARAM_DEFAULT => $mime ]));
 
 		return $this;
 	}
 
 
 	public function getEncoding() : string {
-		if (!array_key_exists('encoding', $this->_properties)) $this->_properties['encoding'] = $this->_source->getEncoding();
+		$props = HttpConfig::parseHeader($this->_message->getHeader(IHttpMessage::HEADER_CONTENT_TYPE));
 
-		return $this->_properties['encoding'];
+		return array_key_exists('charset', $props) ? $props['charset'] : '';
 	}
 
 	public function setEncoding(string $encoding) : IMimeContainer {
 		if (!$this->_rules->isEncoding($encoding)) throw new \ErrorException();
 
-		$this->_properties['encoding'] = $encoding;
+		$this->_message->setHeader(
+			IHttpMessage::HEADER_CONTENT_TYPE,
+			HttpConfig::injectHeader($this->_message->getHeader(IHttpMessage::HEADER_CONTENT_TYPE), ['charset' => $encoding])
+		);
 
 		return $this;
 	}
 
 
-	public function& useAcceptMimes() : array {
-		if (!array_key_exists('acceptMimes', $this->_properties)) $this->_properties['acceptMimes'] = $this->_source->getAcceptMimes();
-
-		return $this->_properties['acceptMimes'];
+	public function getAcceptMimes() : array {
+		return HttpConfig::parseWeightedHeader($this->_message->getHeader(IHttpMessage::HEADER_ACCEPT_MIME));
 	}
 
 	public function getPreferedAcceptMime(array $mimes) : string {
-		$accept = $this->useAcceptMimes();
+		$accept = $this->getAcceptMimes();
 
 		foreach ($accept as $mime => $score) {
 			if (in_array($mime, $mimes)) return $mime;
@@ -197,26 +184,21 @@ implements IHttpRequest
 
 	public function setAcceptMimes(array $mimes) : IHttpRequest {
 		foreach ($mimes as $mime => $score) {
-			if (
-				!$this->_rules->isMime($mime) ||
-				!is_float($score) || $score < 0.0 || $score > 1.0
-			) throw new \ErrorException();
+			if (!$this->_rules->isMime($mime)) throw new \ErrorException();
 		}
 
-		$this->_properties['acceptMimes'] = $mimes;
+		$this->_message->setHeader(IHttpMessage::HEADER_ACCEPT_MIME, HttpConfig::buildWeightedHeader($mimes));
 
 		return $this;
 	}
 
 
-	public function& useAcceptLanguages() : array {
-		if (!array_key_exists('acceptLanguages', $this->_properties)) $this->_properties['acceptLanguages'] = $this->_source->getAcceptLanguages();
-
-		return $this->_properties['acceptLanguages'];
+	public function getAcceptLanguages() : array {
+		return HttpConfig::parseWeightedHeader($this->_message->getHeader(IHttpMessage::HEADER_ACCEPT_LANGUAGE));
 	}
 
 	public function getPreferedAcceptLanguage(array $langs) : string {
-		$accept = $this->useAcceptLanguages();
+		$accept = $this->getAcceptLanguages();
 
 		foreach ($accept as $lang => $score) {
 			if (in_array($lang, $langs)) return $lang;
@@ -226,61 +208,39 @@ implements IHttpRequest
 	}
 
 	public function setAcceptLanguages(array $langs) : IHttpRequest {
-		foreach ($langs as $score) {
-			if (!is_float($score) || $score < 0.0 || $score > 1.0) throw new \ErrorException();
-		}
-
-		$this->_properties['acceptLanguages'] = $langs;
+		$this->_message->setHeader(IHttpMessage::HEADER_ACCEPT_LANGUAGE, HttpConfig::buildWeightedHeader($langs));
 
 		return $this;
 	}
 
 
 	public function hasHeader(string $name) : bool {
-		if (empty($name)) throw new \ErrorException();
-
-		return array_key_exists($name, $this->_headers) || $this->_source->hasHeader($name);
+		return $this->_message->hasHeader($name);
 	}
 
 	public function getHeader(string $name) : string {
-		if (empty($name)) throw new \ErrorException();
-
-		switch ($name) {
-			case 'Content-Type' : return $this->_rules->buildHeader($this->getMime(), [ 'charset' => $this->getEncoding() ]);
-			case 'Accept' : return $this->_rules->buildWeightedHeader($this->useAcceptMimes());
-			case 'Accept-Language' : return $this->_rules->buildWeightedHeader($this->useAcceptLanguages());
-		}
-
-		if (!array_key_exists($name, $this->_headers)) $this->_headers[$name] = $this->_source->getHeader($name);
-
-		return $this->_headers[$name];
+		return $this->_message->getHeader($name);
 	}
 
 	public function setHeader(string $name, string $value) : IHttpRequest {
-		if (empty($name)) throw new \ErrorException();
+		$this->_message->setHeader($name, $value);
 
-		if ($name === 'Content-Type') {
-			$params = $this->_rules->parseHeader($value);
+		return $this;
+	}
 
-			$this->_properties['mime'] = $params[IHttpConfig::HEADER_PARAM_DEFAULT];
-			$this->_properties['encoding'] = $params['charset'];
-		}
-		else if ($name === 'Accept') $this->_properties['acceptMimes'] = $this->_rules->parseWeightedHeader($value);
-		else if ($name === 'Accept-Language') $this->_properties['acceptLanguages'] = $this->_rules->parseWeightedHeader($value);
-		else $this->_headers[$name] = $value;
+	public function resetHeader(string $name) : IHttpRequest {
+		$this->_message->resetHeader($name);
 
 		return $this;
 	}
 
 
 	public function getBody() : string {
-		if (is_null($this->_body)) $this->_body = $this->_source->getBody();
-
-		return $this->_body;
+		return $this->_message->getBody();
 	}
 
 	public function setBody(string $body) : IMimeContainer {
-		$this->_body = $body;
+		$this->_message->setBody($body);
 
 		return $this;
 	}
