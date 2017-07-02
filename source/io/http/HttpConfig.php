@@ -3,7 +3,6 @@
 namespace lola\io\http;
 
 use lola\io\mime\IMimeConfig;
-use lola\io\http\IHttpConfig;
 
 use lola\io\mime\IMimeParser;
 use lola\io\mime\parser\FormMimeParser;
@@ -14,9 +13,6 @@ use lola\io\mime\parser\JSONMimeParser;
 class HttpConfig
 implements IMimeConfig, IHttpConfig
 {
-
-	const VERSION = '0.6.1';
-
 
 	static public function parseHeader(string $header) : array {
 		$data = [];
@@ -32,6 +28,19 @@ implements IMimeConfig, IHttpConfig
 		foreach ($params as $name => $value) $res[] = $name . '=' . $value;
 
 		return $default . ';' . implode(';', $res);
+	}
+
+	static public function injectHeader(string $header, array $params) : string {
+		$data = [];
+
+		parse_str(self::HEADER_PARAM_DEFAULT . '=' . str_replace(';', '&', $header), $data);
+
+		$items = array_merge($data, $params);
+		$res = [];
+
+		foreach ($items as $key => $value) $res[] = $key . '=' . $value;
+
+		return substr(implode(';', $res), 3);
 	}
 
 	static public function parseWeightedHeader(string $header) : array {

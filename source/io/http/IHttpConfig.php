@@ -51,6 +51,8 @@ interface IHttpConfig
 
 	static function buildHeader(string $default, array $params) : string;
 
+	static function injectHeader(string $header, array $params) : string;
+
 	static function parseWeightedHeader(string $header) : array;
 
 	static function buildWeightedHeader(array $params) : string;
