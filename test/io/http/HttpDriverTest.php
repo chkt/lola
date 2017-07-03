@@ -6,6 +6,7 @@ use PHPUnit\Framework\TestCase;
 
 use lola\inject\IInjector;
 use lola\inject\IInjectable;
+use lola\type\AStateTransform;
 use lola\io\connect\IConnection;
 use lola\io\connect\IConnectionFactory;
 use lola\io\http\IHttpMessage;
@@ -196,27 +197,14 @@ extends TestCase
 		$this->assertSame($message, $driver->useReplyMessage());
 	}
 
-	public function testUseReplyTransform() {
-		$driver = $this->_produceDriver();
-
-		$this->assertInstanceOf('\lola\io\http\HttpReplyTransform', $driver->useReplyTransform());
-	}
-
-	public function testSetReplyTransform() {
-		$driver = $this->_produceDriver();
-		$transform = new \lola\io\http\HttpReplyTransform;
-
-		$this->assertEquals($driver, $driver->setReplyTransform($transform));
-		$this->assertEquals($transform, $driver->useReplyTransform());
-	}
 
 	public function testSendReply() {
 		$driver = $this->_produceDriver();
 
 		$transform = $this
-			->getMockBuilder('\lola\io\http\HttpReplyTransform')
+			->getMockBuilder(AStateTransform::class)
 			->setMethods(['setTarget', 'process'])
-			->getMock();
+			->getMockForAbstractClass();
 
 		$transform
 			->expects($this->at(0))
