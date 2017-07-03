@@ -104,7 +104,11 @@ extends TestCase
 
 		$transform->redirectBodyStep($driver);
 
-		$this->assertEquals('', $message->getBody());
+		$str = '<!DOCTYPE html>' .
+			'<html><head><title>302 - Found</title></head>' .
+			'<body><p>302 - Found: <a href="/path/to/resource">/path/to/resource</a></p></body></html>';
+
+		$this->assertEquals($str, $message->getBody());
 	}
 
 	public function testSetContentLengthStep() {
@@ -146,10 +150,31 @@ extends TestCase
 		$transform = $this->_produceTransform();
 
 		$body = '';
+		$fopen = $this->getFunctionMock('\lola\io\http', 'fopen');
+		$fopen
+			->expects($this->once())
+			->with($this->equalTo('php://output'), $this->equalTo('r+'))
+			->willReturn(1);
+
+		$fwrite = $this->getFunctionMock('\lola\io\http', 'fwrite');
+		$fwrite
+			->expects($this->once())
+			->with($this->equalTo(1), $this->isType('string'))
+			->willReturnCallback(function(int $handle, string $content) use (& $body) {
+				$body = $content;
+			});
+
+		$fclose = $this->getFunctionMock('\lola\io\http', 'fclose');
+		$fclose
+			->expects($this->once())
+			->with($this->equalTo(1))
+			->willReturn(true);
+
+		$driver->useReplyMessage()->setBody('foo=bar&baz=quux,bang');
 
 		$transform->sendBodyStep($driver);
 
-		$this->assertEquals('', $body);
+		$this->assertEquals('foo=bar&baz=quux,bang', $body);
 	}
 
 	public function testExitStep() {
