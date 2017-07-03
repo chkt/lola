@@ -1,10 +1,18 @@
 <?php
 
-require_once('test/io/http/MockDriver.php');
+namespace test\log;
 
 use PHPUnit\Framework\TestCase;
 use phpmock\phpunit\PHPMock;
 
+use lola\inject\IInjector;
+use lola\io\connect\IConnection;
+use lola\io\connect\Connection;
+use lola\io\http\IHttpMessage;
+use lola\io\http\IHttpDriver;
+use lola\io\http\HttpMessage;
+use lola\io\http\HttpDriver;
+use lola\log\ILogger;
 use lola\log\FileLogger;
 use test\io\http\MockDriver;
 use lola\ctrl\AReplyController;
@@ -18,20 +26,71 @@ extends TestCase
 	use PHPMock;
 
 
+	private function _mockInjector() : IInjector {
+		$injector = $this
+			->getMockBuilder(IInjector::class)
+			->getMock();
 
-	public function testLogRequest() {
+		$injector
+			->expects($this->any())
+			->method('produce')
+			->with($this->logicalOr(
+				$this->equalTo(\lola\io\http\RemoteReplyFactory::class)
+			))
+			->willReturnCallback(function (string $qname) {
+				return new $qname;
+			});
+
+		return $injector;
+	}
+
+	private function _produceConnection() : IConnection {
+		$data = [];
+
+		return new Connection($data);
+	}
+
+	private function _produceRequestMessage() : IHttpMessage {
+		return new HttpMessage('GET / HTTP/1.1');
+	}
+
+	private function _produceDriver(IInjector $injector = null) : IHttpDriver {
+		if (is_null($injector)) $injector = $this->_mockInjector();
+
+		$driver = new HttpDriver($injector);
+		$connection = $this->_produceConnection();
+		$request = $this->_produceRequestMessage();
+
+		$driver
+			->setConnection($connection)
+			->setRequestMessage($request);
+
+		return $driver;
+	}
+
+	private function _produceLogger() : ILogger {
+		return new Filelogger();
+	}
+
+
+	private function _mock_error_log(string $message) {
 		$this
 			->getFunctionMock('\lola\log', 'error_log')
 			->expects($this->exactly(1))
 			->with($this->isType('string'))
-			->willReturnCallback(function($string) {
-				$this->assertEquals("\033[35m\033[1m<\033[0m \033[1mPOST\033[0m \033[32m\033[1m/path/to/resource\033[0m ", $string);
+			->willReturnCallback(function($string) use ($message) {
+				$this->assertEquals($message, $string);
 
 				return true;
 			});
+	}
 
-		$logger = new FileLogger();
-		$driver = new MockDriver();
+
+	public function testLogRequest() {
+		$this->_mock_error_log("\033[35m\033[1m<\033[0m \033[1mPOST\033[0m \033[32m\033[1m/path/to/resource\033[0m ");
+
+		$logger = $this->_produceLogger();
+		$driver = $this->_produceDriver();
 		$request =& $driver->useRequest();
 
 		$request
@@ -42,18 +101,10 @@ extends TestCase
 	}
 
 	public function testLogReply() {
-		$this
-			->getFunctionMock('\lola\log', 'error_log')
-			->expects($this->exactly(1))
-			->with($this->isType('string'))
-			->willReturnCallback(function ($string) {
-				$this->assertEquals("\033[35m\033[1m>\033[0m \033[1m302 - Found\033[0m REDIRECT \033[32m\033[1m/path/to/resource\033[0m ", $string);
+		$this->_mock_error_log("\033[35m\033[1m>\033[0m \033[1m302 - Found\033[0m REDIRECT \033[32m\033[1m/path/to/resource\033[0m ");
 
-				return true;
-			});
-
-		$logger = new FileLogger();
-		$driver = new MockDriver();
+		$logger = $this->_produceLogger();
+		$driver = $this->_produceDriver();
 		$reply =& $driver->useReply();
 
 		$reply
@@ -64,18 +115,10 @@ extends TestCase
 	}
 
 	public function testLogClient() {
-		$this
-			->getFunctionMock('\lola\log', 'error_log')
-			->expects($this->exactly(1))
-			->with($this->isType('string'))
-			->willReturnCallback(function($string) {
-				$this->assertEquals("\033[35m\033[1m~\033[0m Mozilla/5.0 ", $string);
+		$this->_mock_error_log("\033[35m\033[1m~\033[0m Mozilla/5.0 ");
 
-				return true;
-			});
-
-		$logger = new FileLogger();
-		$driver = new MockDriver();
+		$logger = $this->_produceLogger();
+		$driver = $this->_produceDriver();
 		$client =& $driver->useClient();
 
 		$client
@@ -86,19 +129,10 @@ extends TestCase
 	}
 
 	public function testLogCtrlState() {
-		$errorLog = $this->getFunctionMock('\lola\log', 'error_log');
+		$this->_mock_error_log("\033[35m\033[1m<\033[0m \033[1mPOST\033[0m \033[32m\033[1m/path/to/resource\033[0m \033[35m\033[1m>\033[0m \033[1m302 - Found\033[0m REDIRECT \033[32m\033[1m/path/to/res\033[0m ");
 
-		$errorLog
-			->expects($this->at(0))
-			->with($this->isType('string'))
-			->willReturnCallback(function($string) {
-				$this->assertEquals("\033[35m\033[1m<\033[0m \033[1mPOST\033[0m \033[32m\033[1m/path/to/resource\033[0m \033[35m\033[1m>\033[0m \033[1m302 - Found\033[0m REDIRECT \033[32m\033[1m/path/to/res\033[0m ", $string);
-
-				return true;
-			});
-
-		$logger = new FileLogger();
-		$driver = new MockDriver();
+		$logger = $this->_produceLogger();
+		$driver = $this->_produceDriver();
 
 		$ctrl = $this
 			->getMockBuilder(AReplyController::class)
