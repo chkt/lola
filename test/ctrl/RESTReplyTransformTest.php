@@ -4,7 +4,9 @@ namespace test\ctrl;
 
 use PHPUnit\Framework\TestCase;
 
-use test\io\http\MockDriver;
+use lola\inject\IInjector;
+use lola\io\http\IHttpDriver;
+use lola\io\http\HttpDriver;
 use lola\ctrl\RESTReplyTransform;
 
 
@@ -12,6 +14,32 @@ use lola\ctrl\RESTReplyTransform;
 final class RESTReplyTransformTest
 extends TestCase
 {
+
+	private function _mockInjector() : IInjector {
+		$injector = $this
+			->getMockBuilder(IInjector::class)
+			->getMock();
+
+		$injector
+			->expects($this->any())
+			->method('produce')
+			->with($this->logicalOr(
+				$this->equalTo(\lola\io\http\RemoteReplyFactory::class)
+			))
+			->willReturnCallback(function(string $qname) {
+				return new $qname;
+			});
+
+		return $injector;
+	}
+
+	private function _mockDriver(IInjector $injector = null) : IHttpDriver {
+		if (is_null($injector)) $injector = $this->_mockInjector();
+
+		$driver = new HttpDriver($injector);
+
+		return $driver;
+	}
 
 	public function testViewStep() {
 		$return = new \lola\type\Stack();
@@ -27,7 +55,7 @@ extends TestCase
 			->method('useActionResult')
 			->willReturn($return);
 
-		$driver = new MockDriver();
+		$driver = $this->_mockDriver();
 
 		$ctrl = $this
 			->getMockBuilder('\lola\ctrl\AReplyController')
