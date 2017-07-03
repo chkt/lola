@@ -4,7 +4,9 @@ namespace test\ctrl;
 
 use PHPUnit\Framework\TestCase;
 
-use test\io\http\MockDriver;
+use lola\io\http\IHttpRequest;
+use lola\io\http\IHttpReply;
+use lola\io\http\IHttpDriver;
 use lola\ctrl\AReplyController;
 
 
@@ -13,8 +15,37 @@ class AReplyControllerTest
 extends TestCase
 {
 
-	private function _mockController() {
-		$driver = new MockDriver();
+	private function _mockDriver() {
+		$request = $this
+			->getMockBuilder(IHttpRequest::class)
+			->getMock();
+
+		$reply = $this
+			->getMockBuilder(IHttpReply::class)
+			->getMock();
+
+		$driver = $this
+			->getMockBuilder(IHttpDriver::class)
+			->getMock();
+
+		$driver
+			->expects($this->any())
+			->method('useRequest')
+			->with()
+			->willReturnReference($request);
+
+		$driver
+			->expects($this->any())
+			->method('useReply')
+			->with()
+			->willReturnReference($reply);
+
+		return $driver;
+	}
+
+	private function _mockController(IHttpDriver $driver = null) {
+		if (is_null($driver)) $driver = $this->_mockDriver();
+
 
 		return $this
 			->getMockBuilder(AReplyController::class)
@@ -26,37 +57,34 @@ extends TestCase
 	public function testUseDriver() {
 		$controller = $this->_mockController();
 
-		$this->assertInstanceOf('\lola\io\http\IHttpDriver', $controller->useDriver());
+		$this->assertInstanceOf(IHttpDriver::class, $controller->useDriver());
 	}
 
 	public function testSetDriver() {
+		$driver = $this->_mockDriver();
 		$controller = $this->_mockController();
-		$driver = new \lola\io\http\HttpDriver();
 
-		$this->assertEquals($controller, $controller->setDriver($driver));
-		$this->assertEquals($driver, $controller->useDriver());
+		$this->assertNotSame($driver, $controller->useDriver());
+		$this->assertSame($controller, $controller->setDriver($driver));
+		$this->assertSame($driver, $controller->useDriver());
 	}
 
 	public function testUseRequest() {
+		$driver = $this->_mockDriver();
 		$controller = $this->_mockController();
 
-		$this->assertInstanceOf('\lola\io\http\IHttpRequest', $controller->useRequest());
-
-		$driver = new \lola\io\http\HttpDriver();
-		$controller->setDriver($driver);
-
-		$this->assertEquals($driver->useRequest(), $controller->useRequest());
+		$this->assertInstanceOf(IHttpRequest::class, $controller->useRequest());
+		$this->assertSame($controller, $controller->setDriver($driver));
+		$this->assertSame($driver->useRequest(), $controller->useRequest());
 	}
 
 	public function testUseReply() {
+		$driver = $this->_mockDriver();
 		$controller = $this->_mockController();
 
-		$this->assertInstanceOf('\lola\io\http\IHttpReply', $controller->useReply());
-
-		$driver = new \lola\io\http\HttpDriver();
-		$controller->setDriver($driver);
-
-		$this->assertEquals($driver->useReply(), $controller->useReply());
+		$this->assertInstanceOf(IHttpReply::class, $controller->useReply());
+		$this->assertSame($controller, $controller->setDriver($driver));
+		$this->assertSame($driver->useReply(), $controller->useReply());
 	}
 
 	public function testUseRequestTransform() {
