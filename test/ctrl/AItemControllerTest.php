@@ -4,7 +4,7 @@ namespace test\ctrl;
 
 use PHPUnit\Framework\TestCase;
 
-use test\io\http\MockDriver;
+use lola\io\http\IHttpDriver;
 use lola\ctrl\AItemController;
 
 
@@ -14,7 +14,9 @@ extends TestCase
 {
 
 	private function _mockController() {
-		$driver = new MockDriver();
+		$driver = $this
+			->getMockBuilder(IHttpDriver::class)
+			->getMock();
 
 		return $this
 			->getMockBuilder(AItemController::class)
