@@ -1,6 +1,6 @@
 <?php
 
-require_once('test/io/http/MockDriver.php');
+namespace test\io\mime;
 
 use PHPUnit\Framework\TestCase;
 
