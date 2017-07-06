@@ -18,13 +18,39 @@ final class TreeDataTest
 extends TestCase
 {
 
-	private function _produceData(array $data = null) : TreeData {
-		if (is_null($data)) $data = [
+	private function _produceSampleData() : array {
+		return [
 			'foo' => 1,
 			'bar' => [
 				'foo' => 2
 			]
 		];
+	}
+
+	private function _mockChildClass(array& $data = null) {
+		if (is_null($data)) $data = $this->_produceSampleData();
+
+		$ins = $this
+			->getMockBuilder(TreeData::class)
+			->setConstructorArgs([ & $data ])
+			->setMockClassName('TreeDataChildMock')
+			->setMethods(['_produceInstance'])
+			->getMock();
+
+		$ins
+			->expects($this->any())
+			->method('_produceInstance')
+			->with($this->isType('array'))
+			->willReturnCallback(function(array& $data) {
+				return $this->_mockChildClass($data);
+			});
+
+		return $ins;
+	}
+
+
+	private function _produceData(array& $data = null) : TreeData {
+		if (is_null($data)) $data = $this->_produceSampleData();
 
 		return new TreeData($data);
 	}
@@ -121,6 +147,13 @@ extends TestCase
 		$this->assertTrue($b->hasKey('foo'));
 		$this->assertTrue($b->isLeaf('foo'));
 		$this->assertEquals(2, $b->useItem('foo'));
+	}
+
+	public function testGetBranch_inheritance() {
+		$data = $this->_mockChildClass();
+
+		$b = $data->getBranch('bar');
+		$this->assertInstanceOf(get_class($data), $b);
 	}
 
 	public function testGetBranch_noKey() {
