@@ -72,6 +72,14 @@ extends TestCase
 		$this->assertEquals('debug=0', $message->getHeader(IHttpMessage::HEADER_SET_COOKIE, 1));
 	}
 
+	public function testGetHeader_noHeader() {
+		$message = $this->_produceMessage();
+
+		$this->expectException(\ErrorException::class);
+
+		$message->getHeader(IHttpMessage::HEADER_CONTENT_TYPE);
+	}
+
 	public function testSetHeader() {
 		$message = $this->_produceMessage('', $this->_produceMockHeaders());
 
