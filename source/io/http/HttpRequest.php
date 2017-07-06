@@ -136,7 +136,9 @@ implements IHttpRequest
 
 
 	public function getMime() : string {
-		return HttpConfig::parseHeader($this->_message->getHeader(IHttpMessage::HEADER_CONTENT_TYPE))[IHttpConfig::HEADER_PARAM_DEFAULT];
+		return $this->_message->hasHeader(IHttpMessage::HEADER_CONTENT_TYPE) ?
+			HttpConfig::parseHeader($this->_message->getHeader(IHttpMessage::HEADER_CONTENT_TYPE))[IHttpConfig::HEADER_PARAM_DEFAULT] :
+			'';
 	}
 
 	public function setMime(string $mime) : IMimeContainer {
@@ -151,7 +153,9 @@ implements IHttpRequest
 
 
 	public function getEncoding() : string {
-		$props = HttpConfig::parseHeader($this->_message->getHeader(IHttpMessage::HEADER_CONTENT_TYPE));
+		$props = $this->_message->hasHeader(IHttpMessage::HEADER_CONTENT_TYPE) ?
+			HttpConfig::parseHeader($this->_message->getHeader(IHttpMessage::HEADER_CONTENT_TYPE)) :
+			[];
 
 		return array_key_exists('charset', $props) ? $props['charset'] : '';
 	}
@@ -229,7 +233,7 @@ implements IHttpRequest
 	}
 
 	public function resetHeader(string $name) : IHttpRequest {
-		$this->_message->resetHeader($name);
+		$this->_message->clearHeader($name);
 
 		return $this;
 	}
