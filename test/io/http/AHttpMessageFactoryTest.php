@@ -37,6 +37,12 @@ extends TestCase
 		$this->assertInstanceOf(IHttpMessageFactory::class, $factory);
 	}
 
+
+	public function testDependencyConfig() {
+		$this->assertEquals([], AHttpMessageFactory::getDependencyConfig([]));
+	}
+
+
 	public function testGetMessage() {
 		$factory = $this->_mockFactory();
 		$message = $factory->getMessage();

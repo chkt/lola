@@ -39,6 +39,12 @@ extends TestCase
 		$this->assertInstanceOf(IConnectionFactory::class, $factory);
 	}
 
+
+	public function testDependencyConfig() {
+		$this->assertEquals([], AConnectionFactory::getDependencyConfig([]));
+	}
+
+
 	public function testGetConnection() {
 		$factory = $this->_mockFactory();
 		$connection = $factory->getConnection();
