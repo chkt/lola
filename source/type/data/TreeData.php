@@ -2,13 +2,6 @@
 
 namespace lola\type\data;
 
-use lola\type\data\IItemAccessor;
-use lola\type\data\ITreeAccessor;
-
-use lola\type\data\ITreeAccessException;
-use lola\type\data\TreeBranchException;
-use lola\type\data\TreePropertyException;
-
 
 
 class TreeData
@@ -49,6 +42,11 @@ implements IItemAccessor, ITreeAccessor
 
 	public function __construct(array& $data = []) {
 		$this->_data =& $data;
+	}
+
+
+	protected function _produceInstance(array& $data) {
+		return new TreeData($data);
 	}
 
 
@@ -111,7 +109,7 @@ implements IItemAccessor, ITreeAccessor
 	public function getBranch(string $key) : ITreeAccessor {
 		$data =& self::_useKey($this->_data, $key);
 
-		if (is_array($data)) return new self($data);
+		if (is_array($data)) return $this->_produceInstance($data);
 
 		$pos = strrpos($key, '.');
 
