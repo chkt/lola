@@ -387,6 +387,20 @@ extends TestCase
 		$this->assertEquals('baz', $request->getHeader('Header-3'));
 	}
 
+	public function testResetHeader() {
+		$request = $this->_produceRequest();
+
+		$this->assertSame($request, $request->setHeader(IHttpMessage::HEADER_CONTENT_TYPE, 'text/plain;charset=utf-8'));
+		$this->assertSame($request, $request->resetHeader(IHttpMessage::HEADER_CONTENT_TYPE));
+		$this->assertFalse($request->hasHeader(IHttpMessage::HEADER_CONTENT_TYPE));
+		$this->assertEmpty($request->getMime());
+		$this->assertEmpty($request->getEncoding());
+
+		$this->assertSame($request, $request->setHeader('Header-1', 'foo'));
+		$this->assertSame($request, $request->resetHeader('Header-1'));
+		$this->assertFalse($request->hasHeader('Header-1'));
+	}
+
 
 	public function testGetBody() {
 		$request = $this->_produceRequest();
