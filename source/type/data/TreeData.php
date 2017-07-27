@@ -4,8 +4,23 @@ namespace lola\type\data;
 
 
 
+function array_merge_deep(array $a, array $b) : array {
+	foreach ($b as $key => $item) {
+		if (
+			!is_array($item) ||
+			!array_key_exists($key, $a) ||
+			!is_array($a[$key])
+		) $a[$key] = $item;
+		else $a[$key] = array_merge_deep($a[$key], $b[$key]);
+	}
+
+	return $a;
+}
+
+
+
 class TreeData
-implements IItemAccessor, ITreeAccessor
+implements IItemAccessor, ITreeAccessor, ITreeMutator
 {
 
 	static protected function& _useKey(array& $data, string $key) {
@@ -144,6 +159,38 @@ implements IItemAccessor, ITreeAccessor
 		}
 
 		$ref = $item;
+
+		return $this;
+	}
+
+
+	public function filter(ITreeAccessor $tree, array $filter) : ITreeMutator {
+		$data = $tree->getProjection();
+		$this->_data = [];
+
+		foreach ($filter as $key) $this->setItem($key, self::_useKey($data, $key));
+
+		return $this;
+	}
+
+	public function filterEq(array $filter) : ITreeMutator {
+		$data = $this->_data;
+		$this->_data = [];
+
+		foreach ($filter as $key) $this->setItem($key, self::_useKey($data, $key));
+
+		return $this;
+	}
+
+
+	public function merge(ITreeAccessor $a, ITreeAccessor $b) : ITreeMutator {
+		$this->_data = array_merge_deep($a->getProjection(), $b->getProjection());
+
+		return $this;
+	}
+
+	public function mergeEq(ITreeAccessor $b) : ITreeMutator {
+		$this->_data = array_merge_deep($this->_data, $b->getProjection());
 
 		return $this;
 	}
