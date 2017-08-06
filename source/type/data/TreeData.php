@@ -23,7 +23,24 @@ class TreeData
 implements IItemMutator, ITreeMutator
 {
 
-	static protected function& _useKey(array& $data, string $key) {
+	private $_data;
+
+
+	public function __construct(array& $data = []) {
+		$this->_data =& $data;
+	}
+
+
+	protected function _handleBranchException(TreeBranchException $ex) : bool {
+		return false;
+	}
+
+	protected function _handlePropertyException(TreePropertyException $ex) : bool {
+		return false;
+	}
+
+
+	private function& _useKey(array& $data, string $key) {
 		$segs = explode('.', $key);
 
 		for ($i = 0, $l = count($segs); $i < $l; $i += 1) {
@@ -33,35 +50,31 @@ implements IItemMutator, ITreeMutator
 
 			if (ctype_digit($seg)) $seg = (int) $seg;
 
-			if (!is_array($data)) throw new TreeBranchException(
-				$data,
-				array_slice($segs, 0, $i),
-				array_slice($segs, $i)
-			);
-			else if (!array_key_exists($seg, $data)) throw new TreePropertyException(
-				$data,
-				array_slice($segs, 0, $i),
-				array_slice($segs, $i)
-			);
+			if (!is_array($data)) {
+				$ex = new TreeBranchException(
+					$data,
+					array_slice($segs, 0, $i),
+					array_slice($segs, $i)
+				);
 
-			$data =& $data[$seg];
+				if (!$this->_handleBranchException($ex)) throw $ex;
+
+				$i -= 1;
+			}
+			else if (!array_key_exists($seg, $data)) {
+				$ex = new TreePropertyException($data,
+					array_slice($segs, 0, $i),
+					array_slice($segs, $i)
+				);
+
+				if (!$this->_handlePropertyException($ex)) throw $ex;
+
+				$i -= 1;
+			}
+			else $data =& $data[$seg];
 		}
 
 		return $data;
-	}
-
-
-
-	private $_data;
-
-
-	public function __construct(array& $data = []) {
-		$this->_data =& $data;
-	}
-
-
-	protected function _produceInstance(array& $data) {
-		return new TreeData($data);
 	}
 
 
