@@ -5,6 +5,11 @@ namespace test\type\data;
 
 use PHPUnit\Framework\TestCase;
 
+use lola\type\data\IScalarAccessor;
+use lola\type\data\IScalarMutator;
+use lola\type\data\ICompoundAccessor;
+use lola\type\data\ICompoundMutator;
+use lola\type\data\FlatData;
 use lola\type\data\TypedFlatData;
 
 
@@ -24,6 +29,17 @@ extends TestCase
 		];
 
 		return new TypedFlatData($data);
+	}
+
+
+	public function testInheritance() {
+		$ins = $this->_produceData();
+
+		$this->assertInstanceOf(FlatData::class, $ins);
+		$this->assertInstanceOf(IScalarAccessor::class, $ins);
+		$this->assertInstanceOf(IScalarMutator::class, $ins);
+		$this->assertInstanceOf(ICompoundAccessor::class, $ins);
+		$this->assertInstanceOf(ICompoundMutator::class, $ins);
 	}
 
 
