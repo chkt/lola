@@ -60,25 +60,15 @@ extends TestCase
 		]];
 	}
 
-	private function _mockChildClass(array& $data = null) {
+
+	private function _mockData(array& $data = null) : TreeData {
 		if (is_null($data)) $data = $this->_produceSampleData();
 
-		$ins = $this
+		return $this
 			->getMockBuilder(TreeData::class)
-			->setConstructorArgs([ & $data ])
-			->setMockClassName('TreeDataChildMock')
-			->setMethods(['_produceInstance'])
+			->setConstructorArgs([& $data])
+			->setMethods(['_handleBranchException', '_handlePropertyException'])
 			->getMock();
-
-		$ins
-			->expects($this->any())
-			->method('_produceInstance')
-			->with($this->isType('array'))
-			->willReturnCallback(function(array& $data) {
-				return $this->_mockChildClass($data);
-			});
-
-		return $ins;
 	}
 
 
@@ -194,6 +184,31 @@ extends TestCase
 
 		$data->useItem('bar.bar');
 	}
+	
+	public function testUseItem_handleNoKey() {
+		$data = $this->_mockData();
+		$data
+			->expects($this->never())
+			->method('_handleBranchException');
+
+		$data
+			->expects($this->once())
+			->method('_handlePropertyException')
+			->with($this->isInstanceOf(TreePropertyException::class))
+			->willReturnCallback(function(TreePropertyException $ex) {
+				$this->assertEquals('bar', $ex->getResolvedKey());
+				$this->assertEquals('bar.foo', $ex->getMissingKey());
+				$this->assertEquals([ 'foo' => 2 ], $ex->useResolvedItem());
+
+				$item =& $ex->useResolvedItem();
+				$item['bar'] = [ 'foo' => 3 ];
+
+				return true;
+			});
+
+		$this->assertEquals(3, $data->useItem('bar.bar.foo'));
+		$this->assertEquals(3, $data->useItem('bar.bar.foo'));
+	}
 
 	public function testUseItem_noBranch() {
 		$data = $this->_produceData();
@@ -201,6 +216,63 @@ extends TestCase
 		$this->expectException(TreeBranchException::class);
 
 		$data->useItem('bar.foo.baz');
+	}
+
+	public function testUseItem_handleNoBranch() {
+		$data = $this->_mockData();
+		$data
+			->expects($this->once())
+			->method('_handleBranchException')
+			->with($this->isInstanceOf(TreeBranchException::class))
+			->willReturnCallback(function(TreeBranchException $ex) {
+				$this->assertEquals('bar.foo', $ex->getResolvedKey());
+				$this->assertEquals('foo', $ex->getMissingKey());
+				$this->assertEquals(2, $ex->useResolvedItem());
+
+				$item =& $ex->useResolvedItem();
+				$item = [ 'foo' => 3 ];
+
+				return true;
+			});
+		$data
+			->expects($this->never())
+			->method('_handlePropertyException');
+
+		$this->assertEquals(3, $data->useItem('bar.foo.foo'));
+		$this->assertEquals(3, $data->useItem('bar.foo.foo'));
+	}
+
+	public function testUseItem_handleBoth() {
+		$data = $this->_mockData();
+		$data
+			->expects($this->once())
+			->method('_handleBranchException')
+			->with($this->isInstanceOf(TreeBranchException::class))
+			->willReturnCallback(function(TreeBranchException $ex) {
+				$this->assertEquals('bar.foo', $ex->getResolvedKey());
+				$this->assertEquals('foo', $ex->getMissingKey());
+
+				$item =& $ex->useResolvedItem();
+				$item = [];
+
+				return true;
+			});
+		$data
+			->expects($this->once())
+			->method('_handlePropertyException')
+			->with($this->isInstanceOf(TreePropertyException::class))
+			->willReturnCallback(function(TreePropertyException $ex) {
+				$this->assertEquals('bar.foo', $ex->getResolvedKey());
+				$this->assertEquals('foo', $ex->getMissingKey());
+
+				$item =& $ex->useResolvedItem();
+				$item['foo'] = 3;
+
+				return true;
+			});
+
+		$this->assertEquals(3, $data->useItem('bar.foo.foo'));
+		$this->assertEquals(3, $data->useItem('bar.foo.foo'));
 	}
 
 	public function testSetItem() {
