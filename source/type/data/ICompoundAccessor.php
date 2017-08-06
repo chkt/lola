@@ -2,12 +2,10 @@
 
 namespace lola\type\data;
 
-use lola\type\data\IKeyMutator;
-
 
 
 interface ICompoundAccessor
-extends IKeyMutator
+extends IKeyAccessor
 {
 
 	public function isArray(string $key) : bool;
@@ -18,9 +16,4 @@ extends IKeyMutator
 	public function& useArray(string $key) : array;
 
 	public function& useInstance(string $key, string $qname);
-
-
-	public function setArray(string $key, array $item) : ICompoundAccessor;
-
-	public function setInstance(string $key, $item) : ICompoundAccessor;
 }
