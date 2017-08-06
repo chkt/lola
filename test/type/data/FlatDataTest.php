@@ -17,7 +17,19 @@ final class FlatDataTest
 extends TestCase
 {
 
-	private function _produceData(array& $data = null) {
+	private function _mockData(array& $data = null) : FlatData {
+		if (is_null($data)) $data = [
+			'foo' => 1,
+			'bar' => 2
+		];
+
+		return $this->getMockBuilder(FlatData::class)
+			->setMethods(['_handleAccessException'])
+			->setConstructorArgs([ & $data])
+			->getMock();
+	}
+
+	private function _produceData(array& $data = null) : FlatData {
 		if (is_null($data)) $data = [
 			'foo' => 1,
 			'bar' => 2
@@ -76,6 +88,25 @@ extends TestCase
 
 		$data->useItem('baz');
 	}
+
+	public function testUseItem_handleNoKey() {
+		$data = $this->_mockData();
+		$data
+			->expects($this->once())
+			->method('_handleAccessException')
+			->with($this->isInstanceOf(FlatAccessException::class))
+			->willReturnCallback(function(FlatAccessException $ex) use (& $data) {
+				$this->assertEquals('baz', $ex->getMissingKey());
+
+				$data->setItem('baz', 3);
+
+				return true;
+			});
+
+		$this->assertEquals(3, $data->useItem('baz'));
+		$this->assertEquals(3, $data->useItem('baz'));
+	}
+
 
 	public function testSetItem() {
 		$data = $this->_produceData();
