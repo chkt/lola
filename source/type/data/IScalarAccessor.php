@@ -2,12 +2,10 @@
 
 namespace lola\type\data;
 
-use lola\type\data\IKeyMutator;
-
 
 
 interface IScalarAccessor
-extends IKeyMutator
+extends IKeyAccessor
 {
 
 	public function isBool(string $key) : bool;
@@ -26,13 +24,4 @@ extends IKeyMutator
 	public function getFloat(string $key) : float;
 
 	public function getString(string $key) : string;
-
-
-	public function setBool(string $key, bool $value) : IScalarAccessor;
-
-	public function setInt(string $key, int $value) : IScalarAccessor;
-
-	public function setFloat(string $key, float $value) : IScalarAccessor;
-
-	public function setString(string $key, string $value) : IScalarAccessor;
 }
