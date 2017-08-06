@@ -5,6 +5,11 @@ namespace test\type\data;
 
 use PHPUnit\Framework\TestCase;
 
+use lola\type\data\IScalarAccessor;
+use lola\type\data\IScalarMutator;
+use lola\type\data\ICompoundAccessor;
+use lola\type\data\ICompoundMutator;
+use lola\type\data\TreeData;
 use lola\type\data\TypedTreeData;
 
 
@@ -31,6 +36,17 @@ extends TestCase
 		];
 
 		return new TypedTreeData($data);
+	}
+
+
+	public function testInheritance() {
+		$data = $this->_produceData();
+
+		$this->assertInstanceOf(TreeData::class, $data);
+		$this->assertInstanceOf(IScalarAccessor::class, $data);
+		$this->assertInstanceOf(IScalarMutator::class, $data);
+		$this->assertInstanceOf(ICompoundAccessor::class, $data);
+		$this->assertInstanceOf(ICompoundMutator::class, $data);
 	}
 
 
