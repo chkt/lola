@@ -7,7 +7,7 @@ namespace lola\type\data;
 
 class TypedFlatData
 extends FlatData
-implements IScalarAccessor, ICompoundAccessor
+implements IScalarMutator, ICompoundMutator
 {
 
 	public function isBool(string $key) : bool {
