@@ -5,9 +5,8 @@ namespace lola\type\data;
 
 
 interface IKeyMutator
+extends IKeyAccessor
 {
-
-	public function hasKey(string $key) : bool;
 
 	public function removeKey(string $key) : IKeyMutator;
 }
