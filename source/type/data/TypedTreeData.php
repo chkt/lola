@@ -3,17 +3,11 @@
 declare(strict_types=1);
 namespace lola\type\data;
 
-use lola\type\data\TreeData;
-use lola\type\data\IScalarAccessor;
-use lola\type\data\ICompoundAccessor;
-
-use lola\type\data\IAccessException;
-
 
 
 class TypedTreeData
 extends TreeData
-implements IScalarAccessor, ICompoundAccessor
+implements IScalarMutator, ICompoundMutator
 {
 
 	public function isBool(string $key) : bool {
