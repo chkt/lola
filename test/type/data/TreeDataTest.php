@@ -5,9 +5,12 @@ namespace test\type\data;
 use PHPUnit\Framework\TestCase;
 
 use lola\type\IProjectable;
+use lola\type\data\IKeyAccessor;
 use lola\type\data\IKeyMutator;
 use lola\type\data\IItemAccessor;
+use lola\type\data\IItemMutator;
 use lola\type\data\ITreeAccessor;
+use lola\type\data\ITreeMutator;
 use lola\type\data\TreeData;
 use lola\type\data\TreeBranchException;
 use lola\type\data\TreePropertyException;
@@ -90,9 +93,12 @@ extends TestCase
 		$data = new TreeData();
 
 		$this->assertInstanceOf(IProjectable::class, $data);
+		$this->assertInstanceOf(IKeyAccessor::class, $data);
 		$this->assertInstanceOf(IKeyMutator::class, $data);
 		$this->assertInstanceOf(IItemAccessor::class, $data);
+		$this->assertInstanceOf(IItemMutator::class, $data);
 		$this->assertInstanceOf(ITreeAccessor::class, $data);
+		$this->assertInstanceOf(ITreeMutator::class, $data);
 	}
 
 
@@ -163,63 +169,6 @@ extends TestCase
 	}
 
 
-	public function testGetBranch() {
-		$items = [
-			'foo' => 1,
-			'bar' => [
-				'foo' => 2
-			]
-		];
-		$data = new TreeData($items);
-
-		$b = $data->getBranch('bar');
-		$this->assertInstanceOf(TreeData::class, $b);
-		$this->assertTrue($b->hasKey('foo'));
-		$this->assertTrue($b->isLeaf('foo'));
-		$this->assertEquals(2, $b->useItem('foo'));
-	}
-
-	public function testGetBranch_inheritance() {
-		$data = $this->_mockChildClass();
-
-		$b = $data->getBranch('bar');
-		$this->assertInstanceOf(get_class($data), $b);
-	}
-
-	public function testGetBranch_noKey() {
-		$data = $this->_produceData();
-
-		$this->expectException(TreePropertyException::class);
-
-		$data->getBranch('baz');
-	}
-
-	public function testGetBranch_noBranch() {
-		$data = $this->_produceData();
-
-		$this->expectException(TreeBranchException::class);
-
-		$data->getBranch('foo');
-	}
-
-
-	public function testSetBranch() {
-		$items = [
-			'bar' => 2
-		];
-		$data = new TreeData($items);
-
-		$bItems = [
-			'foo' => 1
-		];
-		$b = new TreeData($bItems);
-
-		$this->assertEquals($data->setBranch('bar', $b), $data);
-		$this->assertTrue($data->hasKey('bar.foo'));
-		$this->assertTrue($data->isBranch('bar'));
-	}
-
-
 	public function testUseItem() {
 		$items = [
 			'foo' => 1,
@@ -266,6 +215,46 @@ extends TestCase
 	}
 
 
+	public function testMerge() {
+		list($a, $b) = $this->_produceMergeData();
+
+		$sourceA = $this->_produceData($a);
+		$sourceB = $this->_produceData($b);
+		$target = $this->_produceData();
+
+		$this->assertEquals(1, $target->useItem('foo'));
+		$this->assertSame($target, $target->merge($sourceA, $sourceB));
+		$this->assertFalse($target->hasKey('foo'));
+		$this->assertEquals(7, $target->useItem('propToProp'));
+		$this->assertEquals(8, $target->useItem('propToArray'));
+		$this->assertEquals(9, $target->useItem('arrayToNokey.a'));
+		$this->assertEquals(10, $target->useItem('arrayToNokey.b'));
+		$this->assertEquals(11, $target->useItem('arrayToProp.a'));
+		$this->assertEquals(12, $target->useItem('arrayToProp.b'));
+		$this->assertEquals(5, $target->useItem('arrayToArray.a'));
+		$this->assertEquals(13, $target->useItem('arrayToArray.b'));
+		$this->assertEquals(14, $target->useItem('arrayToArray.c'));
+	}
+
+	public function testMergeEq() {
+		list($a, $b) = $this->_produceMergeData();
+
+		$source = $this->_produceData($b);
+		$target = $this->_produceData($a);
+
+		$this->assertSame($target, $target->mergeEq($source));
+		$this->assertEquals(7, $target->useItem('propToProp'));
+		$this->assertEquals(8, $target->useItem('propToArray'));
+		$this->assertEquals(9, $target->useItem('arrayToNokey.a'));
+		$this->assertEquals(10, $target->useItem('arrayToNokey.b'));
+		$this->assertEquals(11, $target->useItem('arrayToProp.a'));
+		$this->assertEquals(12, $target->useItem('arrayToProp.b'));
+		$this->assertEquals(5, $target->useItem('arrayToArray.a'));
+		$this->assertEquals(13, $target->useItem('arrayToArray.b'));
+		$this->assertEquals(14, $target->useItem('arrayToArray.c'));
+	}
+
+
 	public function testFilter() {
 		$data = [
 			'foo' => 10,
@@ -305,7 +294,7 @@ extends TestCase
 		$this->assertTrue($target->useItem('quux.quux'));
 	}
 
-	public function testFilterEq() {
+	public function testFilterSelf() {
 		$data = [
 			'foo' => 10,
 			'bar' => [
@@ -325,7 +314,7 @@ extends TestCase
 		$ins = $this->_produceData($data);
 
 		$this->assertEquals(10, $ins->useItem('foo'));
-		$this->assertSame($ins, $ins->filterEq([
+		$this->assertSame($ins, $ins->filterSelf([
 			'bar.bar.foo',
 			'bar.bar.baz',
 			'quux.quux',
@@ -343,43 +332,88 @@ extends TestCase
 	}
 
 
-	public function testMerge() {
-		list($a, $b) = $this->_produceMergeData();
+	public function testSelect() {
+		$source = $this->_produceData();
+		$target =$this->_produceData();
 
-		$sourceA = $this->_produceData($a);
-		$sourceB = $this->_produceData($b);
-		$target = $this->_produceData();
-
-		$this->assertEquals(1, $target->useItem('foo'));
-		$this->assertSame($target, $target->merge($sourceA, $sourceB));
-		$this->assertFalse($target->hasKey('foo'));
-		$this->assertEquals(7, $target->useItem('propToProp'));
-		$this->assertEquals(8, $target->useItem('propToArray'));
-		$this->assertEquals(9, $target->useItem('arrayToNokey.a'));
-		$this->assertEquals(10, $target->useItem('arrayToNokey.b'));
-		$this->assertEquals(11, $target->useItem('arrayToProp.a'));
-		$this->assertEquals(12, $target->useItem('arrayToProp.b'));
-		$this->assertEquals(5, $target->useItem('arrayToArray.a'));
-		$this->assertEquals(13, $target->useItem('arrayToArray.b'));
-		$this->assertEquals(14, $target->useItem('arrayToArray.c'));
+		$this->assertSame($target, $target->select($source, 'bar'));
+		$this->assertEquals(2, $target->useItem('foo'));
+		$this->assertFalse($target->hasKey('bar'));
 	}
 
-	public function testMergeEq() {
-		list($a, $b) = $this->_produceMergeData();
+	public function testSelect_invalidKey() {
+		$source = $this->_produceData();
+		$target = $this->_produceData();
 
-		$source = $this->_produceData($b);
-		$target = $this->_produceData($a);
+		$this->expectException(\ErrorException::class);
+		$this->expectExceptionMessage('ACC_INV_KEY: ');
 
-		$this->assertSame($target, $target->mergeEq($source));
-		$this->assertEquals(7, $target->useItem('propToProp'));
-		$this->assertEquals(8, $target->useItem('propToArray'));
-		$this->assertEquals(9, $target->useItem('arrayToNokey.a'));
-		$this->assertEquals(10, $target->useItem('arrayToNokey.b'));
-		$this->assertEquals(11, $target->useItem('arrayToProp.a'));
-		$this->assertEquals(12, $target->useItem('arrayToProp.b'));
-		$this->assertEquals(5, $target->useItem('arrayToArray.a'));
-		$this->assertEquals(13, $target->useItem('arrayToArray.b'));
-		$this->assertEquals(14, $target->useItem('arrayToArray.c'));
+		$target->select($source, '');
+	}
+
+	public function testSelect_noBranch() {
+		$source = $this->_produceData();
+		$target = $this->_produceData();
+
+		$this->expectException(\ErrorException::class);
+		$this->expectExceptionMessage('ACC_NO_BRANCH: baz');
+
+		$target->select($source, 'baz');
+	}
+
+	public function testSelectSelf() {
+		$ins = $this->_produceData();
+
+		$this->assertSame($ins, $ins->selectSelf('bar'));
+		$this->assertEquals(2, $ins->useItem('foo'));
+		$this->assertFalse($ins->hasKey('bar'));
+	}
+
+	public function testSelectSelf_invalidKey() {
+		$ins = $this->_produceData();
+
+		$this->expectException(\ErrorException::class);
+		$this->expectExceptionMessage('ACC_INV_KEY: ');
+
+		$ins->selectSelf('');
+	}
+
+	public function testSelectSelf_noBranch() {
+		$ins = $this->_produceData();
+
+		$this->expectException(\ErrorException::class);
+		$this->expectExceptionMessage('ACC_NO_BRANCH: baz');
+
+		$ins->selectSelf('baz');
+	}
+
+
+	public function testInsert() {
+		$sourceData = [
+			'foo' => 3,
+			'bar' => [
+				'foo' => 4
+			]
+		];
+
+		$source = $this->_produceData($sourceData);
+		$target = $this->_produceData();
+
+		$this->assertSame($target, $target->insert($source, 'baz'));
+		$this->assertEquals(1, $target->useItem('foo'));
+		$this->assertEquals(2, $target->useItem('bar.foo'));
+		$this->assertEquals(3, $target->useItem('baz.foo'));
+		$this->assertEquals(4, $target->useItem('baz.bar.foo'));
+	}
+
+	public function testInsert_invalidKey() {
+		$source = $this->_produceData();
+		$target = $this->_produceData();
+
+		$this->expectException(\ErrorException::class);
+		$this->expectExceptionMessage('ACC_INV_KEY: ');
+
+		$target->insert($source, '');
 	}
 
 
