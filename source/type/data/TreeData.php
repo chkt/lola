@@ -20,7 +20,7 @@ function array_merge_deep(array $a, array $b) : array {
 
 
 class TreeData
-implements IItemAccessor, ITreeAccessor, ITreeMutator
+implements IItemMutator, ITreeMutator
 {
 
 	static protected function& _useKey(array& $data, string $key) {
@@ -121,30 +121,11 @@ implements IItemAccessor, ITreeAccessor, ITreeMutator
 	}
 
 
-	public function getBranch(string $key) : ITreeAccessor {
-		$data =& self::_useKey($this->_data, $key);
-
-		if (is_array($data)) return $this->_produceInstance($data);
-
-		$pos = strrpos($key, '.');
-
-		throw new TreeBranchException(
-			$data,
-			explode('.', substr($key, 0, $pos)),
-			[ substr($key, $pos + 1) ]
-		);
-	}
-
-	public function setBranch(string $key, ITreeAccessor $branch) : ITreeAccessor {
-		return $this->setItem($key, $branch->getProjection());
-	}
-
-
 	public function& useItem(string $key) {
 		return self::_useKey($this->_data, $key);
 	}
 
-	public function setItem(string $key, $item) : IItemAccessor {
+	public function setItem(string $key, $item) : IItemMutator {
 		try {
 			$ref =& self::_useKey($this->_data, $key);
 		}
@@ -164,6 +145,19 @@ implements IItemAccessor, ITreeAccessor, ITreeMutator
 	}
 
 
+	public function merge(ITreeAccessor $a, ITreeAccessor $b) : ITreeMutator {
+		$this->_data = array_merge_deep($a->getProjection(), $b->getProjection());
+
+		return $this;
+	}
+
+	public function mergeEq(ITreeAccessor $b) : ITreeMutator {
+		$this->_data = array_merge_deep($this->_data, $b->getProjection());
+
+		return $this;
+	}
+
+
 	public function filter(ITreeAccessor $tree, array $filter) : ITreeMutator {
 		$data = $tree->getProjection();
 		$this->_data = [];
@@ -173,7 +167,7 @@ implements IItemAccessor, ITreeAccessor, ITreeMutator
 		return $this;
 	}
 
-	public function filterEq(array $filter) : ITreeMutator {
+	public function filterSelf(array $filter) : ITreeMutator {
 		$data = $this->_data;
 		$this->_data = [];
 
@@ -183,14 +177,26 @@ implements IItemAccessor, ITreeAccessor, ITreeMutator
 	}
 
 
-	public function merge(ITreeAccessor $a, ITreeAccessor $b) : ITreeMutator {
-		$this->_data = array_merge_deep($a->getProjection(), $b->getProjection());
+	public function select(ITreeAccessor $tree, string $key) : ITreeMutator {
+		if (!$tree->isBranch($key)) throw new \ErrorException('ACC_NO_BRANCH: ' . $key);
+
+		$data = $tree->getProjection();
+		$this->_data = self::_useKey($data, $key);
 
 		return $this;
 	}
 
-	public function mergeEq(ITreeAccessor $b) : ITreeMutator {
-		$this->_data = array_merge_deep($this->_data, $b->getProjection());
+	public function selectSelf(string $key) : ITreeMutator {
+		if (!$this->isBranch($key)) throw new \ErrorException('ACC_NO_BRANCH: ' . $key);
+
+		$this->_data = self::_useKey($this->_data, $key);
+
+		return $this;
+	}
+
+
+	public function insert(ITreeAccessor $tree, string $key) : ITreeMutator {
+		$this->setItem($key, $tree->getProjection());
 
 		return $this;
 	}
