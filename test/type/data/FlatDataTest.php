@@ -4,8 +4,10 @@ namespace test\type\data;
 
 use PHPUnit\Framework\TestCase;
 
+use lola\type\data\IKeyAccessor;
 use lola\type\data\IKeyMutator;
 use lola\type\data\IItemAccessor;
+use lola\type\data\IItemMutator;
 use lola\type\data\FlatData;
 use lola\type\data\FlatAccessException;
 
@@ -28,8 +30,10 @@ extends TestCase
 	public function testInheritance() {
 		$data = $this->_produceData();
 
+		$this->assertInstanceOf(IKeyAccessor::class, $data);
 		$this->assertInstanceOf(IKeyMutator::class, $data);
 		$this->assertInstanceOf(IItemAccessor::class, $data);
+		$this->assertInstanceOf(IItemMutator::class, $data);
 	}
 
 
