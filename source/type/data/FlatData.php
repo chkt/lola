@@ -16,6 +16,11 @@ implements IItemMutator
 	}
 
 
+	protected function _handleAccessException(FlatAccessException $ex) : bool {
+		return false;
+	}
+
+
 	public function hasKey(string $key) : bool {
 		if (empty($key)) throw new \ErrorException('ACC_INV_KEY: ' . $key);
 
@@ -34,7 +39,14 @@ implements IItemMutator
 	public function& useItem(string $key) {
 		if (empty($key)) throw new \ErrorException('ACC_INV_KEY: ' . $key);
 
-		if (!array_key_exists($key, $this->_data)) throw new FlatAccessException($key);
+		if (!array_key_exists($key, $this->_data)) {
+			$ex = new FlatAccessException($key);
+
+			if (
+				!$this->_handleAccessException($ex) ||
+				!array_key_exists($key, $this->_data)
+			) throw $ex;
+		}
 
 		return $this->_data[$key];
 	}
