@@ -5,7 +5,7 @@ namespace lola\type\data;
 
 
 class FlatData
-implements IItemAccessor
+implements IItemMutator
 {
 
 	private $_data;
@@ -39,7 +39,7 @@ implements IItemAccessor
 		return $this->_data[$key];
 	}
 
-	public function setItem(string $key, $item) : IItemAccessor {
+	public function setItem(string $key, $item) : IItemMutator {
 		if (empty($key)) throw new \ErrorException();
 
 		$this->_data[$key] = $item;
