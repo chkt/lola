@@ -18,6 +18,11 @@ extends TestCase
 	use PHPMock;
 
 
+	private function _produceLogger() : FileLogger {
+		return new FileLogger();
+	}
+
+
 
 	public function testLogRequest() {
 		$this
@@ -119,5 +124,25 @@ extends TestCase
 			->setRedirectTarget('/path/to/res');
 
 		$logger->logCtrlState($ctrl);
+	}
+
+	public function testLogError() {
+		$errorLog = $this->getFunctionMock('\lola\log', 'error_log');
+
+		$errorLog
+			->expects($this->at(0))
+			->with($this->isType('string'))
+			->willReturnCallback(function(string $string) {
+				return $this->assertEquals("\033[31m\033[1m! ERROR\033[0m \"Foo is not a valid concept\" IN \033[31m/path/to/file.php\033[0m:13 ", $string);
+			});
+
+		$logger = $this->_produceLogger();
+
+		$this->assertSame($logger, $logger->logError([
+			'type' => E_ERROR,
+			'message' => 'Foo is not a valid concept',
+			'file' => '/path/to/file.php',
+			'line' => 13
+		]));
 	}
 }
