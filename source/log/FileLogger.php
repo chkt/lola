@@ -19,9 +19,6 @@ class FileLogger
 implements IInjectable, ILogger
 {
 
-	const VERSION = '0.1.2';
-
-
 	static $_map = [
 		ILogger::TAG_TYPE => [Colorizer::F_MAGENTA, Colorizer::MOD_BRIGHT],
 		ILogger::TAG_MESSAGE => [Colorizer::MOD_BRIGHT],
@@ -75,6 +72,29 @@ implements IInjectable, ILogger
 		else if (is_object($value)) return get_class($value);
 		else if (is_array($value)) return 'array';
 		else return (string) $value;
+	}
+
+
+	static protected function _getErrorName(int $type) {
+		$map = [
+			E_ERROR => 'ERROR',
+			E_WARNING => 'WARNING',
+			E_PARSE => 'PARSE',
+			E_NOTICE => 'NOTICE',
+			E_CORE_ERROR => 'CORE_ERROR',
+			E_CORE_WARNING => 'CORE_WARNING',
+			E_COMPILE_ERROR => 'COMPILE_ERROR',
+			E_COMPILE_WARNING => 'COMPILE_WARNING',
+			E_USER_ERROR => 'USER_ERROR',
+			E_USER_WARNING => 'USER_WARNING',
+			E_USER_NOTICE => 'USER_NOTICE',
+			E_STRICT => 'STRICT',
+			E_RECOVERABLE_ERROR => 'RECOVERABLE_ERROR',
+			E_DEPRECATED => 'DEPRECATED',
+			E_USER_DEPRECATED => 'USER_DEPRECATED'
+		];
+
+		return array_key_exists($type, $map) ? $map[$type] : 'UNDEFINED';
 	}
 
 
@@ -269,7 +289,7 @@ implements IInjectable, ILogger
 
 
 
-	public function log($str) {
+	public function log($str) : ILogger {
 		if (!is_string($str) || empty($str)) throw new \ErrorException();
 
 		error_log($str);
@@ -277,7 +297,7 @@ implements IInjectable, ILogger
 		return $this;
 	}
 
-	public function logTags(Array $message) {
+	public function logTags(Array $message) : ILogger {
 		$formater = new Formater();
 
 		$prevType = $message[0][ILogger::TOKEN_TYPE];
@@ -296,20 +316,20 @@ implements IInjectable, ILogger
 	}
 
 
-	public function logRequest(HttpRequest $request, $stackOffset = self::STACK_IGNORE) {
+	public function logRequest(HttpRequest $request, $stackOffset = self::STACK_IGNORE) : ILogger {
 		return $this->logTags(self::_buildRequest($request, $stackOffset));
 	}
 
-	public function logClient(HttpClient $client, $ip = self::IP_OR_UA) {
+	public function logClient(HttpClient $client, $ip = self::IP_OR_UA) : ILogger {
 		return $this->logTags(self::_buildClient($client, $ip));
 	}
 
-	public function logReply(HttpReply $reply, $stackOffset = self::STACK_IGNORE) {
+	public function logReply(HttpReply $reply, $stackOffset = self::STACK_IGNORE) : ILogger {
 		return $this->logTags(self::_buildReply($reply, $stackOffset));
 	}
 
 
-	public function logCtrlState(AReplyController $ctrl) {
+	public function logCtrlState(AReplyController $ctrl) : ILogger {
 		$tags = $this->_buildRequest($ctrl->useRequest());
 		$tags = array_merge($tags, $this->_buildReply($ctrl->useReply()));
 
@@ -317,7 +337,7 @@ implements IInjectable, ILogger
 	}
 
 
-	public function logStats($label, array $stats) {
+	public function logStats($label, array $stats) : ILogger {
 		if (!is_string($label) || empty($label)) throw new \ErrorException();
 
 		$tags = [
@@ -334,7 +354,7 @@ implements IInjectable, ILogger
 	}
 
 
-	public function logObject($obj, $depth = 1, $stackOffset = self::STACK_IGNORE) {
+	public function logObject($obj, $depth = 1, $stackOffset = self::STACK_IGNORE) : ILogger {
 		if (!is_int($depth) || $depth < 0) throw new \ErrorException();
 
 		$tags[] = self::_createTag(self::TAG_TYPE, '@');
@@ -347,7 +367,7 @@ implements IInjectable, ILogger
 	}
 
 
-	public function logException(\Exception $ex, $stack = true, $deep = true) {
+	public function logException(\Throwable $ex, $stack = true, $deep = true) : ILogger {
 		$tags = self::_buildExceptionMessage($ex);
 
 		if ($deep) {
@@ -362,5 +382,15 @@ implements IInjectable, ILogger
 		if ($stack) $tags = array_merge($tags, self::_buildExceptionStack($ex));
 
 		return $this->logTags($tags);
+	}
+
+	public function logError(array $error) : ILogger {
+		return $this->logTags([
+			self::_createTag(self::TAG_ERROR, sprintf('! %s', self::_getErrorName($error['type']))),
+			self::_createTag(self::TAG_ERROR_MESSAGE, sprintf('"%s"', $error['message'])),
+			self::_createTag(self::TAG_VOID, 'IN'),
+			self::_createTag(self::TAG_ERROR_FILE, $error['file']),
+			self::_createTag(self::TAG_ERROR_LINE, $error['line'])
+		]);
 	}
 }

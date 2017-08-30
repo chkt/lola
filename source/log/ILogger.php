@@ -57,21 +57,23 @@ interface ILogger {
 
 
 
-	public function log($str);
+	public function log($str) : ILogger;
 
-	public function logTags(Array $str);
+	public function logTags(Array $str) : ILogger;
 
-	public function logRequest(HttpRequest $request, $stackOffset = self::STACK_IGNORE);
+	public function logRequest(HttpRequest $request, $stackOffset = self::STACK_IGNORE) : ILogger;
 
-	public function logClient(HttpClient $client, $ip = self::IP_OR_UA);
+	public function logClient(HttpClient $client, $ip = self::IP_OR_UA) : ILogger;
 
-	public function logReply(HttpReply $reply, $stackOffset = self::STACK_IGNORE);
+	public function logReply(HttpReply $reply, $stackOffset = self::STACK_IGNORE) : ILogger;
 
-	public function logCtrlState(AReplyController $ctrl);
+	public function logCtrlState(AReplyController $ctrl) : ILogger;
 
-	public function logStats($label, Array $stats);
+	public function logStats($label, Array $stats) : ILogger;
 
-	public function logObject($obj, $depth = 1, $stackOffset = self::STACK_IGNORE);
+	public function logObject($obj, $depth = 1, $stackOffset = self::STACK_IGNORE) : ILogger;
 
-	public function logException(\Exception $ex, $stack = true, $deep = true);
+	public function logException(\Throwable $ex, $stack = true, $deep = true) : ILogger;
+
+	public function logError(array $error) : ILogger;
 }
