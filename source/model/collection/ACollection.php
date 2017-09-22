@@ -2,12 +2,9 @@
 
 namespace lola\model\collection;
 
+use eve\inject\IInjector;
 use lola\type\ASizedIterateable;
 use lola\type\IProjectable;
-use lola\inject\IInjector;
-use lola\model\collection\ICollection;
-use lola\model\collection\IResourceCollection;
-
 use lola\type\query\IDataQuery;
 use lola\model\IModel;
 use lola\model\AResourceDependencyFactory;

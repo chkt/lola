@@ -4,7 +4,7 @@ namespace test\model\collection;
 
 use PHPUnit\Framework\TestCase;
 
-use lola\inject\IInjector;
+use eve\inject\IInjector;
 use lola\model\IModel;
 use lola\model\IResource;
 use lola\model\AResourceDependencyFactory;
