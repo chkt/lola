@@ -2,7 +2,7 @@
 
 namespace lola\model;
 
-use lola\inject\IInjectable;
+use eve\inject\IInjectable;
 
 
 
