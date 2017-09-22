@@ -2,13 +2,14 @@
 
 namespace lola\model\map;
 
-use lola\inject\IDependencyFactory;
-use lola\inject\IInjector;
+use eve\access\ITraversableAccessor;
+use eve\inject\IInjector;
+use lola\common\factory\AStatelessInjectorFactory;
 
 
 
 abstract class AResourceMapFactory
-implements IDependencyFactory
+extends AStatelessInjectorFactory
 {
 
 	const MODE_NONE = 0;
@@ -16,8 +17,8 @@ implements IDependencyFactory
 	const MODE_PASS = 2;
 
 
-	static public function getDependencyConfig(array $config) {
-		return ['injector:'];
+	static public function getDependencyConfig(ITraversableAccessor $config) : array {
+		return [ 'injector:' ];
 	}
 
 
@@ -25,38 +26,23 @@ implements IDependencyFactory
 	private $_injector;
 	private $_resource;
 
-	private $_mode;
-	private $_config;
-	private $_instance;
 
+	public function __construct(IInjector $injector, string $resourceName) {
+		parent::__construct();
 
-	public function __construct(IInjector& $injector, string $resource) {
-		$this->_injector =& $injector;
-		$this->_resource = $resource;
-
-		$this->_mode = self::MODE_NONE;
-		$this->_config = null;
-		$this->_instance = null;
+		$this->_injector = $injector;
+		$this->_resource = $resourceName;
 	}
 
 
+	private function _produceProxy(ITraversableAccessor $config) : IResourceMap {
+		if (!$config->hasKey('resource')) throw new \ErrorException();
 
-	public function setConfig(array $config) {
-		$mode = array_key_exists('mode', $config) ? $config['mode'] : self::MODE_READ;
+		$resource = $config->getItem('resource');
 
-		$this->_mode = $mode;
+		if (!($resource instanceof IResourceMap)) throw new \ErrorException();
 
-		$this->_config = $config;
-		$this->_instance = null;
-
-		return $this;
-	}
-
-
-	private function _produceProxy() : IResourceMap {
-		if (!array_key_exists('resource', $this->_config)) throw new \ErrorException();
-
-		return $this->_config['resource'];
+		return $resource;
 	}
 
 	private function _produceRead() {
@@ -64,16 +50,13 @@ implements IDependencyFactory
 	}
 
 
-	public function& produce() {
-		if (!is_null($this->_instance)) return $this->_instance;
+	protected function _produceInstance(ITraversableAccessor $config) {
+		$mode = $config->hasKey('mode') ? $config->getItem('mode') : self::MODE_READ;
 
-		$mode = $this->_mode;
-		$instance =& $this->_instance;
-
-		if ($mode === self::MODE_PASS) $instance = $this->_produceProxy();
-		else if ($mode === self::MODE_READ) $instance = $this->_produceRead();
+		if ($mode === self::MODE_PASS) $ins = $this->_produceProxy($config);
+		else if ($mode === self::MODE_READ) $ins = $this->_produceRead();
 		else throw new \ErrorException();
 
-		return $instance;
+		return $ins;
 	}
 }
