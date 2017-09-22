@@ -2,31 +2,25 @@
 
 namespace lola\route;
 
-use lola\inject\IInjectable;
-use lola\inject\Injector;
+use eve\access\ITraversableAccessor;
+use eve\inject\IInjectable;
+use eve\inject\IInjector;
 
 use lola\type\Collection;
-use lola\route\RouteCanceledException;
 
 
 
-class Router implements IInjectable {
-
-	/**
-	 * The version string
-	 */
-	const VERSION = '0.2.3';
-
+class Router
+implements IInjectable
+{
 
 	/**
 	 * Gets the dependency configuration
 	 * @param array $config The config seed
 	 * @return array
 	 */
-	static public function getDependencyConfig(Array $config) {
-		return [[
-			'type' => Injector::TYPE_INJECTOR
-		]];
+	static public function getDependencyConfig(ITraversableAccessor $config) : array {
+		return [ 'injector:' ];
 	}
 
 
@@ -338,7 +332,7 @@ class Router implements IInjectable {
 	/**
 	 * Creates an instance
 	 */
-	public function __construct(Injector $injector) {
+	public function __construct(IInjector $injector) {
 		$this->_injector = $injector;
 
 		$this->_path    = [];
