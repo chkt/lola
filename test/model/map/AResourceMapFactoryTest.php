@@ -4,7 +4,9 @@ namespace test\model\map;
 
 use PHPUnit\Framework\TestCase;
 
-use lola\inject\IInjector;
+use eve\access\TraversableAccessor;
+use eve\inject\IInjector;
+use lola\common\factory\AStatelessInjectorFactory;
 use lola\model\map\IResourceMap;
 use lola\model\map\AResourceMapFactory;
 
@@ -39,35 +41,55 @@ extends TestCase
 
 		return $this
 			->getMockBuilder(AResourceMapFactory::class)
-			->setConstructorArgs([& $injector, IResourceMap::class])
+			->setConstructorArgs([$injector, IResourceMap::class])
 			->getMockForAbstractClass();
 	}
 
 
-	public function testSetConfig() {
+	private function _produceAccessor(array& $data = []) {
+		return new TraversableAccessor($data);
+	}
+
+
+	public function testInheritance() {
 		$factory = $this->_mockFactory();
 
-		$this->assertEquals($factory, $factory->setConfig([]));
+		$this->assertInstanceOf(AStatelessInjectorFactory::class, $factory);
 	}
 
-	public function testProduce_read() {
-		$factory = $this
-			->_mockFactory()
-			->setConfig([]);
-
-		$this->assertInstanceOf(IResourceMap::class, $factory->produce());
+	public function testDependencyConfig() {
+		$this->assertEquals([ 'injector:' ], AResourceMapFactory::getDependencyConfig($this->_produceAccessor()));
 	}
 
-	public function testProduce_pass() {
+
+	public function test_produceInstance_read() {
+		$factory = $this->_mockFactory();
+
+		$this->assertInstanceOf(IResourceMap::class, $factory->produce($this->_produceAccessor()));
+	}
+
+	public function test_produceInstance_pass() {
 		$resource = $this->_mockResource();
 
-		$factory = $this
-			->_mockFactory()
-			->setConfig([
-				'mode' => AResourceMapFactory::MODE_PASS,
-				'resource' => $resource
-			]);
+		$data = [
+			'mode' => AResourceMapFactory::MODE_PASS,
+			'resource' => $resource
+		];
 
-		$this->assertEquals($resource, $factory->produce());
+		$factory = $this->_mockFactory();
+
+		$this->assertEquals($resource, $factory->produce($this->_produceAccessor($data)));
+	}
+
+	public function test_produceInstance_other() {
+		$data = [
+			'mode' => AResourceMapFactory::MODE_NONE
+		];
+
+		$factory = $this->_mockFactory();
+
+		$this->expectException(\ErrorException::class);
+
+		$factory->produce($this->_produceAccessor($data));
 	}
 }
