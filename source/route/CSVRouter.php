@@ -2,25 +2,28 @@
 
 namespace lola\route;
 
-use lola\route\Router;
-use lola\inject\Injector;
+use eve\access\ITraversableAccessor;
+use eve\inject\IInjector;
 
 
 
-class CSVRouter extends Router {
+class CSVRouter
+extends Router
+{
 	
-	static public function getDependencyConfig(array $config) {
-		return [[
-			'type' => 'injector'
-		], [
-			'type' => 'object',
-			'data' => $config
-		]];
+	static public function getDependencyConfig (ITraversableAccessor $config) : array {
+		return [
+			'injector:',
+			[
+				'type' => IInjector::TYPE_ARGUMENT,
+				'data' => $config->getProjection()
+			]
+		];
 	}
 	
 	
 	
-	public function __construct(Injector $injector, Array $config) {
+	public function __construct(IInjector $injector, array $config) {
 		if (!array_key_exists('path', $config) || !is_string($config['path'])) throw new \ErrorException();
 		
 		parent::__construct($injector);
