@@ -2,34 +2,33 @@
 
 namespace lola\route;
 
-use lola\inject\IInjectable;
-use lola\prov\ProviderProvider;
+use eve\access\ITraversableAccessor;
+use eve\inject\IInjector;
+use eve\inject\IInjectable;
+use eve\provide\ILocator;
 
 use lola\type\Collection;
 use lola\type\Stack;
 
 
 
-class Route implements IInjectable {
-
-	/**
-	 * The version string
-	 */
-	const VERSION = '0.1.0';
-
+class Route
+implements IInjectable
+{
 
 	/**
 	 * Gets the dependency configuration
 	 * @param array $config The config seed
 	 * @return array
 	 */
-	static public function getDependencyConfig(Array $config) {
-		return [[
-			'type' => 'locator'
-		], [
-			'type' => 'object',
-			'data' => $config
-		]];
+	static public function getDependencyConfig(ITraversableAccessor $config) : array {
+		return [
+			'locator:',
+			[
+				'type' => IInjector::TYPE_ARGUMENT,
+				'data' => $config->getProjection()
+			]
+		];
 	}
 
 
@@ -91,14 +90,14 @@ class Route implements IInjectable {
 	 * @param ProviderProvider $locator
 	 * @param array $config
 	 */
-	public function __construct(ProviderProvider& $locator, Array $config = []) {
+	public function __construct(ILocator $locator, array $config = []) {
 		$ctrl = array_key_exists('ctrl', $config) ? $config['ctrl'] : '';
 		$action = array_key_exists('action', $config) ? $config['action'] : '';
 		$view = array_key_exists('view', $config) ? $config['view'] : '';
 
 		if (!is_string($ctrl) || !is_string($action) || !is_string($view)) throw new \ErrorException();
 
-		$this->_locator =& $locator;
+		$this->_locator = $locator;
 
 		$this->_param = new Collection(array_key_exists('params', $config) ? $config['params'] : []);
 		$this->_data = new Collection(array_key_exists('data', $config) ? $config['data'] : []);
