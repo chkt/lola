@@ -4,7 +4,10 @@ namespace test\route;
 
 use PHPUnit\Framework\TestCase;
 
-use lola\prov\ProviderProvider;
+use eve\access\TraversableAccessor;
+use eve\inject\IInjectable;
+use eve\inject\IInjector;
+use eve\provide\ILocator;
 use lola\route\Route;
 use lola\ctrl\AController;
 
@@ -31,9 +34,9 @@ extends TestCase
 		return $ins;
 	}
 
-	private function _mockLocator() : ProviderProvider {
+	private function _mockLocator() : ILocator {
 		$ins = $this
-			->getMockBuilder(ProviderProvider::class)
+			->getMockBuilder(ILocator::class)
 			->disableOriginalConstructor()
 			->getMock();
 
@@ -52,6 +55,32 @@ extends TestCase
 		$locator = $this->_mockLocator();
 
 		return new Route($locator, $config);
+	}
+
+	private function _produceAccessor(array& $data = []) : TraversableAccessor {
+		return new TraversableAccessor($data);
+	}
+
+
+	public function testInheritance() {
+		$route = $this->_produceRoute([]);
+
+		$this->assertInstanceOf(IInjectable::class, $route);
+	}
+
+	public function testDependencyConfig() {
+		$config = [
+			'foo' => 1,
+			'bar' => 2
+		];
+
+		$this->assertEquals([
+			'locator:',
+			[
+				'type' => IInjector::TYPE_ARGUMENT,
+				'data' => $config
+			]
+		], Route::getDependencyConfig($this->_produceAccessor($config)));
 	}
 
 
