@@ -3,18 +3,35 @@
 namespace test\module;
 
 use PHPUnit\Framework\TestCase;
+use phpmock\phpunit\PHPMock;
 
-use lola\app\IApp;
+use eve\access\TraversableAccessor;
+use eve\inject\IInjectable;
+use eve\inject\IInjectableIdentity;
+use eve\inject\IInjector;
+use eve\provide\ILocator;
+use lola\provide\IConfigurableProvider;
+use lola\module\IEntityParser;
 use lola\module\IModule;
 use lola\module\Registry;
-use lola\inject\IInjector;
-use lola\inject\IInjectable;
 
 
 
 final class RegistryTest
 extends TestCase
 {
+
+	use PHPMock;
+
+
+	private function  _mock_class_exists(bool $exists = true) {
+		$this
+			->getFunctionMock('\\lola\\module', 'class_exists')
+			->expects($this->any())
+			->with($this->isType('string'))
+			->willReturn($exists);
+	}
+
 
 	private function _mockModule(array $config) : IModule {
 		$ins = $this
@@ -30,7 +47,7 @@ extends TestCase
 		return $ins;
 	}
 
-	private function _mockInjector(callable $fn = null) : IInjector {
+	private function _mockInjector(callable $fn = null) {
 		if (is_null($fn)) $fn = function(string $qname, array $config = null) {
 			return [
 				'qname' => $qname,
@@ -51,42 +68,73 @@ extends TestCase
 		return $ins;
 	}
 
-	private function _mockApp(IInjector $injector = null) : IApp {
-		if (is_null($injector)) $injector = $this->_mockInjector();
-
+	private function _mockProvider() {
 		$ins = $this
-			->getMockBuilder(IApp::class)
+			->getMockBuilder(IConfigurableProvider::class)
 			->getMock();
-
-		$ins
-			->expects($this->any())
-			->method('useInjector')
-			->with()
-			->willReturnReference($injector);
 
 		return $ins;
 	}
 
-	private function _produceRegistry(IApp $app = null) : Registry {
-		if (is_null($app)) $app = $this->_mockApp();
+	private function _mockLocator() {
+		$ins = $this
+			->getMockBuilder(ILocator::class)
+			->getMock();
 
-		return new Registry($app);
+		return $ins;
+	}
+
+	private function _mockParser() {
+		$ins = $this
+			->getMockBuilder(IEntityParser::class)
+			->getMock();
+
+		return $ins;
 	}
 
 
-	public function testGetDependencyConfig() {
-		$registry = $this->_produceRegistry();
+	private function _produceAccessor() : TraversableAccessor {
+		$data = [];
 
-		$this->assertInstanceOf(IInjectable::class, $registry);
-		$this->assertEquals([ 'resolve:app' ], Registry::getDependencyConfig([]));
+		return new TraversableAccessor($data);
+	}
+
+
+	private function _produceRegistry(IInjector $injector = null, ILocator $locator = null, IEntityParser $parser = null) : Registry {
+		if (is_null($injector)) $injector = $this->_mockInjector();
+		if (is_null($locator)) $locator = $this->_mockLocator();
+		if (is_null($parser)) $parser = $this->_mockParser();
+
+		return new Registry($injector, $locator, $parser);
+	}
+
+
+	public function testInheritance() {
+		$ins = $this->_produceRegistry();
+
+		$this->assertInstanceOf(IInjectableIdentity::class, $ins);
+		$this->assertInstanceOf(IInjectable::class, $ins);
+	}
+
+	public function testDependencyConfig() {
+		$this->assertEquals([
+			'injector:',
+			'locator:',
+			'environment:entities'
+		], Registry::getDependencyConfig($this->_produceAccessor()));
+	}
+
+	public function testInstanceIdentity() {
+		$this->assertEquals(IInjectableIdentity::IDENTITY_SINGLE, Registry::getInstanceIdentity($this->_produceAccessor()));
 	}
 
 
 	public function testInjectModule() {
-		$registry = $this->_produceRegistry();
+		$ins = $this->_produceRegistry();
 
-		$this->assertEquals($registry, $registry->injectModule('foo', []));
+		$this->assertEquals($ins, $ins->injectModule('foo', []));
 	}
+
 
 	public function testInjectModule_dependencies() {
 		$count = 0;
@@ -101,8 +149,7 @@ extends TestCase
 				default : throw new \ErrorException();
 			}
 		});
-		$app = $this->_mockApp($injector);
-		$registry = $this->_produceRegistry($app);
+		$registry = $this->_produceRegistry($injector);
 
 		$this->assertEquals($registry, $registry->injectModule('bang', [ 'depend' => [ 'quux' ]]));
 		$this->assertEquals(4, $count);
@@ -116,12 +163,138 @@ extends TestCase
 				default : throw new \ErrorException();
 			}
 		});
-		$app = $this->_mockApp($injector);
-		$registry = $this->_produceRegistry($app);
+		$registry = $this->_produceRegistry($injector);
 
 		$this->expectException(\ErrorException::class);
 		$this->expectExceptionMessage('MOD: circular dependency');
 
 		$registry->injectModule('baz', [ 'depend' => [ 'bar' ]]);
+	}
+
+
+	public function testInjectModule_config() {
+		$provider = $this->_mockProvider();
+
+		$provider
+			->expects($this->once())
+			->method('addConfiguration')
+			->with(
+				$this->equalTo('bar?baz'),
+				$this->isType('callable')
+			)
+			->willReturnSelf();
+
+		$locator = $this->_mockLocator();
+
+		$locator
+			->expects($this->once())
+			->method('getItem')
+			->with($this->equalTo('fooType'))
+			->willReturn($provider);
+
+		$parser = $this->_mockParser();
+
+		$parser
+			->expects($this->once())
+			->method('parse')
+			->with($this->equalTo('fooType://foo/bar?baz'))
+			->willReturn([
+				'type' => 'fooType',
+				'module' => 'foo',
+				'descriptor' => 'bar?baz'
+			]);
+
+		$registry = $this->_produceRegistry(null, $locator, $parser);
+
+		$this->assertSame($registry, $registry->injectModule('foo', [
+			'config' => [
+				'fooType://foo/bar?baz' => function() {}
+			]
+		]));
+	}
+
+
+	public function testGetQualifiedName_module() {
+		$this->_mock_class_exists();
+
+		$registry = $this
+			->_produceRegistry()
+			->injectModule('foo', [
+				'locator' => [
+					'barType' => [
+						'path' => 'path\\to',
+						'prefix' => 'Prefix',
+						'postfix' => 'Postfix'
+					]
+				]
+			]);
+
+		$this->assertEquals('\\foo\\fooType\\ClassFooType', $registry->getQualifiedName('fooType', 'class', 'foo'));
+		$this->assertEquals('\\foo\\path\\to\\PrefixClassPostfix', $registry->getQualifiedName('barType', 'class', 'foo'));
+	}
+
+	public function testGetQualifiedName_moduleInvalid() {
+		$this->_mock_class_exists(false);
+
+		$registry = $this
+			->_produceRegistry()
+			->injectModule('foo', []);
+
+		$this->expectException(\ErrorException::class);
+		$this->expectExceptionMessage('MOD unresolvable "foo://fooType/class" - missing "\\foo\\fooType\\ClassFooType"');
+
+		$registry->getQualifiedName('fooType', 'class', 'foo');
+	}
+
+
+	public function testGetQualifiedName_locate() {
+		$this->_mock_class_exists();
+
+		$registry = $this
+			->_produceRegistry()
+			->injectModule('foo', []);
+
+		$this->assertEquals('\\foo\\fooType\\ClassFooType', $registry->getQualifiedName('fooType', 'class'));
+	}
+
+	public function testGetQualifiedName_locateInvalid() {
+		$this->_mock_class_exists(false);
+
+		$registry = $this
+			->_produceRegistry()
+			->injectModule('foo', []);
+
+		$this->expectException(\ErrorException::class);
+		$this->expectExceptionMessage('MOD unresolvable "fooType:class"');
+
+		$registry->getQualifiedName('fooType', 'class');
+	}
+
+
+	public function testLoadModule() {
+		$registry = $this->_produceRegistry();
+
+		$this->assertSame($registry, $registry->loadModule('foo'));
+	}
+
+	public function testLoadModule_locate() {
+		$this->_mock_class_exists();
+		$injector = $this->_mockInjector(function(string $qname) {
+			if ($qname === '\\foo\\Module') return $this->_mockModule([
+				'locator' => [
+					'fooType' => [
+						'path' => 'path\\to',
+						'prefix' => 'Prefix',
+						'postfix' => 'Postfix'
+					]
+				]
+			]);
+			throw new \ErrorException();
+		});
+		$registry = $this
+			->_produceRegistry($injector)
+			->loadModule('foo');
+
+		$this->assertEquals('\\foo\\path\\to\\PrefixClassPostfix', $registry->getQualifiedName('fooType', 'class'));
 	}
 }
