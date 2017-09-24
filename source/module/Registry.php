@@ -2,58 +2,50 @@
 
 namespace lola\module;
 
-use lola\inject\IInjectable;
-use lola\app\IApp;
-
-use lola\module\EntityParser;
-use lola\module\IModule;
+use eve\access\ITraversableAccessor;
+use eve\inject\IInjectableIdentity;
+use eve\inject\IInjector;
+use eve\provide\ILocator;
 
 
 
 class Registry
-implements IInjectable
+implements IRegistry
 {
 
-	const VERSION = '0.5.2';
+	static public function getDependencyConfig(ITraversableAccessor $config) : array {
+		return [
+			'injector:',
+			'locator:',
+			'environment:entities'
+		];
+	}
 
-
-	static public function getDependencyConfig(array $config) {
-		return [ 'resolve:app' ];
+	static public function getInstanceIdentity(ITraversableAccessor $config) : string {
+		return IInjectableIdentity::IDENTITY_SINGLE;
 	}
 
 
 
-	private $_app = null;
-	private $_injector = null;
+	private $_injector;
+	private $_locator;
+	private $_parser;
 
-	private $_defered = null;
-	private $_modules = null;
+	private $_defered;
+	private $_modules;
 
 	private $_dependencyStack;
 
 
-	/**
-	 * @param IApp $app
-	 */
-	public function __construct(IApp& $app) {
-		$this->_app =& $app;
-		$this->_injector = null;
+	public function __construct(IInjector $injector, ILocator $locator, IEntityParser $parser) {
+		$this->_injector = $injector;
+		$this->_locator = $locator;
+		$this->_parser = $parser;
 
 		$this->_defered = [];
 		$this->_modules = [];
 
 		$this->_dependencyStack = [];
-	}
-
-
-	/**
-	 * Returns a reference to the injector
-	 * @return Injector
-	 */
-	private function& _useInjector() {
-		if (is_null($this->_injector)) $this->_injector =& $this->_app->useInjector();
-
-		return $this->_injector;
 	}
 
 
@@ -75,63 +67,71 @@ implements IInjectable
 		$pre = array_key_exists('prefix', $config) ? $config['prefix'] : '';
 		$post = array_key_exists('postfix', $config) ? $config['postfix'] : ucfirst($entityType);
 
-		return '\\' . $moduleName . '\\' . $path . '\\' . ucfirst($pre . $entityName . $post);
+		return '\\' . $moduleName . '\\' . $path . '\\' . $pre . ucfirst($entityName) . $post;
 	}
 
 
 	/**
-	 * Locates and returns the entity referenced by $entityType, $entityName and $entityId
+	 * Locates and returns the qualified name referenced by $entityType and $entityName
 	 * @param string $entityType
 	 * @param string $entityName
-	 * @param string $entityId
-	 * @return mixed
+	 * @return string
 	 * @throws \ErrorException if the referenced entity does not exist
 	 */
-	private function _locateEntity($entityType, $entityName, $entityId) {
+	private function _locateQualifiedName(string $entityType, string $entityName) : string {
 		if (!empty($this->_defered)) $this->_loadDefered();
 
 		foreach ($this->_modules as $moduleName => $module) {
 			$qname = $this->_getClassPath($moduleName, $entityType, $entityName);
 
-			if (class_exists($qname)) return $this->_useInjector()->produce($qname, [ 'id' => $entityId ]);
+			if (class_exists($qname)) return $qname;
 		}
 
-		throw new \ErrorException('MOD: entity missing: ' . $entityType . '|' . $entityName);
+		throw new \ErrorException(sprintf(
+			'MOD unresolvable "%s:%s"',
+			$entityType,
+			$entityName
+		));
 	}
 
 	/**
-	 * Returns the entity referenced by $moduleName, $entityType, $entityName and $entityId
+	 * Returns the qualified name referenced by $moduleName, $entityType and $entityName
 	 * @param string $moduleName
 	 * @param string $entityType
 	 * @param string $entityName
-	 * @param string $entityId
-	 * @return mixed
+	 * @return string
 	 * @throws \ErrorException if the referenced entity does not exist
 	 */
-	private function _produceEntity($moduleName, $entityType, $entityName, $entityId) {
+	private function _buildQualifiedName(string $moduleName, string $entityType, string $entityName) : string {
 		$qname = $this->_getClassPath($moduleName, $entityType, $entityName);
 
-		if (class_exists($qname)) return $this->_useInjector()->produce($qname, [ 'id' => $entityId ]);
+		if (!class_exists($qname)) throw new \ErrorException(sprintf(
+			'MOD unresolvable "%s://%s/%s" - missing "%s"',
+			$moduleName,
+			$entityType,
+			$entityName,
+			$qname
+		));
 
-		throw new \ErrorException('MOD: entity missing: ' . $entityType . '|' . $entityName);
+		return $qname;
 	}
 
 
 	/**
 	 * Applies the entity config specified by $config
 	 * @param array $config The entity config
+	 * @return Registry
 	 */
-	private function _applyConfig(array $config) {
-		$locator = $this->_app->useLocator();
-
+	private function _applyConfig(array $config) : Registry {
 		foreach ($config as $hash => $fn) {
-			$entity = EntityParser::parse($hash);
-			$id = $entity['name'] . (!empty($entity['id']) ? '?' . $entity['id'] : '');
+			$entity = $this->_parser->parse($hash, EntityParser::COMPONENT_MODULE);
 
-			$locator
-				->using($entity['type'])
-				->configure($id, $fn);
+			$this->_locator
+				->getItem($entity[EntityParser::COMPONENT_TYPE])
+				->addConfiguration($entity[EntityParser::COMPONENT_DESCRIPTOR], $fn);
 		}
+
+		return $this;
 	}
 
 
@@ -165,13 +165,13 @@ implements IInjectable
 	/**
 	 * Loads the module referenced by $name
 	 * @param string $name The module name
-	 * @returns Registry
+	 * @return IRegistry
 	 * @throws \ErrorException if the module referenced by name is not an instance of IModule
 	 */
-	private function _loadModule($name) : Registry {
+	private function _loadModule(string $name) : IRegistry {
 		$qname = '\\' . $name . '\\' . 'Module';
 
-		$loader = $this->_useInjector()->produce($qname);
+		$loader = $this->_injector->produce($qname);
 
 		if (!($loader instanceof IModule)) throw new \ErrorException('MOD: no loader');
 
@@ -196,11 +196,11 @@ implements IInjectable
 	/**
 	 * Adds the module referenced by $name to the defered modules
 	 * @param string $name The module name
-	 * @return Registry
+	 * @return IRegistry
 	 * @throws \ErrorException if $name is not a nonempty string
 	 */
-	public function loadModule($name) {
-		if (!is_string($name) || empty($name)) throw new \ErrorException();
+	public function loadModule(string $name) : IRegistry {
+		if (empty($name)) throw new \ErrorException();
 
 		$this->_defered[] = $name;
 
@@ -211,10 +211,10 @@ implements IInjectable
 	 * Injects $module to registry
 	 * @param string $name The module name
 	 * @param array $module The module description
-	 * @return Registry
+	 * @return IRegistry
 	 * @throws \ErrorException if $name is empty
 	 */
-	public function injectModule(string $name, array $module) : Registry {
+	public function injectModule(string $name, array $module) : IRegistry {
 		if (empty($name)) throw new \ErrorException();
 
 		if (array_key_exists('depend', $module)) {
@@ -236,38 +236,20 @@ implements IInjectable
 
 
 	/**
-	 * Returns the entity referenced by $type and $hash
-	 * @param string $type The entity type
-	 * @param string $hash The entity hash
-	 * @return mixed
-	 */
-	public function resolve($type, $hash) {
-		$segs = EntityParser::parse($hash);
-
-		return $this->produce($type, $segs['name'], $segs['id'], $segs['module']);
-	}
-
-
-	/**
-	 * Returns the entity referenced by $type, $name, $id and $module
+	 * Returns the qualified name referenced by $type, $name and $module
 	 * @param string $type The entity type
 	 * @param string $name The entity name
-	 * @param string $id The unique entity id
 	 * @param string $module The module id
-	 * @return mixed
+	 * @return string
 	 * @throws \ErrorException if $type is not a nonempty string
 	 * @throws \ErrorException if $name is not a nonempty string
 	 * @throws \ErrorException if $id is not a string
 	 * @throws \ErrorException if $module is not a string
 	 */
-	public function produce($type, $name, $id = '', $module = '') {
-		if (
-			!is_string($type) || empty($type) ||
-			!is_string($name) || empty($name) ||
-			!is_string($id) || !is_string($module)
-		) throw new \ErrorException();
+	public function getQualifiedName(string $type, string $name, string $module = '') : string {
+		if (empty($type) || empty($name)) throw new \ErrorException();
 
-		if (empty($module)) return $this->_locateEntity($type, $name, $id);
-		else return $this->_produceEntity($module, $type, $name, $id);
+		if (empty($module)) return $this->_locateQualifiedName($type, $name);
+		else return $this->_buildQualifiedName($module, $type, $name);
 	}
 }
