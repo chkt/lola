@@ -2,11 +2,9 @@
 
 namespace lola\ctrl;
 
-use lola\ctrl\AController;
-use lola\route\Route;
-
+use eve\access\ITraversableAccessor;
 use lola\io\http\IHttpDriver;
-use lola\ctrl\ControllerTransform;
+use lola\route\Route;
 
 
 
@@ -20,7 +18,7 @@ extends AController
 	const VERSION = '0.5.2';
 
 
-	static public function getDependencyConfig(array $config) {
+	static public function getDependencyConfig(ITraversableAccessor $config) : array {
 		return [ 'environment:http' ];
 	}
 
