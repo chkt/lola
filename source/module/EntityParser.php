@@ -5,58 +5,41 @@ namespace lola\module;
 
 
 final class EntityParser
+implements IEntityParser
 {
 
-	const VERSION = '0.5.2';
+	public function parse(string $entity, string $end = self::COMPONENT_TYPE) : array {
+		if (empty($entity)) throw new \ErrorException();
 
-	const PROP_TYPE = 'type';
-	const PROP_LOCATION = 'location';
-	const PROP_MODULE = 'module';
-	const PROP_NAME = 'name';
-	const PROP_ID = 'id';
+		$res = [];
+		$offset = 0;
+		$segs = parse_url($entity);
 
+		if ($segs === false) throw new \ErrorException(sprintf('ENT malformed entity "%s"', $entity));
 
-	/**
-	 * Returns the entity definition referenced by hash
-	 * @param string $hash
-	 * @return array
-	 * @throws \ErrorException if $hash is empty
-	 */
-	static public function parse(string $hash) {
-		if (empty($hash)) throw new \ErrorException();
-
-		$segs = parse_url($hash);
-
-		if ($segs === false) throw new \ErrorException('MOD: hash malformed - ' . $hash);
-
-		return [
-			self::PROP_TYPE => array_key_exists('scheme', $segs) ? $segs['scheme'] : '',
-			self::PROP_MODULE => array_key_exists('host', $segs) ? $segs['host'] : '',
-			self::PROP_NAME => array_key_exists('path', $segs) ? str_replace('/', '\\', trim($segs['path'], '/')) : '',
-			self::PROP_ID => array_key_exists('query', $segs) ? $segs['query'] : ''
+		$map = [
+			self::COMPONENT_TYPE => ['key' => 'scheme', 'offset' => 1, 'end' => self::COMPONENT_LOCATION],
+			self::COMPONENT_MODULE => ['key' => 'host', 'offset' => 2, 'end' => self::COMPONENT_DESCRIPTOR],
+			self::COMPONENT_NAME => ['key' => 'path', 'offset' => 0],
+			self::COMPONENT_CONFIG => ['key' => 'query', 'offset' => 1]
 		];
-	}
 
-	/**
-	 * Returns the entity type and compound identifier referenced by hash
-	 * @param string $hash
-	 * @return array
-	 * @throws \ErrorException if $hash is empty
-	 */
-	static public function extractType(string $hash) {
-		if (empty($hash)) throw new \ErrorException();
+		foreach ($map as $name => $item) {
+			$key = $item['key'];
 
-		$type = parse_url($hash, PHP_URL_SCHEME);
+			if (array_key_exists($key, $segs)) {
+				$res[$name] = $segs[$key];
+				$offset += strlen($segs[$key]) + $item['offset'];
+			}
+			else $res[$name] = '';
 
-		if (!is_null($type)) $location = substr($hash, strlen($type) + 1);
-		else {
-			$type = '';
-			$location = $hash;
+			if ($end !== $name || !array_key_exists('end', $item)) continue;
+
+			$res[$item['end']] = substr($entity, $offset);
+
+			break;
 		}
 
-		return [
-			self::PROP_TYPE => $type,
-			self::PROP_LOCATION => $location
-		];
+		return $res;
 	}
 }
