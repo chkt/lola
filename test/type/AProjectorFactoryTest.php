@@ -4,8 +4,10 @@ namespace test\type;
 
 use PHPUnit\Framework\TestCase;
 
-use lola\inject\IInjector;
+use eve\access\TraversableAccessor;
+use eve\inject\IInjector;
 use lola\type\AProjectorFactory;
+use lola\common\factory\AStatelessInjectorFactory;
 
 
 
@@ -29,48 +31,46 @@ extends TestCase
 		return $injector;
 	}
 
-	private function _mockFactory(IInjector& $injector, string $name = 'foo') : AProjectorFactory {
+	private function _mockFactory(IInjector $injector = null, string $name = 'foo') {
+		if (is_null($injector)) $injector = $this->_mockInjector();
+
 		return $this
 			->getMockBuilder(AProjectorFactory::class)
-			->setConstructorArgs([& $injector, $name ])
+			->setConstructorArgs([ $injector, $name ])
 			->getMockForAbstractClass();
 	}
 
 
-	public function testSetConfig() {
-		$injector = $this->_mockInjector();
-		$factory = $this->_mockFactory($injector);
-
-		$this->assertEquals($factory, $factory->setConfig([]));
+	private function _produceAccessor(array& $data = []) : TraversableAccessor {
+		return new TraversableAccessor($data);
 	}
 
-	public function testProduce() {
-		$config = [
+
+	public function testInheritance() {
+		$factory = $this->_mockFactory();
+
+		$this->assertInstanceOf(AStatelessInjectorFactory::class, $factory);
+	}
+
+	public function testDependencyConfig() {
+		$this->assertEquals([ 'injector:' ], AProjectorFactory::getDependencyConfig($this->_produceAccessor()));
+	}
+
+
+	public function test_produceInstance() {
+		$data = [
 			'foo' => 1,
 			'bar' => 2
 		];
-		$class = 'foobarbaz';
 
-		$injector = $this->_mockInjector(function(string $name, array $deps) use ($class, $config) {
-			$this->assertEquals($class, $name);
-			$this->assertEquals($config, $deps);
+		$injector = $this->_mockInjector(function(string $qname, array $config) use ($data) {
+			$this->assertEquals('bar', $qname);
+			$this->assertEquals($data, $config);
 
-			return 'quux';
+			return 'baz';
 		});
+		$factory = $this->_mockFactory($injector, 'bar');
 
-		$factory = $this
-			->_mockFactory($injector, $class)
-			->setConfig($config);
-
-		$this->assertEquals('quux', $factory->produce());
-	}
-
-	public function testProduce_exception() {
-		$injector = $this->_mockInjector();
-		$factory = $this->_mockFactory($injector);
-
-		$this->expectException(\ErrorException::class);
-
-		$factory->produce();
+		$this->assertEquals('baz', $factory->produce($this->_produceAccessor($data)));
 	}
 }
