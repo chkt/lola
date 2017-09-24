@@ -2,6 +2,8 @@
 
 use PHPUnit\Framework\TestCase;
 
+use eve\access\TraversableAccessor;
+use eve\inject\IInjectable;
 use lola\route\Route;
 use lola\ctrl\AController;
 
@@ -11,11 +13,34 @@ final class AControllerTest
 extends TestCase
 {
 
-	public function testHasAction() {
+	private function _mockController(array $methods = []) {
 		$ctrl = $this
 			->getMockBuilder(AController::class)
-			->setMethods([ 'fooAction' ])
+			->setMethods($methods)
 			->getMockForAbstractClass();
+
+		return $ctrl;
+	}
+
+
+	private function _produceAccessor(array& $data = []) : TraversableAccessor {
+		return new TraversableAccessor($data);
+	}
+
+
+	public function testInheritance() {
+		$ctrl = $this->_mockController();
+
+		$this->assertInstanceOf(IInjectable::class, $ctrl);
+	}
+
+	public function testDependencyConfig() {
+		$this->assertEquals([], AController::getDependencyConfig($this->_produceAccessor()));
+	}
+
+
+	public function testHasAction() {
+		$ctrl = $this->_mockController(['fooAction']);
 
 		$this->assertTrue($ctrl->hasAction('foo'));
 		$this->assertTrue($ctrl->hasAction('Foo'));
@@ -43,10 +68,7 @@ extends TestCase
 			->method('getAction')
 			->willReturn('bar');
 
-		$ctrl = $this
-			->getMockBuilder(AController::class)
-			->setMethods([ 'fooAction' ])
-			->getMockForAbstractClass();
+		$ctrl = $this->_mockController(['fooAction']);
 
 		$this->assertTrue($ctrl->isEnterable($route));
 		$this->assertTrue($ctrl->isEnterable($route));
@@ -69,10 +91,7 @@ extends TestCase
 			->method('getAction')
 			->willReturn('bar');
 
-		$ctrl = $this
-			->getMockBuilder(AController::class)
-			->setMethods([ 'fooAction', 'defaultAction' ])
-			->getMockForAbstractClass();
+		$ctrl = $this->_mockController(['fooAction', 'defaultAction']);
 
 		$ctrl
 			->expects($this->once())
@@ -102,10 +121,7 @@ extends TestCase
 			->with($this->equalTo('bar'))
 			->willReturn($route);
 
-		$ctrl = $this
-			->getMockBuilder(AController::class)
-			->setMethods([ 'barAction' ])
-			->getMockForAbstractClass();
+		$ctrl = $this->_mockController(['barAction']);
 
 		$ctrl
 			->expects($this->once())
