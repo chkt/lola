@@ -2,53 +2,38 @@
 
 namespace lola\type;
 
-use lola\inject\IDependencyFactory;
-use lola\inject\IInjector;
+use eve\access\ITraversableAccessor;
+use eve\inject\IInjector;
+use lola\common\factory\AStatelessInjectorFactory;
 
 
 
 abstract class AProjectorFactory
-implements IDependencyFactory
+extends AStatelessInjectorFactory
 {
 
-	private $_injector;
-	private $_projector;
-
-	private $_config;
-	private $_instance;
-
-
-	static public function getDependencyConfig(array $config) {
+	static public function getDependencyConfig(ITraversableAccessor $config) : array {
 		return [ 'injector:' ];
 	}
 
 
 
+	private $_injector;
+	private $_projector;
+
+
 	public function __construct(
-		IInjector& $injector,
+		IInjector $injector,
 		string $projectorName
 	) {
-		$this->_injector =& $injector;
+		parent::__construct();
+
+		$this->_injector = $injector;
 		$this->_projector = $projectorName;
-
-		$this->_config = null;
-		$this->_instance = null;
 	}
 
 
-	public function setConfig(array $config) {
-		$this->_config = $config;
-		$this->_instance = null;
-
-		return $this;
-	}
-
-
-	public function& produce() {
-		if (is_null($this->_config)) throw new \ErrorException();
-
-		if (is_null($this->_instance)) $this->_instance = $this->_injector->produce($this->_projector, $this->_config);
-
-		return $this->_instance;
+	protected function _produceInstance(ITraversableAccessor $config) {
+		return $this->_injector->produce($this->_projector, $config->getProjection());
 	}
 }
