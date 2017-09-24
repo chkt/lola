@@ -2,8 +2,8 @@
 
 namespace lola\ctrl;
 
-use lola\inject\IInjectable;
-
+use eve\access\ITraversableAccessor;
+use eve\inject\IInjectable;
 use lola\route\Route;
 use lola\route\RouteCanceledException;
 
@@ -24,7 +24,7 @@ implements IInjectable
 	 * @param array $config The seed config
 	 * @return array
 	 */
-	static public function getDependencyConfig(Array $config) {
+	static public function getDependencyConfig(ITraversableAccessor $config) : array {
 		return [];
 	}
 
