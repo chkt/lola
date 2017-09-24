@@ -4,8 +4,10 @@ namespace test\ctrl;
 
 use PHPUnit\Framework\TestCase;
 
-use test\io\http\MockDriver;
+use eve\access\TraversableAccessor;
+use lola\ctrl\AController;
 use lola\ctrl\AReplyController;
+use test\io\http\MockDriver;
 
 
 
@@ -20,6 +22,22 @@ extends TestCase
 			->getMockBuilder(AReplyController::class)
 			->setConstructorArgs([ & $driver ])
 			->getMockForAbstractClass();
+	}
+
+
+	private function _produceAccessor(array& $data = []) : TraversableAccessor {
+		return new TraversableAccessor($data);
+	}
+
+
+	public function testInheritance() {
+		$ctrl = $this->_mockController();
+
+		$this->assertInstanceOf(AController::class, $ctrl);
+	}
+
+	public function testDependencyConfig() {
+		$this->assertEquals([ 'environment:http'], AReplyController::getDependencyConfig($this->_produceAccessor()));
 	}
 
 
