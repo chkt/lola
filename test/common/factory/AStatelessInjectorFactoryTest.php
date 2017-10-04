@@ -6,8 +6,8 @@ namespace test\common\factory;
 use PHPUnit\Framework\TestCase;
 
 use eve\common\IFactory;
-use eve\common\IAccessorFactory;
-use eve\common\IProviderFactory;
+use eve\common\factory\IAccessorFactory;
+use eve\common\factory\IProviderFactory;
 use eve\access\ITraversableAccessor;
 use eve\access\TraversableAccessor;
 use eve\inject\IInjectable;

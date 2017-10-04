@@ -4,8 +4,8 @@ namespace test\common\access;
 
 use PHPUnit\Framework\TestCase;
 
-use eve\common\ISimpleFactory;
-use eve\factory\ICoreFactory;
+use eve\common\factory\ISimpleFactory;
+use eve\common\factory\ICoreFactory;
 use lola\common\access\TreeAccessor;
 use lola\common\access\TreeAccessorFactory;
 

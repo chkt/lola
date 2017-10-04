@@ -2,8 +2,9 @@
 
 namespace lola\common\access;
 
-use eve\common\ISimpleFactory;
-use eve\factory\ICoreFactory;
+use eve\common\factory\ISimpleFactory;
+use eve\common\factory\ICoreFactory;
+
 
 
 final class TreeAccessorFactory

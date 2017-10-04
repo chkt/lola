@@ -2,7 +2,7 @@
 
 namespace lola\common\factory;
 
-use eve\common\IProviderFactory;
+use eve\common\factory\IProviderFactory;
 use eve\access\ITraversableAccessor;
 use eve\inject\IInjectableIdentity;
 use eve\inject\IInjectableFactory;
