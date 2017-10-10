@@ -8,6 +8,7 @@ use eve\common\IGenerateable;
 use eve\access\TraversableAccessor;
 use eve\inject\IInjector;
 use eve\inject\IInjectable;
+use eve\inject\IInjectableIdentity;
 use lola\error\IErrorHandler;
 use lola\error\IErrorEmitter;
 use lola\error\ErrorEmitter;
@@ -47,7 +48,7 @@ extends TestCase
 		return new ErrorEmitter($injector);
 	}
 
-	private function _produceAccessor(array& $data = []) : TraversableAccessor {
+	private function _produceAccessor(array $data = []) : TraversableAccessor {
 		return new TraversableAccessor($data);
 	}
 
@@ -65,6 +66,11 @@ extends TestCase
 		$this->assertEquals([
 			'injector:'
 		], ErrorEmitter::getDependencyConfig($this->_produceAccessor()));
+	}
+
+	public function testInstanceIdentity() {
+		$this->assertEquals(IInjectableIdentity::IDENTITY_DEFAULT, ErrorEmitter::getInstanceIdentity($this->_produceAccessor()));
+		$this->assertEquals('foo', ErrorEmitter::getInstanceIdentity($this->_produceAccessor([ 'id' => 'foo' ])));
 	}
 
 
