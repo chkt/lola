@@ -166,6 +166,28 @@ extends TestCase
 		$this->assertTrue($source->handleError(E_WARNING, 'baz', 'quux', 1));
 	}
 
+	public function testHandleError_suppressed() {
+		$errors = error_reporting();
+
+		error_reporting(0);
+
+		$emitter = $this->_mockEmitter();
+		$injector = $this->_mockInjector($emitter);
+		$source = $this->_mockSource($injector);
+
+		$emitter
+			->expects($this->never())
+			->method('handleException');
+
+		$source
+			->expects($this->never())
+			->method('_terminate');
+
+		$this->assertTrue($source->handleError(E_ERROR, 'foo', 'bar', 0));
+
+		error_reporting($errors);
+	}
+
 	public function testHandleShutdown() {
 		$this
 			->getFunctionMock('\lola\error', 'error_get_last')
