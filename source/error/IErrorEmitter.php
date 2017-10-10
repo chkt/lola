@@ -3,11 +3,12 @@
 namespace lola\error;
 
 use eve\common\IGenerateable;
+use eve\inject\IInjectableIdentity;
 
 
 
 interface IErrorEmitter
-extends IErrorHandler, IGenerateable
+extends IErrorHandler, IInjectableIdentity, IGenerateable
 {
 
 	public function getLength() : int;
