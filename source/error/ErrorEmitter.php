@@ -15,6 +15,11 @@ implements IErrorEmitter
 		return [ 'injector:' ];
 	}
 
+	static public function getInstanceIdentity(ITraversableAccessor $config) : string {
+		return $config->hasKey('id') ? $config->getItem('id') : self::IDENTITY_DEFAULT;
+	}
+
+
 
 	private $_injector;
 
