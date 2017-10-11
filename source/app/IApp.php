@@ -2,24 +2,15 @@
 
 namespace lola\app;
 
-use lola\inject\IInjector;
-use lola\prov\ProviderProvider;
+use eve\driver\IInjectorHost;
+use eve\inject\IInjectable;
+use lola\common\IComponentConfig;
 
 
 
-interface IApp {
+interface IApp
+extends IInjectorHost, IInjectable
+{
 
-	const PROP_LOCATOR = 'locator';
-	const PROP_ENVIRONMENT = 'environment';
-
-
-
-	public function& useInjector() : IInjector;
-
-	public function& useLocator() : ProviderProvider;
-
-
-	public function hasProperty(string $name) : bool;
-
-	public function getProperty(string $name);
+	public function getConfig() : IComponentConfig;
 }
