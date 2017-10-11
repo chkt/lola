@@ -2,7 +2,9 @@
 
 use PHPUnit\Framework\TestCase;
 
-use lola\inject\IInjectable;
+use eve\access\TraversableAccessor;
+use eve\inject\IInjectable;
+use eve\inject\IInjectableIdentity;
 use lola\io\http\HttpDriver;
 
 
@@ -11,12 +13,32 @@ class HttpDriverTest
 extends TestCase
 {
 
-	public function testGetDependencyConfig() {
-		$driver = new HttpDriver();
-
-		$this->assertEquals([], HttpDriver::getDependencyConfig([]));
-		$this->assertInstanceOf(IInjectable::class, $driver);
+	private function _produceDriver() {
+		return new HttpDriver();
 	}
+
+	private function _produceAccessor() {
+		$data = [];
+
+		return new TraversableAccessor($data);
+	}
+
+
+	public function testInheritance() {
+		$driver =  $this->_produceDriver();
+
+		$this->assertInstanceOf(IInjectable::class, $driver);
+		$this->assertInstanceOf(IInjectableIdentity::class, $driver);
+	}
+
+	public function testDependencyConfig() {
+		$this->assertEquals([], HttpDriver::getDependencyConfig($this->_produceAccessor()));
+	}
+
+	public function testInstanceIdentity() {
+		$this->assertEquals(IInjectableIdentity::IDENTITY_DEFAULT, HttpDriver::getInstanceIdentity($this->_produceAccessor()));
+	}
+
 
 	public function testUseRequest() {
 		$driver = new HttpDriver();
