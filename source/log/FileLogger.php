@@ -2,21 +2,17 @@
 
 namespace lola\log;
 
-use lola\inject\IInjectable;
-use lola\log\ILogger;
-
-use lola\log\Colorizer;
-use lola\log\Formater;
-
-use lola\ctrl\AReplyController;
+use eve\access\ITraversableAccessor;
+use eve\inject\IInjectableIdentity;
 use lola\io\http\HttpRequest;
 use lola\io\http\HttpClient;
 use lola\io\http\HttpReply;
+use lola\ctrl\AReplyController;
 
 
 
 class FileLogger
-implements IInjectable, ILogger
+implements IInjectableIdentity, ILogger
 {
 
 	static $_map = [
@@ -51,9 +47,14 @@ implements IInjectable, ILogger
 	];
 
 
-	static public function getDependencyConfig(Array $config) {
+	static public function getDependencyConfig(ITraversableAccessor $config) : array {
 		return [];
 	}
+
+	static public function getInstanceIdentity(ITraversableAccessor $config) : string {
+		return IInjectableIdentity::IDENTITY_SINGLE;
+	}
+
 
 
 	static protected function _createTag($type, $content) {
