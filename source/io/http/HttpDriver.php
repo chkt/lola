@@ -2,34 +2,29 @@
 
 namespace lola\io\http;
 
-use lola\io\http\IHttpDriver;
-use lola\inject\IInjectable;
-
+use eve\access\ITraversableAccessor;
+use eve\inject\IInjectableIdentity;
+use lola\type\IStateTransform;
 use lola\io\IRequest;
 use lola\io\IReply;
 use lola\io\IClient;
-use lola\io\http\IHttpCookies;
-use lola\io\http\IHttpRequestResource;
-use lola\io\http\IHttpConfig;
 use lola\io\http\payload\IHttpPayload;
-
-use lola\type\IStateTransform;
-use lola\io\http\HttpRequest;
-use lola\io\http\HttpClient;
-use lola\io\http\HttpReply;
-use lola\io\http\HttpCookies;
 use lola\io\http\payload\HttpPayload;
 
 
 
 class HttpDriver
-implements IHttpDriver, IInjectable
+implements IHttpDriver, IInjectableIdentity
 {
 
-	static public function getDependencyConfig(array $config) {
+	static public function getDependencyConfig(ITraversableAccessor $config) : array {
 		return [];
 	}
-	
+
+	static public function getInstanceIdentity(ITraversableAccessor $config) : string {
+		return $config->hasKey('id') ? $config->getItem('id') : IInjectableIdentity::IDENTITY_DEFAULT;
+	}
+
 
 
 	private $_request;
