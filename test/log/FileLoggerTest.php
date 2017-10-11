@@ -5,6 +5,10 @@ require_once('test/io/http/MockDriver.php');
 use PHPUnit\Framework\TestCase;
 use phpmock\phpunit\PHPMock;
 
+use eve\access\TraversableAccessor;
+use eve\inject\IInjectable;
+use eve\inject\IInjectableIdentity;
+use lola\log\ILogger;
 use lola\log\FileLogger;
 use test\io\http\MockDriver;
 use lola\ctrl\AReplyController;
@@ -18,8 +22,31 @@ extends TestCase
 	use PHPMock;
 
 
+	private function _produceAccessor() :TraversableAccessor {
+		$data = [];
+
+		return new TraversableAccessor($data);
+	}
+
 	private function _produceLogger() : FileLogger {
 		return new FileLogger();
+	}
+
+
+	public function testInheritance() {
+		$logger = $this->_produceLogger();
+
+		$this->assertInstanceOf(ILogger::class, $logger);
+		$this->assertInstanceOf(IInjectableIdentity::class, $logger);
+		$this->assertInstanceOf(IInjectable::class, $logger);
+	}
+
+	public function testDependencyConfig() {
+		$this->assertEquals([], FileLogger::getDependencyConfig($this->_produceAccessor()));
+	}
+
+	public function testInstanceIdentity() {
+		$this->assertEquals(IInjectableIdentity::IDENTITY_SINGLE, FileLogger::getInstanceIdentity($this->_produceAccessor()));
 	}
 
 
