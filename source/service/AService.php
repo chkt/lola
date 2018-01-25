@@ -2,7 +2,7 @@
 
 namespace lola\service;
 
-use eve\access\ITraversableAccessor;
+use eve\common\access\ITraversableAccessor;
 use eve\inject\IInjectableIdentity;
 
 

@@ -2,7 +2,7 @@
 
 namespace lola\ctrl;
 
-use eve\access\ITraversableAccessor;
+use eve\common\access\ITraversableAccessor;
 use eve\inject\IInjectable;
 use lola\route\Route;
 use lola\route\RouteCanceledException;

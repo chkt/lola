@@ -5,10 +5,10 @@ namespace test\app;
 use PHPUnit\Framework\TestCase;
 
 use eve\common\IHost;
-use eve\access\IKeyAccessor;
-use eve\access\IItemAccessor;
-use eve\access\ItemAccessor;
-use eve\access\TraversableAccessor;
+use eve\common\access\IKeyAccessor;
+use eve\common\access\IItemAccessor;
+use eve\common\access\ItemAccessor;
+use eve\common\access\TraversableAccessor;
 use eve\driver\IInjectorHost;
 use eve\driver\IInjectorDriver;
 use eve\inject\IInjector;

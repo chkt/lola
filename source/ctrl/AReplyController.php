@@ -2,7 +2,7 @@
 
 namespace lola\ctrl;
 
-use eve\access\ITraversableAccessor;
+use eve\common\access\ITraversableAccessor;
 use lola\io\http\IHttpDriver;
 use lola\route\Route;
 

@@ -5,7 +5,7 @@ namespace test\service;
 
 use PHPUnit\Framework\TestCase;
 
-use eve\access\TraversableAccessor;
+use eve\common\access\TraversableAccessor;
 use eve\inject\IInjectable;
 use eve\inject\IInjectableIdentity;
 use lola\service\IService;

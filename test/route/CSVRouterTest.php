@@ -5,7 +5,7 @@ namespace test\route;
 use PHPUnit\Framework\TestCase;
 use phpmock\phpunit\PHPMock;
 
-use eve\access\TraversableAccessor;
+use eve\common\access\TraversableAccessor;
 use eve\inject\IInjector;
 use lola\route\Router;
 use lola\route\CSVRouter;

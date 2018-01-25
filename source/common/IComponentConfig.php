@@ -2,7 +2,7 @@
 
 namespace lola\common;
 
-use eve\access\IItemAccessor;
+use eve\common\access\IItemAccessor;
 
 
 

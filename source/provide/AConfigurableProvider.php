@@ -3,8 +3,8 @@
 namespace lola\provide;
 
 use eve\common\factory\ICoreFactory;
-use eve\access\IItemMutator;
-use eve\access\ITraversableAccessor;
+use eve\common\access\IItemMutator;
+use eve\common\access\ITraversableAccessor;
 use eve\inject\IInjector;
 use eve\inject\IInjectableIdentity;
 use eve\provide\AProvider;

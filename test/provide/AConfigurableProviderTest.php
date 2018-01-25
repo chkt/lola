@@ -5,8 +5,8 @@ namespace test\prov;
 use PHPUnit\Framework\TestCase;
 
 use eve\common\factory\ICoreFactory;
-use eve\access\IItemMutator;
-use eve\access\TraversableAccessor;
+use eve\common\access\IItemMutator;
+use eve\common\access\TraversableAccessor;
 use eve\driver\IInjectorDriver;
 use eve\inject\IInjector;
 use eve\inject\IInjectableIdentity;

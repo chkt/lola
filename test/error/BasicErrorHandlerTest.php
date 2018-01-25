@@ -5,7 +5,7 @@ namespace test\error;
 use lola\error\NativeShutdownException;
 use PHPUnit\Framework\TestCase;
 
-use eve\access\TraversableAccessor;
+use eve\common\access\TraversableAccessor;
 use eve\inject\IInjectable;
 use lola\log\ILogger;
 use lola\error\IErrorHandler;

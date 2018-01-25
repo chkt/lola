@@ -2,7 +2,7 @@
 
 namespace lola\log;
 
-use eve\access\ITraversableAccessor;
+use eve\common\access\ITraversableAccessor;
 use eve\inject\IInjectableIdentity;
 use lola\io\http\HttpRequest;
 use lola\io\http\HttpClient;

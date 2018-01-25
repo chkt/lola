@@ -5,7 +5,7 @@ namespace test\error;
 use PHPUnit\Framework\TestCase;
 
 use eve\common\IGenerateable;
-use eve\access\TraversableAccessor;
+use eve\common\access\TraversableAccessor;
 use eve\inject\IInjector;
 use eve\inject\IInjectable;
 use eve\inject\IInjectableIdentity;

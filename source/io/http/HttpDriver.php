@@ -2,7 +2,7 @@
 
 namespace lola\io\http;
 
-use eve\access\ITraversableAccessor;
+use eve\common\access\ITraversableAccessor;
 use eve\inject\IInjectableIdentity;
 use lola\type\IStateTransform;
 use lola\io\IRequest;

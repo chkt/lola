@@ -2,7 +2,7 @@
 
 namespace lola\model\map;
 
-use eve\access\ITraversableAccessor;
+use eve\common\access\ITraversableAccessor;
 use eve\inject\IInjector;
 use lola\common\factory\AStatelessInjectorFactory;
 

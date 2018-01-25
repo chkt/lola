@@ -4,7 +4,7 @@ namespace test\ctrl;
 
 use PHPUnit\Framework\TestCase;
 
-use eve\access\TraversableAccessor;
+use eve\common\access\TraversableAccessor;
 use lola\ctrl\AController;
 use lola\ctrl\AReplyController;
 use test\io\http\MockDriver;

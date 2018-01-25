@@ -4,7 +4,7 @@ namespace test\route;
 
 use PHPUnit\Framework\TestCase;
 
-use eve\access\TraversableAccessor;
+use eve\common\access\TraversableAccessor;
 use eve\inject\IInjectable;
 use eve\inject\IInjector;
 use eve\provide\ILocator;

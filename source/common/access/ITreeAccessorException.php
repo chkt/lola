@@ -2,7 +2,7 @@
 
 namespace lola\common\access;
 
-use eve\access\IAccessorException;
+use eve\common\access\IAccessorException;
 
 
 

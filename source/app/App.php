@@ -2,8 +2,8 @@
 
 namespace lola\app;
 
-use eve\access\ItemAccessor;
-use eve\access\ITraversableAccessor;
+use eve\common\access\ItemAccessor;
+use eve\common\access\ITraversableAccessor;
 use eve\driver\IInjectorDriver;
 use eve\inject\IInjector;
 use eve\provide\ILocator;

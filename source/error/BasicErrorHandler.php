@@ -2,7 +2,7 @@
 
 namespace lola\error;
 
-use eve\access\ITraversableAccessor;
+use eve\common\access\ITraversableAccessor;
 use lola\log\ILogger;
 
 

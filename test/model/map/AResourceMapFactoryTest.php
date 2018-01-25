@@ -4,7 +4,7 @@ namespace test\model\map;
 
 use PHPUnit\Framework\TestCase;
 
-use eve\access\TraversableAccessor;
+use eve\common\access\TraversableAccessor;
 use eve\inject\IInjector;
 use lola\common\factory\AStatelessInjectorFactory;
 use lola\model\map\IResourceMap;
