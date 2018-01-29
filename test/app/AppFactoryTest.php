@@ -45,7 +45,7 @@ extends TestCase
 	private function _mockDriverFactory() {
 		$ins = $this
 			->getMockBuilder(ISimpleFactory::class)
-			->setMethods([ 'produce', 'useReferenceSource' ])
+			->setMethods([ 'produce' ])
 			->getMock();
 
 		$ins
@@ -55,12 +55,6 @@ extends TestCase
 			->willReturnCallback(function(array $config) {
 				return $this->_mockDriver();
 			});
-
-		$ins
-			->expects($this->once())
-			->method('useReferenceSource')
-			->with()
-			->willReturn([]);
 
 		return $ins;
 	}
