@@ -16,7 +16,7 @@ use lola\app\CoreProviderFactory;
 
 
 
-final class InjectorDriverFactoryTest
+final class CoreProviderFactoryTest
 extends TestCase
 {
 
