@@ -11,6 +11,7 @@ use eve\common\access\TraversableAccessor;
 use eve\entity\IEntityParser;
 use eve\driver\IInjectorDriver;
 use eve\inject\IInjector;
+use eve\inject\cache\IKeyEncoder;
 use eve\provide\ILocator;
 use lola\app\CoreProviderFactory;
 
@@ -82,6 +83,7 @@ extends TestCase
 		$factory = $this->_produceProviderFactory($core);
 		$config = [
 			'accessorFactory' => $access,
+			'keyEncoder' => $this->_mockInterface(IKeyEncoder::class),
 			'instanceCache' => $this->_mockInterface(IItemMutator::class),
 			'entityParser' => $this->_mockInterface(IEntityParser::class),
 			'injector' => $this->_mockInterface(IInjector::class),
