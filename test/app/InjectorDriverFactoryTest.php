@@ -73,7 +73,7 @@ extends TestCase
 			->expects($this->once())
 			->method('newInstance')
 			->with(
-				$this->equalTo(\eve\driver\InjectorDriver::class),
+				$this->equalTo(\lola\app\CoreProvider::class),
 				$this->isType('array')
 			)
 			->willReturnCallback(function(string $qname, array $args) use ($access) {
