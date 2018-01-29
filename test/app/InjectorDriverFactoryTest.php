@@ -40,7 +40,6 @@ extends TestCase
 			->getMock();
 
 		$ins
-			->expects($this->any())
 			->method('produce')
 			->with($this->isType('array'))
 			->willReturnCallback(function(array& $data) {
@@ -65,7 +64,7 @@ extends TestCase
 	}
 
 
-	public function testUseReferenceSource() {
+	public function testProduce() {
 		$core = $this->_mockInterface(ICoreFactory::class);
 		$access = $this->_mockAccessorFactory();
 
@@ -77,15 +76,7 @@ extends TestCase
 				$this->isType('array')
 			)
 			->willReturnCallback(function(string $qname, array $args) use ($access) {
-				$ins = $this->_mockInterface(IInjectorDriver::class, $args);
-
-				$ins
-					->expects($this->once())
-					->method('getAccessorFactory')
-					->with()
-					->willReturn($access);
-
-				return $ins;
+				return $this->_mockInterface(IInjectorDriver::class, $args);
 			});
 
 		$factory = $this->_produceDriverFactory($core);
@@ -96,12 +87,7 @@ extends TestCase
 			'injector' => $this->_mockInterface(IInjector::class),
 			'locator' => $this->_mockInterface(ILocator::class)
 		];
-		$driver = $factory->produce($config);
 
-		$source =& $factory->useReferenceSource();
-		$refs = $driver->p0[IInjectorDriver::ITEM_REFERENCES];
-
-		$source['foo'] = 'bar';
-		$this->assertEquals('bar', $refs->getItem('foo'));
+		$factory->produce($config);
 	}
 }
