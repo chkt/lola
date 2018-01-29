@@ -11,8 +11,8 @@ use eve\common\access\ItemAccessor;
 use eve\common\access\TraversableAccessor;
 use eve\driver\IInjectorHost;
 use eve\driver\IInjectorDriver;
+use eve\inject\IInjectableIdentity;
 use eve\inject\IInjector;
-use eve\inject\IInjectable;
 use eve\provide\ILocator;
 use lola\common\IComponentConfig;
 use lola\app\IApp;
@@ -93,7 +93,7 @@ extends TestCase
 		$this->assertInstanceOf(ItemAccessor::class, $app);
 		$this->assertInstanceOf(IItemAccessor::class, $app);
 		$this->assertInstanceOf(IKeyAccessor::class, $app);
-		$this->assertInstanceOf(IInjectable::class, $app);
+		$this->assertInstanceOf(IInjectableIdentity::class, $app);
 	}
 
 	public function testDependencyConfig() {
