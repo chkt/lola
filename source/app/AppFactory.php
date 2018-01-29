@@ -41,8 +41,6 @@ extends ASimpleFactory
 			'component' => $core->newInstance(AppConfig::class, [ $config['global'] ])
 		]);
 
-		$driverFactory->useReferenceSource()['app'] = $app;
-
 		$injector->produce($config['errorSourceName']);
 
 		return $app;
