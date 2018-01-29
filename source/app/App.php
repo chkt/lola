@@ -5,6 +5,7 @@ namespace lola\app;
 use eve\common\access\ItemAccessor;
 use eve\common\access\ITraversableAccessor;
 use eve\driver\IInjectorDriver;
+use eve\inject\IInjectableIdentity;
 use eve\inject\IInjector;
 use eve\provide\ILocator;
 use lola\common\IComponentConfig;
@@ -24,6 +25,10 @@ implements IApp
 			'type' => IInjector::TYPE_ARGUMENT,
 			'data' => $config->getItem('component')
 		]];
+	}
+
+	static public function getInstanceIdentity(ITraversableAccessor $config) : string {
+		return IInjectableIdentity::IDENTITY_SINGLE;
 	}
 
 
