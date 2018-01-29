@@ -112,6 +112,16 @@ extends TestCase
 		])));
 	}
 
+	public function testInstanceIdentity() {
+		$driver = $this->_mockDriver();
+		$component = $this->_mockConfig();
+
+		$this->assertEquals(IInjectableIdentity::IDENTITY_SINGLE, App::getInstanceIdentity($this->_produceAccessor([
+			'driver' => $driver,
+			'component' => $component
+		])));
+	}
+
 
 	public function testGetInjector() {
 		$injector = $this->_mockInjector();
