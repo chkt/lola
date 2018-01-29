@@ -27,6 +27,11 @@ extends \eve\driver\InjectorDriverFactory
 	}
 
 
+	protected function _produceDriver(ICoreFactory $core, ITraversableAccessor $config, array & $dependencies) : IInjectorDriver {
+		return $core->newInstance(CoreProvider::class, [ & $dependencies ]);
+	}
+
+
 	protected function _produceReferences(IInjectorDriver $driver, ITraversableAccessor $config) : ITraversableAccessor {
 		$refs = $config->getItem('references');
 
