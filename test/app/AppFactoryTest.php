@@ -7,12 +7,15 @@ use PHPUnit\Framework\TestCase;
 use eve\common\factory\ICoreFactory;
 use eve\common\factory\ISimpleFactory;
 use eve\common\factory\ASimpleFactory;
+use eve\common\access\TraversableMutator;
 use eve\driver\IInjectorDriver;
+use eve\inject\IInjectableIdentity;
 use eve\inject\IInjector;
 use lola\common\IComponentConfig;
 use lola\error\INativeErrorSource;
 use lola\error\NativeErrorSource;
 use lola\app\IApp;
+use lola\app\CoreProvider;
 use lola\app\InjectorDriverFactory;
 use lola\app\AppFactory;
 use lola\app\AppConfig;
@@ -63,6 +66,8 @@ extends TestCase
 	}
 
 	private function _mockDriver() {
+		$cache = $this->_produceCache();
+
 		$ins = $this->_mockInterface(IInjectorDriver::class);
 
 		$ins
@@ -72,6 +77,10 @@ extends TestCase
 			->willReturnCallback(function() {
 				return $this->_mockInjector();
 			});
+
+		$ins
+			->method('getInstanceCache')
+			->willReturn($cache);
 
 		return $ins;
 	}
@@ -92,6 +101,12 @@ extends TestCase
 			});
 
 		return $ins;
+	}
+
+	private function _produceCache() {
+		$data = [];
+
+		return new TraversableMutator($data);
 	}
 
 
@@ -133,6 +148,7 @@ extends TestCase
 
 		$this->assertInstanceOf(IApp::class, $app);
 		$this->assertInstanceOf(IInjectorDriver::class, $app->driver);
+		$this->assertSame($app->driver, $app->driver->getInstanceCache()->getItem(CoreProvider::class . ':' . IInjectableIdentity::IDENTITY_SINGLE));
 		$this->assertInstanceOf(IComponentConfig::class, $app->component);
 	}
 }
