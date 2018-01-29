@@ -12,7 +12,7 @@ use eve\entity\IEntityParser;
 use eve\driver\IInjectorDriver;
 use eve\inject\IInjector;
 use eve\provide\ILocator;
-use lola\app\InjectorDriverFactory;
+use lola\app\CoreProviderFactory;
 
 
 
@@ -50,15 +50,15 @@ extends TestCase
 	}
 
 
-	private function _produceDriverFactory(ICoreFactory $core = null) : InjectorDriverFactory {
+	private function _produceProviderFactory(ICoreFactory $core = null) : CoreProviderFactory {
 		if (is_null($core)) $core = $this->_mockInterface(ICoreFactory::class);
 
-		return new InjectorDriverFactory($core);
+		return new CoreProviderFactory($core);
 	}
 
 
 	public function testInheritance() {
-		$factory = $this->_produceDriverFactory();
+		$factory = $this->_produceProviderFactory();
 
 		$this->assertInstanceOf(\eve\driver\InjectorDriverFactory::class, $factory);
 	}
@@ -79,7 +79,7 @@ extends TestCase
 				return $this->_mockInterface(IInjectorDriver::class, $args);
 			});
 
-		$factory = $this->_produceDriverFactory($core);
+		$factory = $this->_produceProviderFactory($core);
 		$config = [
 			'accessorFactory' => $access,
 			'instanceCache' => $this->_mockInterface(IItemMutator::class),

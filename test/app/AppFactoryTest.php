@@ -16,7 +16,7 @@ use lola\error\INativeErrorSource;
 use lola\error\NativeErrorSource;
 use lola\app\IApp;
 use lola\app\CoreProvider;
-use lola\app\InjectorDriverFactory;
+use lola\app\CoreProviderFactory;
 use lola\app\AppFactory;
 use lola\app\AppConfig;
 use lola\app\App;
@@ -131,7 +131,7 @@ extends TestCase
 				)
 			)
 			->willReturnCallback(function(string $qname, array $args) {
-				if ($qname === InjectorDriverFactory::class) return $this->_mockDriverFactory();
+				if ($qname === CoreProviderFactory::class) return $this->_mockDriverFactory();
 				else if ($qname === AppConfig::class) return $this->_mockInterface(IComponentConfig::class);
 			});
 

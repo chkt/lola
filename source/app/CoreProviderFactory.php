@@ -8,7 +8,7 @@ use eve\driver\IInjectorDriver;
 
 
 
-final class InjectorDriverFactory
+final class CoreProviderFactory
 extends \eve\driver\InjectorDriverFactory
 {
 

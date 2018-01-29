@@ -27,7 +27,7 @@ extends ASimpleFactory
 
 
 	protected function _produceInstance(ICoreFactory $core, array $config) {
-		$driverFactory = $core->newInstance(InjectorDriverFactory::class, [ $core ]);
+		$driverFactory = $core->newInstance(CoreProviderFactory::class, [ $core ]);
 		$driver = $driverFactory->produce($config);
 
 		$driver
