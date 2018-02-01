@@ -11,6 +11,7 @@ use eve\common\access\TraversableMutator;
 use eve\driver\IInjectorDriver;
 use eve\inject\IInjectableIdentity;
 use eve\inject\IInjector;
+use eve\inject\cache\IKeyEncoder;
 use lola\common\IComponentConfig;
 use lola\error\INativeErrorSource;
 use lola\error\NativeErrorSource;
@@ -59,18 +60,36 @@ extends TestCase
 		return $ins;
 	}
 
+	private function _mockEncoder() {
+		$ins = $this->_mockInterface(IKeyEncoder::class);
+
+		$ins
+			->method('encode')
+			->with(
+				$this->isType('string'),
+				$this->isType('string')
+			)
+			->willReturnCallback(function(string $qname, string $id) {
+				return $qname . ':' . $id;
+			});
+
+		return $ins;
+	}
+
 	private function _mockDriver() {
+		$encoder = $this->_mockEncoder();
 		$cache = $this->_produceCache();
+		$injector = $this->_mockInjector();
 
 		$ins = $this->_mockInterface(IInjectorDriver::class);
 
 		$ins
-			->expects($this->once())
 			->method('getInjector')
-			->with()
-			->willReturnCallback(function() {
-				return $this->_mockInjector();
-			});
+			->willReturn($injector);
+
+		$ins
+			->method('getKeyEncoder')
+			->willReturn($encoder);
 
 		$ins
 			->method('getInstanceCache')
@@ -90,9 +109,19 @@ extends TestCase
 				$this->isType('array')
 			)
 			->willReturnCallback(function(string $qname, array $args) {
-				if ($qname === App::class) return $this->_mockInterface(IApp::class, $args);
+				if ($qname === App::class) return $this->_mockApp($args);
 				else if ($qname === NativeErrorSource::class) return $this->_mockInterface(INativeErrorSource::class);
 			});
+
+		return $ins;
+	}
+
+	private function _mockApp(array $args) {
+		$ins = $this->_mockInterface(IApp::class, $args);
+
+		$ins
+			->method('getInjector')
+			->willReturn($args['driver']->getInjector());
 
 		return $ins;
 	}
