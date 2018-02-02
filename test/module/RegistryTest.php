@@ -120,7 +120,7 @@ extends TestCase
 		$this->assertEquals([
 			'injector:',
 			'locator:',
-			'environment:entities'
+			'core:entityParser'
 		], Registry::getDependencyConfig($this->_produceAccessor()));
 	}
 

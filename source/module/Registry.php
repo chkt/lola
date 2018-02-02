@@ -17,7 +17,7 @@ implements IRegistry
 		return [
 			'injector:',
 			'locator:',
-			'environment:entities'
+			'core:entityParser'
 		];
 	}
 
