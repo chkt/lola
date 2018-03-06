@@ -2,32 +2,52 @@
 
 namespace lola\service;
 
-use lola\prov\AProvider;
-use lola\inject\IInjectable;
-use lola\module\EntityParser;
-use lola\module\Registry;
+use eve\common\access\ITraversableAccessor;
+use eve\common\assembly\IAssemblyHost;
+use lola\module\IEntityParser;
+use lola\module\IRegistry;
+use lola\provide\AConfigurableProvider;
 
 
 
 final class ServiceProvider
-extends AProvider
-implements IInjectable
+extends AConfigurableProvider
 {
 
-	const VERSION = '0.5.2';
+	static public function getDependencyConfig(ITraversableAccessor $config) : array {
+		$res = parent::getDependencyConfig($config);
 
+		$res[] = 'environment:registry';
 
-	static public function getDependencyConfig(Array $config) {
-		return [ 'environment:registry' ];
+		return $res;
 	}
 
 
 
-	public function __construct(Registry& $registry) {
-		parent::__construct(function($hash) use ($registry) {
-			$segs = EntityParser::parse($hash);
+	private $_registry;
+	private $_parser;
 
-			return $registry->produce('service', $segs['name'], !empty($segs['id']) ? $segs['id'] : 'default', $segs['module']);
-		});
+
+	public function __construct(IAssemblyHost $driver, IRegistry $registry) {
+		parent::__construct($driver);
+
+		$this->_registry = $registry;
+		$this->_parser = $driver->getItem('entityParser');
+	}
+
+
+	protected function _parseEntity(string $entity) : array {
+		$parts = $this->_parser->parse($entity, IEntityParser::COMPONENT_CONFIG);
+
+		$qname = $this->_registry->getQualifiedName(
+			'service',
+			$parts[IEntityParser::COMPONENT_NAME],
+			$parts[IEntityParser::COMPONENT_MODULE]
+		);
+
+		return [
+			'qname' => $qname,
+			'config' => $parts[IEntityParser::COMPONENT_CONFIG]
+		];
 	}
 }
