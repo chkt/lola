@@ -37,6 +37,13 @@ extends TestCase
 	}
 
 
+	public function testInheritance() {
+		$ins = $this->_mockIterateable();
+
+		$this->assertInstanceOf(\lola\type\IIterateable::class, $ins);
+		$this->assertInstanceOf(\eve\common\IGenerateable::class, $ins);
+	}
+
 	public function testGetIndex() {
 		$ins = $this->_mockIterateable();
 
