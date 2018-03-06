@@ -2,7 +2,6 @@
 
 namespace lola\common\factory;
 
-use eve\common\factory\IProviderFactory;
 use eve\common\access\ITraversableAccessor;
 use eve\inject\IInjectableIdentity;
 use eve\inject\IInjectableFactory;
@@ -29,7 +28,7 @@ implements IInjectableFactory
 	abstract protected function _produceInstance(ITraversableAccessor $config);
 
 
-	public function setConfig(ITraversableAccessor $config) : IProviderFactory {
+	public function setConfig(ITraversableAccessor $config) {
 		$this->_config = $config;
 
 		return $this;
