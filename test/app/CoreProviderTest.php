@@ -5,6 +5,7 @@ namespace test\app;
 use PHPUnit\Framework\TestCase;
 
 use eve\common\access\TraversableAccessor;
+use eve\common\assembly\IAssemblyHost;
 use eve\driver\InjectorDriver;
 use eve\inject\IInjectableIdentity;
 use eve\provide\IProvider;
@@ -16,8 +17,16 @@ final class CoreProviderTest
 extends TestCase
 {
 
-	private function _produceCoreProvider(array& $data = []) {
-		return new CoreProvider($data);
+	private function _mockInterface(string $qname) {
+		return $this
+			->getMockBuilder($qname)
+			->getMock();
+	}
+
+	private function _produceCoreProvider(IAssemblyHost $assembly = null) {
+		if (is_null($assembly)) $assembly = $this->_mockInterface(IAssemblyHost::class);
+
+		return new CoreProvider($assembly);
 	}
 
 	private function _produceAccessor(array $config = []) {
