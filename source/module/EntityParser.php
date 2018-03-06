@@ -2,11 +2,22 @@
 
 namespace lola\module;
 
+use eve\common\ITokenizer;
+
 
 
 final class EntityParser
 implements IEntityParser
 {
+
+
+	private  $_configParser;
+
+
+	public function __construct(ITokenizer $configParser) {
+		$this->_configParser = $configParser;
+	}
+
 
 	public function parse(string $entity, string $end = self::COMPONENT_TYPE) : array {
 		if (empty($entity)) throw new \ErrorException();
@@ -38,6 +49,12 @@ implements IEntityParser
 			$res[$item['end']] = substr($entity, $offset);
 
 			break;
+		}
+
+		if (array_key_exists(self::COMPONENT_CONFIG, $res)) {
+			$res[self::COMPONENT_CONFIG] = empty($res[self::COMPONENT_CONFIG]) ?
+			[] :
+			$this->_configParser->parse($res[self::COMPONENT_CONFIG]);
 		}
 
 		return $res;
