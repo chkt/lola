@@ -7,7 +7,7 @@ use PHPUnit\Framework\TestCase;
 use eve\inject\IInjector;
 use lola\model\IModel;
 use lola\model\IResource;
-use lola\model\AResourceDependencyFactory;
+use lola\model\AResourceModelFactory;
 use lola\model\collection\ACollection;
 use lola\model\collection\IResourceCollection;
 
@@ -67,7 +67,7 @@ extends TestCase
 			->willReturnCallback(function(string $name, array $config) : IModel {
 				$this->assertEquals('foo', $name);
 				$this->assertArrayHasKey('mode', $config);
-				$this->assertEquals(AResourceDependencyFactory::MODE_PASS, $config['mode']);
+				$this->assertEquals(AResourceModelFactory::MODE_PASS, $config['mode']);
 				$this->assertArrayHasKey('resource', $config);
 				$this->assertInstanceOf(IResource::class, $config['resource']);
 

@@ -11,7 +11,7 @@ use lola\common\factory\AStatelessInjectorFactory;
 use lola\model\IResource;
 use lola\model\IResourceQuery;
 use lola\model\IModelFactory;
-use lola\model\AResourceDependencyFactory;
+use lola\model\AResourceModelFactory;
 use lola\type\StructuredData;
 
 
@@ -54,7 +54,7 @@ extends TestCase
 		if (is_null($baseFactory)) $baseFactory = $this->_mockInterface(ICoreFactory::class);
 
 		$factory = $this
-			->getMockBuilder(AResourceDependencyFactory::class)
+			->getMockBuilder(AResourceModelFactory::class)
 			->setConstructorArgs([
 				$baseFactory,
 				$injector,
@@ -67,17 +67,17 @@ extends TestCase
 		return $factory;
 	}
 
-	private function _mockResource(int $mode = AResourceDependencyFactory::MODE_NONE) {
+	private function _mockResource(int $mode = AResourceModelFactory::MODE_NONE) {
 		$resource = $this
 			->getMockBuilder(IResource::class)
 			->getMock();
 
-		if ($mode === AResourceDependencyFactory::MODE_CREATE) $resource
+		if ($mode === AResourceModelFactory::MODE_CREATE) $resource
 			->expects($this->once())
 			->method('create')
 			->with($this->isInstanceOf(StructuredData::class))
 			->willReturnSelf();
-		else if ($mode === AResourceDependencyFactory::MODE_READ) $resource
+		else if ($mode === AResourceModelFactory::MODE_READ) $resource
 			->expects($this->once())
 			->method('read')
 			->with($this->isInstanceOf(IResourceQuery::class))
@@ -86,19 +86,19 @@ extends TestCase
 		return $resource;
 	}
 
-	private function _mockInjector(int $mode = AResourceDependencyFactory::MODE_NONE) {
+	private function _mockInjector(int $mode = AResourceModelFactory::MODE_NONE) {
 		$injector = $this
 			->getMockBuilder(IInjector::class)
 			->getMock();
 
-		if ($mode === AResourceDependencyFactory::MODE_CREATE) {
+		if ($mode === AResourceModelFactory::MODE_CREATE) {
 			$injector
 				->expects($this->at(0))
 				->method('produce')
 				->with(
 					$this->equalTo(IModelFactory::class),
 					$this->equalTo([
-						'mode' => AResourceDependencyFactory::MODE_CREATE
+						'mode' => AResourceModelFactory::MODE_CREATE
 					])
 				)
 				->willReturn($this->_mockModelFactory());
@@ -112,7 +112,7 @@ extends TestCase
 				)
 				->willReturn($this->_mockResource($mode));
 		}
-		else if ($mode === AResourceDependencyFactory::MODE_READ) $injector
+		else if ($mode === AResourceModelFactory::MODE_READ) $injector
 			->expects($this->once())
 			->method('produce')
 			->with($this->equalTo(IResource::class))
@@ -149,23 +149,23 @@ extends TestCase
 		$this->assertEquals([
 			'core:coreFactory',
 			'injector:'
-		], AResourceDependencyFactory::getDependencyConfig($this->_produceAccessor()));
+		], AResourceModelFactory::getDependencyConfig($this->_produceAccessor()));
 	}
 
 
 	public function test_produceInstance_create() {
-		$injector = $this->_mockInjector(AResourceDependencyFactory::MODE_CREATE);
+		$injector = $this->_mockInjector(AResourceModelFactory::MODE_CREATE);
 		$factory = $this->_mockResourceFactory($injector);
 
 		$data = [
-			'mode' => AResourceDependencyFactory::MODE_CREATE
+			'mode' => AResourceModelFactory::MODE_CREATE
 		];
 
 		$this->assertInstanceOf(IResource::class, $factory->produce($this->_produceAccessor($data)));
 	}
 
 	public function test_produceInstance_read() {
-		$injector = $this->_mockInjector(AResourceDependencyFactory::MODE_READ);
+		$injector = $this->_mockInjector(AResourceModelFactory::MODE_READ);
 		$baseFactory = $this->_mockInterface(ICoreFactory::class);
 
 		$baseFactory
@@ -179,7 +179,7 @@ extends TestCase
 		$factory = $this->_mockResourceFactory($injector, $baseFactory);
 
 		$data = [
-			'mode' => AResourceDependencyFactory::MODE_READ,
+			'mode' => AResourceModelFactory::MODE_READ,
 			'map' => []
 		];
 
@@ -191,7 +191,7 @@ extends TestCase
 		$factory = $this->_mockResourceFactory();
 
 		$data = [
-			'mode' => AResourceDependencyFactory::MODE_PASS,
+			'mode' => AResourceModelFactory::MODE_PASS,
 			'resource' => $resource
 		];
 
@@ -202,7 +202,7 @@ extends TestCase
 		$factory = $this->_mockResourceFactory();
 
 		$data = [
-			'mode' => AResourceDependencyFactory::MODE_NONE
+			'mode' => AResourceModelFactory::MODE_NONE
 		];
 
 		$this->expectException(\ErrorException::class);

@@ -7,7 +7,7 @@ use lola\type\ASizedIterateable;
 use lola\type\IProjectable;
 use lola\type\query\IDataQuery;
 use lola\model\IModel;
-use lola\model\AResourceDependencyFactory;
+use lola\model\AResourceModelFactory;
 
 
 
@@ -44,7 +44,7 @@ implements ICollection, IProjectable
 		$resource =& $this->_resource->useItem($index);
 
 		$model = $this->_injector->produce($this->_itemModel, [
-			'mode' => AResourceDependencyFactory::MODE_PASS,
+			'mode' => AResourceModelFactory::MODE_PASS,
 			'resource' => & $resource,
 		]);
 

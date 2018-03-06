@@ -10,7 +10,7 @@ use lola\type\StructuredData;
 
 
 
-abstract class AResourceDependencyFactory		//TODO: Rename to AResourceModelFactory
+abstract class AResourceModelFactory
 extends AStatelessInjectorFactory
 {
 
