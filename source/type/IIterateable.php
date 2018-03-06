@@ -2,7 +2,7 @@
 
 namespace lola\type;
 
-use lola\type\IGenerateable;
+use eve\common\IGenerateable;
 
 
 

@@ -2,8 +2,6 @@
 
 namespace lola\type;
 
-use lola\type\IIterateable;
-
 
 
 /**
@@ -116,7 +114,7 @@ implements IIterateable
 	/**
 	 * Yields all items in order
 	 */
-	public function& iterate() {
+	public function& iterate() : \Generator {
 		$this->_setIndex(0);
 
 		for (
