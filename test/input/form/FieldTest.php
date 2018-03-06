@@ -25,6 +25,16 @@ extends TestCase
 		return new Field($name, $values, $flags);
 	}
 
+
+	public function testInheritance() {
+		$field = $this->_produceField();
+
+		$this->assertInstanceOf(\lola\input\form\IField::class, $field);
+		$this->assertInstanceOf(\lola\input\valid\IValidateable::class, $field);
+		$this->assertInstanceOf(\eve\common\projection\IProjectable::class, $field);
+	}
+
+
 	public function testIsChanged() {
 		$field0 = $this->_produceField();
 

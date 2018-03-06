@@ -77,6 +77,13 @@ extends TestCase
 	}
 
 
+	public function testInheritance() {
+		$form = $this->_mockForm();
+
+		$this->assertInstanceOf(\lola\input\form\IForm::class, $form);
+		$this->assertInstanceOf(\eve\common\projection\IProjectable::class, $form);
+	}
+
 	public function testIsValidated() {
 		$form = $this->_mockForm();
 

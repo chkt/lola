@@ -48,17 +48,23 @@ extends TestCase
 		return $projector;
 	}
 
-	private function _mockModel(IResource& $resource = null, IProjector& $projector = null) {
-		if (is_null($resource)) $resource =& $this->_mockResource();
-		if (is_null($projector)) $projector =& $this->_mockProjector();
+	private function _mockModel(IResource $resource = null, IProjector $projector = null) {
+		if (is_null($resource)) $resource = $this->_mockResource();
+		if (is_null($projector)) $projector = $this->_mockProjector();
 
 		return $this
 			->getMockBuilder(AModel::class)
-			->setConstructorArgs([& $resource, & $projector])
+			->setConstructorArgs([ $resource, $projector])
 			->getMockForAbstractClass();
 	}
 
 
+	public function testInheritance() {
+		$model = $this->_mockModel();
+
+		$this->assertInstanceOf(\lola\model\IModel::class, $model);
+		$this->assertInstanceOf(\eve\common\projection\IProjectable::class, $model);
+	}
 
 	public function testGetProjection() {
 		$projection = [
