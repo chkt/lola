@@ -2,9 +2,7 @@
 
 namespace lola\input\form;
 
-use lola\type\IProjectable;
-
-use lola\input\form\IField;
+use eve\common\projection\IProjectable;
 
 
 

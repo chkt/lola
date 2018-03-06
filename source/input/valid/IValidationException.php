@@ -2,12 +2,12 @@
 
 namespace lola\input\valid;
 
-use lola\type\IProjectable;
+use eve\common\projection\IProjectable;
 
 
 
 interface IValidationException
-extends IProjectable
+extends \Throwable, IProjectable
 {
 
 }

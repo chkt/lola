@@ -2,9 +2,7 @@
 
 namespace lola\input\valid;
 
-use lola\type\IProjectable;
-
-use lola\input\valid\IValidationTransform;
+use eve\common\projection\IProjectable;
 
 
 

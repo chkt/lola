@@ -2,7 +2,7 @@
 
 namespace lola\model;
 
-use lola\type\IProjectable;
+use eve\common\projection\IProjectable;
 
 
 

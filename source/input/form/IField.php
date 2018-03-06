@@ -2,7 +2,7 @@
 
 namespace lola\input\form;
 
-use lola\type\IProjectable;
+use eve\common\projection\IProjectable;
 use lola\input\valid\IValidateable;
 
 
