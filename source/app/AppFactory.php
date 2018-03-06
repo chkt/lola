@@ -16,9 +16,24 @@ extends ASimpleFactory
 
 	protected function _getConfigDefaults() : array {
 		return [
+			'resolvers' => [
+				'core' => \eve\inject\resolve\ProviderResolver::class,
+				'environment' => \eve\inject\resolve\ProviderResolver::class,
+				'service' => \eve\inject\resolve\ProviderResolver::class,
+				'controller' => \eve\inject\resolve\ProviderResolver::class
+			],
 			'providers' => [
 				'core' => \lola\app\CoreProvider::class,
-				'environment' => \lola\provide\EnvironmentProvider::class,
+				'environment' => [
+					'qname' => \lola\provide\MapProvider::class,
+					'config' => [
+						'app' => \lola\app\App::class,
+						'registry' => \lola\module\Registry::class,
+						'http' => \lola\io\http\HttpDriver::class,
+						'log' => \lola\log\FileLogger::class,
+						'errors' => \lola\error\ErrorDriver::class
+					]
+				],
 				'service' => \lola\service\ServiceProvider::class,
 				'controller' => \lola\ctrl\ControllerProvider::class
 			],
