@@ -5,11 +5,13 @@ namespace test\prov;
 use PHPUnit\Framework\TestCase;
 
 use eve\common\factory\ICoreFactory;
+use eve\common\factory\ISimpleFactory;
+use eve\common\access\ITraversableAccessor;
 use eve\common\access\IItemMutator;
 use eve\common\access\TraversableAccessor;
-use eve\driver\IInjectorDriver;
+use eve\common\assembly\IAssemblyHost;
 use eve\inject\IInjector;
-use eve\inject\IInjectableIdentity;
+use eve\inject\cache\IKeyEncoder;
 use eve\provide\AProvider;
 use lola\provide\IConfigurableProvider;
 use lola\provide\AConfigurableProvider;
@@ -20,10 +22,16 @@ final class AConfigurableProviderTest
 extends TestCase
 {
 
-	private function _mockInjector($ins = null) {
-		$injector = $this
-			->getMockBuilder(IInjector::class)
+	private function _mockInterface(string $qname) {
+		$ins = $this
+			->getMockBuilder($qname)
 			->getMock();
+
+		return $ins;
+	}
+
+	private function _mockInjector($ins = null) {
+		$injector = $this->_mockInterface(IInjector::class);
 
 		$injector
 			->expects($this->any())
@@ -39,79 +47,78 @@ extends TestCase
 	}
 
 	private function _mockFactory() {
-		$factory = $this
-			->getMockBuilder(ICoreFactory::class)
-			->getMock();
-
-		$factory
-			->expects($this->any())
-			->method('hasInterface')
-			->with(
-				$this->equalTo('foo'),
-				$this->equalTo(IInjectableIdentity::class)
-			)
-			->willReturn(true);
-
-		$factory
-			->expects($this->any())
-			->method('callMethod')
-			->with(
-				$this->equalTo('foo'),
-				$this->equalTo('getInstanceIdentity'),
-				$this->equalTo([])
-			)
-			->willReturn('bar');
+		$factory = $this->_mockInterface(ICoreFactory::class);
 
 		return $factory;
 	}
 
+	private function _mockAccessorFactory() {
+		$item = $this->_mockInterface(ITraversableAccessor::class);
+		$access = $this->_mockInterface(ISimpleFactory::class);
+
+		$access
+			->method('produce')
+			->willReturn($item);
+
+		return $access;
+	}
+
+	private function _mockEncoder() {
+		$encoder = $this->_mockInterface(IKeyEncoder::class);
+
+		$encoder
+			->method('encodeIdentity')
+			->with($this->isType('string'), $this->isInstanceOf(ITraversableAccessor::class))
+			->willReturnCallback(function(string $qname, ITraversableAccessor $config) {
+				return 'bar';
+			});
+
+		return $encoder;
+	}
+
 	private function _mockCache() {
-		$cache = $this
-			->getMockBuilder(IItemMutator::class)
-			->getMock();
+		$cache = $this->_mockInterface(IItemMutator::class);
 
 		return $cache;
 	}
 
-	private function _mockDriver(IInjector $injector = null, ICoreFactory $factory = null, IItemMutator $cache = null) {
+	private function _mockDriverAssembly(
+		IInjector $injector = null,
+		ICoreFactory $base = null,
+		IItemMutator $cache = null,
+		IKeyEncoder $encoder = null,
+		ISimpleFactory $accessorFactory = null
+	) {
 		if (is_null($injector)) $injector = $this->_mockInjector();
-		if (is_null($factory)) $factory = $this->_mockFactory();
+		if (is_null($base)) $base = $this->_mockFactory();
+		if (is_null($encoder)) $encoder = $this->_mockEncoder();
 		if (is_null($cache))  $cache = $this->_mockCache();
+		if (is_null($accessorFactory)) $accessorFactory = $this->_mockAccessorFactory();
 
-		$driver = $this
-			->getMockBuilder(IInjectorDriver::class)
-			->getMock();
-
-		$driver
-			->expects($this->once())
-			->method('getInjector')
-			->with()
-			->willReturn($injector);
+		$driver = $this->_mockInterface(IAssemblyHost::class);
 
 		$driver
-			->expects($this->once())
-			->method('getCoreFactory')
-			->with()
-			->willReturn($factory);
-
-		$driver
-			->expects($this->once())
-			->method('getInstanceCache')
-			->with()
-			->willReturn($cache);
+			->method('getItem')
+			->with($this->isType('string'))
+			->willReturnCallback(function(string $key) use ($injector, $base, $encoder, $cache, $accessorFactory) {
+				if ($key === 'injector') return $injector;
+				else if ($key === 'coreFactory') return $base;
+				else if ($key === 'accessorFactory') return $accessorFactory;
+				else if ($key === 'keyEncoder') return $encoder;
+				else if ($key === 'instanceCache') return $cache;
+				else $this->fail($key);
+			});
 
 		return $driver;
 	}
 
 
-	private function _mockProvider(IInjector $injector = null, ICoreFactory $factory = null, IItemMutator $cache = null) {
-		if (is_null($injector)) $injector = $this->_mockInjector();
-		if (is_null($factory)) $factory = $this->_mockFactory();
-		if (is_null($cache))  $cache = $this->_mockCache();
+	private function _mockProvider(IInjector $injector = null, ICoreFactory $base = null, IItemMutator $cache = null) {
+		$driver = $this->_mockDriverAssembly($injector, $base, $cache);
 
 		$prov = $this
 			->getMockBuilder(AConfigurableProvider::class)
-			->setConstructorArgs([ $injector, $factory, $cache ])
+			->setConstructorArgs([ $driver ])
 			->getMockForAbstractClass();
 
 		$prov
@@ -140,22 +147,12 @@ extends TestCase
 	}
 
 	public function testDependencyConfig() {
-		$injector = $this->_mockInjector();
-		$factory = $this->_mockFactory();
-		$cache = $this->_mockCache();
-		$data = [
-			'driver' => $this->_mockDriver($injector, $factory, $cache)
-		];
+		$driver = $this->_mockDriverAssembly();
+		$data = [ 'driver' => $driver ];
 
 		$this->assertEquals([[
 			'type' => IInjector::TYPE_ARGUMENT,
-			'data' => $injector
-		], [
-			'type' => IInjector::TYPE_ARGUMENT,
-			'data' => $factory
-		], [
-			'type' => IInjector::TYPE_ARGUMENT,
-			'data' => $cache
+			'data' => $driver
 		]], AConfigurableProvider::getDependencyConfig($this->_produceAccessor($data)));
 	}
 
