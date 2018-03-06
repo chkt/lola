@@ -7,7 +7,6 @@ use PHPUnit\Framework\TestCase;
 
 use eve\common\IFactory;
 use eve\common\factory\IAccessorFactory;
-use eve\common\factory\IProviderFactory;
 use eve\common\access\ITraversableAccessor;
 use eve\common\access\TraversableAccessor;
 use eve\inject\IInjectable;
@@ -50,7 +49,6 @@ extends TestCase
 		$factory = $this->_mockFactory();
 
 		$this->assertInstanceOf(IInjectableFactory::class, $factory);
-		$this->assertInstanceOf(IProviderFactory::class, $factory);
 		$this->assertInstanceOf(IAccessorFactory::class, $factory);
 		$this->assertInstanceOf(IFactory::class, $factory);
 		$this->assertInstanceOf(IInjectableIdentity::class, $factory);
