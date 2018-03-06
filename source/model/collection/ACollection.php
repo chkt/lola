@@ -4,7 +4,6 @@ namespace lola\model\collection;
 
 use eve\inject\IInjector;
 use lola\type\ASizedIterateable;
-use lola\type\IProjectable;
 use lola\type\query\IDataQuery;
 use lola\model\IModel;
 use lola\model\AResourceModelFactory;
@@ -13,7 +12,7 @@ use lola\model\AResourceModelFactory;
 
 abstract class ACollection
 extends ASizedIterateable
-implements ICollection, IProjectable
+implements ICollection
 {
 
 	private $_injector;
@@ -25,14 +24,14 @@ implements ICollection, IProjectable
 
 
 	public function __construct(
-		IInjector& $injector,
-		IResourceCollection& $resource,
+		IInjector $injector,
+		IResourceCollection $resource,
 		string $itemModel
 	) {
 		parent::__construct();
 
-		$this->_injector =& $injector;
-		$this->_resource =& $resource;
+		$this->_injector = $injector;
+		$this->_resource = $resource;
 
 		$this->_itemModel = $itemModel;
 
