@@ -5,12 +5,14 @@ namespace test\app;
 use PHPUnit\Framework\TestCase;
 
 use eve\common\factory\ICoreFactory;
-use eve\common\access\TraversableAccessor;
-use eve\entity\IEntityParser;
+use eve\common\factory\ISimpleFactory;
+use eve\common\access\ITraversableAccessor;
+use eve\common\access\TraversableAccessorFactory;
+use eve\common\assembly\IAssemblyHost;
 use eve\driver\IInjectorDriver;
 use lola\app\CoreProvider;
 use lola\app\CoreProviderFactory;
-use lola\module\EntityParser;
+use lola\app\CoreProviderAssembly;
 
 
 
@@ -24,9 +26,8 @@ extends TestCase
 			->getMock();
 
 		foreach ($args as $key => & $value) {
-			$key = (is_numeric($key) ? 'p' : '') . $key;
-
-			$ins->$key =& $value;
+			$prop = (is_numeric($key) ? 'p' : '') . $key;
+			$ins->$prop =& $value;
 		}
 
 		return $ins;
@@ -39,10 +40,6 @@ extends TestCase
 		return new CoreProviderFactory($core);
 	}
 
-	private function _produceAccessor(array $data) {
-		return new TraversableAccessor($data);
-}
-
 
 	public function testInheritance() {
 		$factory = $this->_produceProviderFactory();
@@ -50,59 +47,39 @@ extends TestCase
 		$this->assertInstanceOf(\eve\driver\InjectorDriverFactory::class, $factory);
 	}
 
-	public function test_produceDriver() {
-		$base = $this->_mockInterface(ICoreFactory::class);
-		$base
-			->method('newInstance')
-			->with(
-				$this->equalTo(CoreProvider::class),
-				$this->isType('array')
-			)
-			->willReturnCallback(function(string $qname, array $args) {
-				return $this->_mockInterface(IInjectorDriver::class, $args);
+
+	public function testProduce() {
+		$provider = $this->_mockInterface(IInjectorDriver::class);
+		$accessorFactory = $this->_mockInterface(ISimpleFactory::class);
+
+		$accessorFactory
+			->method('produce')
+			->with($this->isType('array'))
+			->willReturnCallback(function(array& $data) {
+				return $this->_mockInterface(ITraversableAccessor::class, [ & $data ]);
 			});
 
-		$factory = $this->_produceProviderFactory($base);
-		$method = new \ReflectionMethod($factory, '_produceDriver');
-		$method->setAccessible(true);
-
-		$dependencies = [];
-
-		$provider = $method->invokeArgs($factory, [
-			$base,
-			$this->_produceAccessor([]),
-			& $dependencies
-		]);
-
-		$dependencies['foo'] = 'bar';
-
-		$this->assertInstanceOf(IInjectorDriver::class, $provider);
-		$this->assertSame($dependencies, $provider->p0);
-	}
-
-	public function test_produceEntityParser() {
+		$assembly = $this->_mockInterface(IAssemblyHost::class);
 		$base = $this->_mockInterface(ICoreFactory::class);
+
 		$base
 			->method('newInstance')
-			->with($this->equalTo(EntityParser::class))
-			->willReturnCallback(function(string $qname) {
-				return $this->_mockInterface(IEntityParser::class);
+			->with($this->isType('string'))
+			->willReturnCallback(function(string $qname) use ($base, $accessorFactory, $assembly, $provider) {
+				if ($qname === CoreProviderAssembly::class) return $assembly;
+				else if ($qname === TraversableAccessorFactory::class) return $accessorFactory;
+				else if ($qname === CoreProvider::class) return $provider;
+				else $this->fail($qname);
 			});
 
-		$driver = $this->_mockInterface(IInjectorDriver::class);
-		$driver
-			->method('getCoreFactory')
+		$assembly
+			->method('getItem')
+			->with($this->equalTo('coreFactory'))
 			->willReturn($base);
 
 		$factory = $this->_produceProviderFactory($base);
-		$method = new \ReflectionMethod($factory, '_produceEntityParser');
-		$method->setAccessible(true);
+		$result = $factory->produce();
 
-		$parser = $method->invokeArgs($factory, [
-			$driver,
-			$this->_produceAccessor([])
-		]);
-
-		$this->assertInstanceOf(IEntityParser::class, $parser);
+		$this->assertSame($provider, $result);
 	}
 }
