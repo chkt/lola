@@ -2,11 +2,9 @@
 
 namespace lola\provide;
 
-use eve\common\factory\ICoreFactory;
-use eve\common\access\IItemMutator;
 use eve\common\access\ITraversableAccessor;
+use eve\common\assembly\IAssemblyHost;
 use eve\inject\IInjector;
-use eve\inject\IInjectableIdentity;
 use eve\provide\AProvider;
 
 
@@ -17,38 +15,35 @@ implements IConfigurableProvider
 {
 
 	static public function getDependencyConfig(ITraversableAccessor $config) : array {
-		$res =  parent::getDependencyConfig($config);
-		$res[] = [
+		return [[
 			'type' => IInjector::TYPE_ARGUMENT,
-			'data' => $config
-				->getItem('driver')
-				->getInstanceCache()
-		];
-
-		return $res;
+			'data' => $config->getItem('driver')
+		]];
 	}
 
 
-	private $_injector;
-	private $_coreFactory;
 
+	private $_accessorFactory;
+	private $_injector;
+
+	private $_encoder;
 	private $_cache;
 
 	private $_queue;
 	private $_index;
 
 
-	public function __construct(
-		IInjector $injector,
-		ICoreFactory $coreFactory,
-		IItemMutator $cache
-	) {
-		parent::__construct($injector, $coreFactory);
+	public function __construct(IAssemblyHost $driver)
+	{
+		$injector = $driver->getItem('injector');
 
+		parent::__construct($injector, $driver->getItem('coreFactory'));
+
+		$this->_accessorFactory = $driver->getItem('accessorFactory');
 		$this->_injector = $injector;
-		$this->_coreFactory = $coreFactory;
 
-		$this->_cache = $cache;
+		$this->_encoder = $driver->getItem('keyEncoder');
+		$this->_cache = $driver->getItem('instanceCache');
 
 		$this->_queue = [];
 		$this->_index = [];
@@ -89,11 +84,7 @@ implements IConfigurableProvider
 
 
 	private function _getId(array $parts) : string {
-		$qname = $parts['qname'];
-
-		if (!$this->_coreFactory->hasInterface($qname, IInjectableIdentity::class)) throw new \ErrorException(sprintf('PRV not providable "%s"', $qname));
-
-		return $this->_coreFactory->callMethod($qname, 'getInstanceIdentity', $parts['config']);
+		return $this->_encoder->encodeIdentity($parts['qname'], $this->_accessorFactory->produce($parts['config']));
 	}
 
 
