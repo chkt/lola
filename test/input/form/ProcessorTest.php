@@ -51,6 +51,13 @@ extends TestCase
 	}
 
 
+	public function testInheritance() {
+		$processor = $this->_produceProcessor();
+
+		$this->assertInstanceOf(\lola\input\form\IProcessor::class, $processor);
+		$this->assertInstanceOf(\eve\common\projection\IProjectable::class, $processor);
+	}
+
 	public function testGetState() {
 		$processor = $this->_produceProcessor();
 

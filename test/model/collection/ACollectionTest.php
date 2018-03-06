@@ -42,20 +42,33 @@ extends TestCase
 	}
 
 	private function _mockCollection(
-		IInjector& $injector,
-		IResourceCollection& $collection,
-		string $modelName
+		IInjector $injector = null,
+		IResourceCollection $resourceCollection = null,
+		string $modelName = null
 	) : ACollection {
-		return $this
+		if (is_null($injector)) $injector = $this->_mockInjector();
+		if (is_null($resourceCollection)) $resourceCollection = $this->_mockResourceCollection();
+		if (is_null($modelName)) $modelName = 'foo';
+
+		$collection = $this
 			->getMockBuilder(ACollection::class)
 			->setConstructorArgs([
-				& $injector,
-				& $collection,
+				$injector,
+				$resourceCollection,
 				$modelName
 			])
 			->getMockForAbstractClass();
+
+		return $collection;
 	}
 
+
+	public function testInheritance() {
+		$collection = $this->_mockCollection();
+
+		$this->assertInstanceOf(\lola\model\collection\ICollection::class, $collection);
+		$this->assertInstanceOf(\eve\common\projection\IProjectable::class, $collection);
+	}
 
 	public function test_useItem() {
 		$injector = $this->_mockInjector();
