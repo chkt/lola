@@ -2,12 +2,12 @@
 
 namespace lola\app;
 
-use eve\common\access\ITraversableAccessor;
 use eve\common\factory\ICoreFactory;
+use eve\common\factory\ISimpleFactory;
+use eve\common\access\ITraversableAccessor;
+use eve\common\assembly\IAssemblyHost;
 use eve\driver\IInjectorDriver;
 use eve\driver\InjectorDriverFactory;
-use eve\entity\IEntityParser;
-use lola\module\EntityParser;
 
 
 
@@ -15,11 +15,17 @@ final class CoreProviderFactory
 extends InjectorDriverFactory
 {
 
-	protected function _produceDriver(ICoreFactory $base, ITraversableAccessor $config, array & $dependencies) : IInjectorDriver {
-		return $base->newInstance(CoreProvider::class, [ & $dependencies ]);
+	protected function _produceAssembly(ICoreFactory $base, ISimpleFactory $access, ITraversableAccessor $config) : IAssemblyHost {
+		return $base->newInstance(CoreProviderAssembly::class, [
+			$base,
+			$access,
+			$config
+		]);
 	}
 
-	protected function _produceEntityParser(IInjectorDriver $driver, ITraversableAccessor $config) : IEntityParser {
-		return $driver->getCoreFactory()->newInstance(EntityParser::class);
+	protected function _produceDriver(IAssemblyHost $assembly) : IInjectorDriver {
+		return $assembly
+			->getItem('coreFactory')
+			->newInstance(CoreProvider::class, [ $assembly ]);
 	}
 }
