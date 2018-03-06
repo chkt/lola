@@ -2,15 +2,15 @@
 
 namespace lola\model\collection;
 
-use lola\inject\IDependencyFactory;
-use lola\inject\Injector;
-
-use lola\model\collection\IResourceCollection;
+use eve\common\access\ITraversableAccessor;
+use eve\common\factory\ICoreFactory;
+use eve\inject\IInjector;
+use lola\common\factory\AStatelessInjectorFactory;
 
 
 
 abstract class AResourceCollectionFactory
-implements IDependencyFactory
+extends AStatelessInjectorFactory
 {
 
 	const MODE_NONE = 0;
@@ -18,85 +18,69 @@ implements IDependencyFactory
 	const MODE_PASS = 2;
 
 
-
-	private $_injector = null;
-	private $_mode = self::MODE_NONE;
-
-	private $_resource = '';
-	private $_query = '';
-
-	private $_config = null;
-	private $_instance = null;
-
-
-	static public function getDependencyConfig(array $config) {
-		return [[
-			'type' => Injector::TYPE_INJECTOR
-		]];
+	static public function getDependencyConfig(ITraversableAccessor $config) : array {
+		return [
+			'core:coreFactory',
+			'injector:'
+		];
 	}
 
 
 
-	public function __construct(Injector& $injector, $resource, $query) {
-		$this->_injector =& $injector;
+	private $_baseFactory;
+	private $_injector;
 
-		$this->_mode = self::MODE_NONE;
+	private $_resource;
+	private $_query;
 
-		$this->_resource = $resource;
-		$this->_query = $query;
 
-		$this->_config = null;
-		$this->_instance = null;
+	public function __construct(
+		ICoreFactory $baseFactory,
+		IInjector $injector,
+		string $resourceName,
+		string $queryName
+	) {
+		parent::__construct();
+
+		$this->_baseFactory = $baseFactory;
+		$this->_injector = $injector;
+
+		$this->_resource = $resourceName;
+		$this->_query = $queryName;
 	}
 
 
-	protected function _produceRead() {
-		$config = $this->_config;
+	private function _produceRead(ITraversableAccessor $config) {
+		$map = $config->hasKey('map') ? $config->getItem('map') : [];
+		$order = $config->hasKey('order') ? $config->getItem('order') : [];
+		$limit = $config->hasKey('limit') ? $config->getItem('limit') : 10;
+		$offset = $config->hasKey('offset') ? $config->getItem('offset') : 0;
 
-		$map = array_key_exists('map', $config) ? $config['map'] : [];
-		$order = array_key_exists('order', $config) ? $config['order'] : [];
-		$offset = array_key_exists('limit', $config) ? $config['limit'] : 10;
-		$limit = array_key_exists('offset', $config) ? $config['offset'] : 0;
+		$query = $this->_baseFactory->newInstance($this->_query, [ $map, $order ]);
 
 		return $this->_injector
 			->produce($this->_resource)
-			->read(new $this->_query($map, $order), $offset, $limit);
+			->read($query, $offset, $limit);
 	}
 
-	protected function _produceProxy() {
-		if (
-			!array_key_exists('resource', $this->_config) ||
-			!($this->_config['resource'] instanceof IResourceCollection)
-		) throw new \ErrorException();
+	private function _produceProxy(ITraversableAccessor $config) {
+		if (!$config->hasKey('resource')) throw new \ErrorException();
 
-		return $this->_config['resource'];
-	}
+		$resource = $config->getItem('resource');
 
+		if (!($resource instanceof IResourceCollection)) throw new \ErrorException();
 
-	public function setConfig(array $config) {
-		$mode = array_key_exists('mode', $config) ? $config['mode'] : self::MODE_READ;
-
-		$this->_mode = $mode;
-
-		$this->_config = $config;
-		$this->_instance = null;
-
-		return $this;
+		return $resource;
 	}
 
 
-	public function& produce() {
-		if (!is_null($this->_instance)) return $this->_instance;
+	protected function _produceInstance(ITraversableAccessor $config) {
+		$mode = $config->hasKey('mode') ? $config->getItem('mode') : self::MODE_READ;
 
-		$mode = $this->_mode;
-		$instance = null;
-
-		if ($mode === self::MODE_PASS) $instance = $this->_produceProxy();
-		else if ($mode === self::MODE_READ) $instance = $this->_produceRead();
+		if ($mode === self::MODE_PASS) $ins = $this->_produceProxy($config);
+		else if ($mode === self::MODE_READ) $ins = $this->_produceRead($config);
 		else throw new \ErrorException();
 
-		$this->_instance =& $instance;
-
-		return $instance;
+		return $ins;
 	}
 }
