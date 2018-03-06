@@ -2,20 +2,17 @@
 
 namespace lola\model;
 
-use lola\inject\IDependencyFactory;
-use lola\inject\IInjector;
-
+use eve\common\access\ITraversableAccessor;
+use eve\common\factory\ICoreFactory;
+use eve\inject\IInjector;
+use lola\common\factory\AStatelessInjectorFactory;
 use lola\type\StructuredData;
-use lola\model\IResource;
-use lola\model\IModelFactory;
 
 
 
-abstract class AResourceDependencyFactory
-implements IDependencyFactory
+abstract class AResourceDependencyFactory		//TODO: Rename to AResourceModelFactory
+extends AStatelessInjectorFactory
 {
-
-	const VERSION = '0.2.1';
 
 	const MODE_NONE = 0;
 	const MODE_CREATE = 1;
@@ -23,51 +20,53 @@ implements IDependencyFactory
 	const MODE_PASS = 3;
 
 
-
-	static public function getDependencyConfig(Array $config) {
-		return [[
-			'type' => IInjector::TYPE_INJECTOR
-		]];
+	static public function getDependencyConfig(ITraversableAccessor $config) : array {
+		return [
+			'core:coreFactory',
+			'injector:'
+		];
 	}
 
 
 
-	protected $_injector = null;
-	protected $_mode = self::MODE_NONE;
+	private $_baseFactory;
+	private $_injector;
 
-	protected $_model = '';
-	protected $_resource = '';
-	protected $_query = '';
-
-	protected $_config = null;
-	protected $_instance = null;
+	private $_model;
+	private $_resource;
+	private $_query;
 
 
-	public function __construct(IInjector& $injector, $model, $resource, $query) {
-		$this->_injector =& $injector;
+	public function __construct(
+		ICoreFactory $baseFactory,
+		IInjector $injector,
+		string $modelFactoryName,
+		string $resourceName,
+		string $queryName
+	) {
+		parent::__construct();
 
-		$this->_mode = self::MODE_NONE;
+		$this->_baseFactory = $baseFactory;
+		$this->_injector = $injector;
 
-		$this->_model = $model;
-		$this->_resource = $resource;
-		$this->_query = $query;
-
-		$this->_config = null;
-		$this->_instance = null;
+		$this->_model = $modelFactoryName;
+		$this->_resource = $resourceName;
+		$this->_query = $queryName;
 	}
 
 
-	protected function _produceProxy() {
-		if (
-			!array_key_exists('resource', $this->_config) ||
-			!($this->_config['resource'] instanceof IResource)
-		) throw new \ErrorException();
+	private function _produceProxy(ITraversableAccessor $config) {
+		if (!$config->hasKey('resource')) throw new \ErrorException();
 
-		return $this->_config['resource'];
+		$resource = $config->getItem('resource');
+
+		if (!($resource instanceof IResource)) throw new \ErrorException();
+
+		return $resource;
 	}
 
-	protected function _produceCreate() {
-		$factory = $this->_injector->produce($this->_model, $this->_config);
+	private function _produceCreate(ITraversableAccessor $config) {
+		$factory = $this->_injector->produce($this->_model, $config->getProjection());
 
 		if (!($factory instanceof IModelFactory)) throw new \ErrorException();
 
@@ -78,40 +77,25 @@ implements IDependencyFactory
 			->create(new StructuredData($data));
 	}
 
-	protected function _produceRead() {
-		if (!array_key_exists('map', $this->_config)) throw new \ErrorException();
+	private function _produceRead(ITraversableAccessor $config) {
+		if (!$config->hasKey('map')) throw new \ErrorException();
+
+		$query = $this->_baseFactory->newInstance($this->_query, [ $config->getItem('map') ]);
 
 		return $this->_injector
 			->produce($this->_resource)
-			->read(new $this->_query($this->_config['map']));
+			->read($query);
 	}
 
 
-	public function setConfig(Array $config) {
-		$mode = array_key_exists('mode', $config) ? $config['mode'] : self::MODE_READ;
+	protected function _produceInstance(ITraversableAccessor $config) {
+		$mode = $config->hasKey('mode') ? $config->getItem('mode') : self::MODE_READ;
 
-		$this->_mode = $mode;
-
-		$this->_config = $config;
-		$this->_instance = null;
-
-		return $this;
-	}
-
-
-	public function& produce() {
-		if (!is_null($this->_instance)) return $this->_instance;
-
-		$mode = $this->_mode;
-		$instance = null;
-
-		if ($mode === self::MODE_PASS) $instance = $this->_produceProxy();
-		else if ($mode === self::MODE_READ) $instance = $this->_produceRead();
-		else if ($mode === self::MODE_CREATE) $instance = $this->_produceCreate();
+		if ($mode === self::MODE_PASS) $ins = $this->_produceProxy($config);
+		else if ($mode === self::MODE_READ) $ins = $this->_produceRead($config);
+		else if ($mode === self::MODE_CREATE) $ins = $this->_produceCreate($config);
 		else throw new \ErrorException();
 
-		$this->_instance =& $instance;
-
-		return $instance;
+		return $ins;
 	}
 }
