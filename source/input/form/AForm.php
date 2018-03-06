@@ -2,21 +2,14 @@
 
 namespace lola\input\form;
 
-use lola\input\form\IForm;
-
 use lola\io\http\payload\IHttpPayload;
 use lola\input\valid\IValidator;
-use lola\input\form\Processor;
 
 
 
 abstract class AForm
 implements IForm
 {
-
-	const VERSION = '0.6.0';
-
-
 
 	private $_id;
 
@@ -62,8 +55,8 @@ implements IForm
 		return $this;
 	}
 
-	public function getProjection(array $selection = []) : array {
-		$res = $this->_processor->getProjection($selection);
+	public function getProjection() : array {
+		$res = $this->_processor->getProjection();
 
 		return array_merge($res, [
 			'id' => $this->getId()

@@ -2,20 +2,13 @@
 
 namespace lola\input\form;
 
-use lola\input\form\IProcessor;
-
 use lola\input\valid\IValidator;
-use lola\input\form\IField;
 
 
 
 final class Processor
 implements IProcessor
 {
-
-	const VERSION = '0.6.0';
-
-
 
 	private $_state;
 
@@ -146,7 +139,7 @@ implements IProcessor
 	}
 
 
-	public function getProjection(array $selection = []) : array {
+	public function getProjection() : array {
 		$fields = [];
 
 		foreach ($this->_fields as $name => $field) $fields[$name] = $field->getProjection();

@@ -2,11 +2,6 @@
 
 namespace lola\input\valid;
 
-use lola\input\valid\IValidator;
-
-use lola\input\valid\IValidationTransform;
-use lola\input\valid\IValidationInterceptor;
-
 
 
 abstract class AValidator
@@ -102,7 +97,7 @@ implements IValidator
 	}
 
 
-	public function getProjection(array $selection = []) : array {
+	public function getProjection() : array {
 		$failures = [];
 
 		foreach ($this->_failures as $failure) $failures[] = $failure->getProjection();

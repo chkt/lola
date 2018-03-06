@@ -14,8 +14,6 @@ class Field
 implements IField
 {
 
-	const VERSION = '0.6.0';
-
 	const FLAG_NONE = 0x0;
 	const FLAG_SUBMIT = 0x1;
 	const FLAG_IMMUTABLE = 0x2;
@@ -128,7 +126,7 @@ implements IField
 	}
 
 
-	public function getProjection(array $selection = []) : array {
+	public function getProjection() : array {
 		$validation = $this->useValidation();
 
 		return [
