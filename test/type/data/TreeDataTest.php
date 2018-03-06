@@ -4,7 +4,7 @@ namespace test\type\data;
 
 use PHPUnit\Framework\TestCase;
 
-use lola\type\IProjectable;
+use eve\common\projection\IProjectable;
 use lola\type\data\IKeyAccessor;
 use lola\type\data\IKeyMutator;
 use lola\type\data\IItemAccessor;
