@@ -2,6 +2,8 @@
 
 namespace test\common\projection;
 
+use eve\common\factory\ICoreFactory;
+use lola\common\projection\IProjector;
 use PHPUnit\Framework\TestCase;
 
 use eve\common\access\TraversableAccessor;
@@ -15,28 +17,20 @@ final class AProjectorFactoryTest
 extends TestCase
 {
 
-	private function _mockInjector(callable $fn = null) {
-		if (is_null($fn)) $fn = function() {};
-
-		$injector = $this
-			->getMockBuilder(IInjector::class)
+	private function _mockInterface(string $qname) {
+		$ins = $this
+			->getMockBuilder($qname)
 			->getMock();
 
-		$injector
-			->expects($this->any())
-			->method('produce')
-			->with($this->isType('string'), $this->isType('array'))
-			->willReturnCallback($fn);
-
-		return $injector;
+		return $ins;
 	}
 
-	private function _mockFactory(IInjector $injector = null, string $name = 'foo') {
-		if (is_null($injector)) $injector = $this->_mockInjector();
+	private function _mockFactory(ICoreFactory $base = null, string $name = 'foo') {
+		if (is_null($base)) $base = $this->_mockInterface(ICoreFactory::class);
 
 		return $this
 			->getMockBuilder(AProjectorFactory::class)
-			->setConstructorArgs([ $injector, $name ])
+			->setConstructorArgs([ $base, $name ])
 			->getMockForAbstractClass();
 	}
 
@@ -53,7 +47,7 @@ extends TestCase
 	}
 
 	public function testDependencyConfig() {
-		$this->assertEquals([ 'injector:' ], AProjectorFactory::getDependencyConfig($this->_produceAccessor()));
+		$this->assertEquals([ 'core:coreFactory' ], AProjectorFactory::getDependencyConfig($this->_produceAccessor()));
 	}
 
 
@@ -63,14 +57,22 @@ extends TestCase
 			'bar' => 2
 		];
 
-		$injector = $this->_mockInjector(function(string $qname, array $config) use ($data) {
-			$this->assertEquals('bar', $qname);
-			$this->assertEquals($data, $config[0]);
+		$projector = $this->_mockInterface(IProjector::class);
+		$base = $this->_mockInterface(ICoreFactory::class);
 
-			return 'baz';
-		});
-		$factory = $this->_mockFactory($injector, 'bar');
+		$base
+			->method('newInstance')
+			->with($this->isType('string'), $this->isType('array'))
+			->willReturnCallback(function(string $qname, array $config) use ($data, $projector) {
+				$this->assertEquals('bar', $qname);
+				$this->assertArrayHasKey(0, $config);
+				$this->assertEquals($data, $config[0]);
 
-		$this->assertEquals('baz', $factory->produce($this->_produceAccessor($data)));
+				return $projector;
+			});
+
+		$factory = $this->_mockFactory($base, 'bar');
+
+		$this->assertSame($projector, $factory->produce($this->_produceAccessor($data)));
 	}
 }
