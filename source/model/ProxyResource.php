@@ -2,20 +2,14 @@
 
 namespace lola\model;
 
-use lola\model\IResource;
-
-use lola\type\StructuredData;
-use lola\model\ProxyResourceDriver;
+use eve\common\access\ITraversableAccessor;
 
 
 
 class ProxyResource
 implements IResource
 {
-	const VERSION = '0.2.4';
-	
-	
-	
+
 	protected $_data = null;
 	protected $_dirty = false;
 	protected $_life = 0;
@@ -71,11 +65,13 @@ implements IResource
 	}
 	
 	
-	public function getData() {
+	public function getData() : ITraversableAccessor {
+		if ($this->_life !== self::STATE_LIVE) throw new \ErrorException();
+
 		return $this->_data;
 	}
 	
-	public function setData(StructuredData $data) {
+	public function setData(ITraversableAccessor $data) : IResource {
 		if ($this->_life !== self::STATE_LIVE) throw new \ErrorException();
 		
 		$this->_data = $data;
@@ -85,7 +81,7 @@ implements IResource
 	}
 	
 	
-	public function create(StructuredData $data) {
+	public function create(ITraversableAccessor $data) : IResource {
 		if ($this->_life !== self::STATE_NEW) throw new \ErrorException();
 		
 		$this->_data = $data;
@@ -115,10 +111,9 @@ implements IResource
 		return $this;
 	}
 	
-	public function delete() {
+	public function delete() : IResource {
 		if ($this->_life !== self::STATE_LIVE) throw new \ErrorException();
 				
-		$this->_dirty = false;
 		$this->_life = self::STATE_DEAD;
 		$this->_ops |= self::OP_DELETE;
 
