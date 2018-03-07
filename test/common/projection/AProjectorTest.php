@@ -1,6 +1,6 @@
 <?php
 
-namespace test\type;
+namespace test\common\projection;
 
 use PHPUnit\Framework\TestCase;
 
