@@ -65,7 +65,7 @@ extends TestCase
 
 		$injector = $this->_mockInjector(function(string $qname, array $config) use ($data) {
 			$this->assertEquals('bar', $qname);
-			$this->assertEquals($data, $config);
+			$this->assertEquals($data, $config[0]);
 
 			return 'baz';
 		});

@@ -34,6 +34,6 @@ extends AStatelessInjectorFactory
 
 
 	protected function _produceInstance(ITraversableAccessor $config) {
-		return $this->_injector->produce($this->_projector, $config->getProjection());
+		return $this->_injector->produce($this->_projector, [ $config->getProjection() ]);
 	}
 }
