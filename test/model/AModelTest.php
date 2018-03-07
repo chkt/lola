@@ -63,6 +63,7 @@ extends TestCase
 		$model = $this->_mockModel();
 
 		$this->assertInstanceOf(\lola\model\IModel::class, $model);
+		$this->assertInstanceOf(\lola\common\projection\IFilterProjectable::class, $model);
 		$this->assertInstanceOf(\eve\common\projection\IProjectable::class, $model);
 	}
 
