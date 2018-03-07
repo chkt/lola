@@ -3,7 +3,7 @@
 namespace lola\common\projection;
 
 use eve\common\access\ITraversableAccessor;
-use eve\inject\IInjector;
+use eve\common\factory\ICoreFactory;
 use lola\common\factory\AStatelessInjectorFactory;
 
 
@@ -13,27 +13,27 @@ extends AStatelessInjectorFactory
 {
 
 	static public function getDependencyConfig(ITraversableAccessor $config) : array {
-		return [ 'injector:' ];
+		return [ 'core:coreFactory' ];
 	}
 
 
 
-	private $_injector;
+	private $_baseFactory;
 	private $_projector;
 
 
 	public function __construct(
-		IInjector $injector,
+		ICoreFactory $baseFactory,
 		string $projectorName
 	) {
 		parent::__construct();
 
-		$this->_injector = $injector;
+		$this->_baseFactory = $baseFactory;
 		$this->_projector = $projectorName;
 	}
 
 
 	protected function _produceInstance(ITraversableAccessor $config) {
-		return $this->_injector->produce($this->_projector, [ $config->getProjection() ]);
+		return $this->_baseFactory->newInstance($this->_projector, [ $config->getProjection() ]);
 	}
 }
