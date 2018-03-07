@@ -4,7 +4,7 @@ namespace test\type;
 
 use PHPUnit\Framework\TestCase;
 
-use lola\type\StructuredData;
+use eve\common\access\ITraversableAccessor;
 use lola\type\AProjector;
 
 
@@ -20,22 +20,24 @@ extends TestCase
 			->getMockForAbstractClass();
 	}
 
+	private function _mockAccessor() {
+		$access = $this
+			->getMockBuilder(ITraversableAccessor::class)
+			->getMock();
 
-	private function _produceSource(array $data) : StructuredData {
-		return new StructuredData($data);
+		return $access;
 	}
 
 
 	public function testSetSource() {
-		$data = $this->_produceSource([]);
+		$data = $this->_mockAccessor();
 		$ins = $this->_mockProjector([]);
 
 		$this->assertEquals($ins, $ins->setSource($data));
 	}
 
-
 	public function testGetProjection() {
-		$data = $this->_produceSource([
+		$data = [
 			'foo' => 0,
 			'bar' => [ 1, 2, 3 ],
 			'baz' => [
@@ -43,24 +45,38 @@ extends TestCase
 				'bar' => 5,
 				'baz' => 6
 			]
-		]);
+		];
+
+		$access = $this->_mockAccessor();
+
+		$access
+			->method('getItem')
+			->with($this->isType('string'))
+			->willReturnCallback(function(string $key) use ($data) {
+				$segs = explode('.', $key);
+				$branch = $data;
+
+				foreach ($segs as $seg) $branch = $branch[$seg];
+
+				return $branch;
+			});
 
 		$ins = $this
 			->_mockProjector([
-				'fooProp' => function(StructuredData $data) {
-					return [ 'foo' => $data->useItem('foo') ];
+				'fooProp' => function(ITraversableAccessor $data) {
+					return [ 'foo' => $data->getItem('foo') ];
 				},
-				'barProp' => function(StructuredData $data) {
-					return [ 'bar' => $data->useItem('bar') ];
+				'barProp' => function(ITraversableAccessor $data) {
+					return [ 'bar' => $data->getItem('bar') ];
 				},
-				'bazProp' => function(StructuredData $data) {
-					return [ 'baz' => $data->useItem('baz') ];
+				'bazProp' => function(ITraversableAccessor $data) {
+					return [ 'baz' => $data->getItem('baz') ];
 				},
-				'quuxProp' => function(StructuredData $data) {
-					return [ 'quux' => $data->useItem('baz.baz') ];
+				'quuxProp' => function(ITraversableAccessor $data) {
+					return [ 'quux' => $data->getItem('baz.baz') ];
 				}
 			])
-			->setSource($data);
+			->setSource($access);
 
 		$this->assertEquals([
 			'foo' => 0,
