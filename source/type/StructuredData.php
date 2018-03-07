@@ -2,16 +2,15 @@
 
 namespace lola\type;
 
-use lola\type\NoPropertyException;
+use eve\common\projection\IProjectable;
+use eve\common\access\ITraversableAccessor;
 
 
 
 class StructuredData
+implements ITraversableAccessor
 {
-	
-	const VERSION = '0.2.4';
-	
-	
+
 	static public function& useKey(array& $data, $key) {
 		if (!is_string($key)) throw new \ErrorException();
 		
@@ -105,5 +104,63 @@ class StructuredData
 	
 	public function toArray() {
 		return $this->_data;
+	}
+
+
+	public function isEqual(IProjectable $b) : bool {
+		return $this->_data === $b->getProjection();
+	}
+
+
+	public function hasKey(string $key) : bool {
+		return $this->hasItem($key);
+	}
+
+
+	public function getItem(string $key) {
+		return $this->useItem($key);
+	}
+
+
+	public function& iterate() : \Generator {
+		for(
+			$keys = [], $k = [ array_keys($this->_data) ], $v = [ array_values($this->_data) ],
+			$index = [ 0 ], $len = [ count($k) ], $last = 0;
+			$last >= 0;
+		) {
+			$i = $index[$last]++;
+
+			if ($i === $len[$last]) {
+				array_pop($keys);
+				array_pop($k);
+				array_pop($v);
+				array_pop($index);
+				array_pop($len);
+				$last -= 1;
+
+				continue;
+			}
+
+			$key = $k[$last][$i];
+			$item = $v[$last][$i];
+
+			if (is_array($item)) {
+				array_push($keys, $key);
+				array_push($k, array_keys($item));
+				array_push($v, array_values($item));
+				array_push($index, 0);
+				array_push($len, count($item));
+				$last += 1;
+
+				continue;
+			}
+
+			yield (implode('.', array_merge($keys, [ $key ]))) => $item;
+		}
+	}
+
+
+	public function getProjection() : array {
+		return $this->toArray();
 	}
 }
