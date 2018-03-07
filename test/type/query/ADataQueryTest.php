@@ -4,6 +4,7 @@ namespace test\type\query;
 
 use PHPUnit\Framework\TestCase;
 
+use eve\common\access\ItemAccessor;
 use lola\type\query\ADataQuery;
 
 
@@ -17,6 +18,11 @@ extends TestCase
 			->getMockBuilder(ADataQuery::class)
 			->setConstructorArgs([ $props, $ops ])
 			->getMockForAbstractClass();
+	}
+
+
+	private function _produceAccessor(array $data) {
+		return new ItemAccessor($data);
 	}
 
 
@@ -40,11 +46,11 @@ extends TestCase
 			->_mockQuery([ 'foo', 'bar'], [ADataQuery::OP_EQ, ADataQuery::OP_EQ ])
 			->setRequirements([ 1, 2 ]);
 
-		$this->assertTrue($query->match([ 'foo' => 1, 'bar' => 2, 'baz' => 3]));
-		$this->assertFalse($query->match(['bar' => 2, 'baz' => 3]));
-		$this->assertFalse($query->match(['foo' => 1, 'baz' => 3]));
-		$this->assertFalse($query->match(['foo' => 2, 'bar' => 2]));
-		$this->assertFalse($query->match(['foo' => 1, 'bar' => 1]));
+		$this->assertTrue($query->match($this->_produceAccessor([ 'foo' => 1, 'bar' => 2, 'baz' => 3])));
+		$this->assertFalse($query->match($this->_produceAccessor(['bar' => 2, 'baz' => 3])));
+		$this->assertFalse($query->match($this->_produceAccessor(['foo' => 1, 'baz' => 3])));
+		$this->assertFalse($query->match($this->_produceAccessor(['foo' => 2, 'bar' => 2])));
+		$this->assertFalse($query->match($this->_produceAccessor(['foo' => 1, 'bar' => 1])));
 	}
 
 	public function testMatch_defaultOp() {
@@ -52,7 +58,7 @@ extends TestCase
 			->_mockQuery(['foo', 'bar'])
 			->setRequirements([1, 2]);
 
-		$this->assertTrue($query->match(['foo' => 1, 'bar' => 2]));
+		$this->assertTrue($query->match($this->_produceAccessor(['foo' => 1, 'bar' => 2])));
 	}
 
 	public function testMatch_exists() {
@@ -60,10 +66,10 @@ extends TestCase
 			->_mockQuery(['foo','bar'], [ADataQuery::OP_EXISTS, ADataQuery::OP_EXISTS])
 			->setRequirements([true, false]);
 
-		$this->assertTrue($query->match(['foo' => 1, 'baz' => 3]));
-		$this->assertFalse($query->match(['baz' => 3]));
-		$this->assertFalse($query->match(['foo' => 1, 'bar' => 2, 'baz' => 3]));
-		$this->assertFalse($query->match(['bar' => 2, 'baz' => 3]));
+		$this->assertTrue($query->match($this->_produceAccessor(['foo' => 1, 'baz' => 3])));
+		$this->assertFalse($query->match($this->_produceAccessor(['baz' => 3])));
+		$this->assertFalse($query->match($this->_produceAccessor(['foo' => 1, 'bar' => 2, 'baz' => 3])));
+		$this->assertFalse($query->match($this->_produceAccessor(['bar' => 2, 'baz' => 3])));
 	}
 
 	public function testMatch_notEqual() {
@@ -71,10 +77,10 @@ extends TestCase
 			->_mockQuery(['foo','bar'], [ADataQuery::OP_EQ, ADataQuery::OP_NEQ])
 			->setRequirements([1, 2]);
 
-		$this->assertTrue($query->match(['foo' => 1, 'bar' => 1]));
-		$this->assertFalse($query->match(['foo' => 2, 'bar' => 1]));
-		$this->assertFalse($query->match(['foo' => 1, 'bar' => 2]));
-		$this->assertTrue($query->match(['foo' => 1, 'bar' => 3]));
+		$this->assertTrue($query->match($this->_produceAccessor(['foo' => 1, 'bar' => 1])));
+		$this->assertFalse($query->match($this->_produceAccessor(['foo' => 2, 'bar' => 1])));
+		$this->assertFalse($query->match($this->_produceAccessor(['foo' => 1, 'bar' => 2])));
+		$this->assertTrue($query->match($this->_produceAccessor(['foo' => 1, 'bar' => 3])));
 	}
 
 	public function testMatch_lessThan() {
@@ -82,9 +88,9 @@ extends TestCase
 			->_mockQuery(['foo','bar'], [ADataQuery::OP_EQ, ADataQuery::OP_LT])
 			->setRequirements([1, 0]);
 
-		$this->assertTrue($query->match(['foo' => 1, 'bar' => -1]));
-		$this->assertFalse($query->match(['foo' => 1, 'bar' => 0]));
-		$this->assertFalse($query->match(['foo' => 1, 'bar' => 1]));
+		$this->assertTrue($query->match($this->_produceAccessor(['foo' => 1, 'bar' => -1])));
+		$this->assertFalse($query->match($this->_produceAccessor(['foo' => 1, 'bar' => 0])));
+		$this->assertFalse($query->match($this->_produceAccessor(['foo' => 1, 'bar' => 1])));
 	}
 
 	public function testMatch_greaterThan() {
@@ -92,9 +98,9 @@ extends TestCase
 			->_mockQuery(['foo','bar'], [ADataQuery::OP_EQ, ADataQuery::OP_GT])
 			->setRequirements([1, 0]);
 
-		$this->assertTrue($query->match(['foo' => 1, 'bar' => 1]));
-		$this->assertFalse($query->match(['foo' => 1, 'bar' => 0]));
-		$this->assertFalse($query->match(['foo' => 1, 'bar' => -1]));
+		$this->assertTrue($query->match($this->_produceAccessor(['foo' => 1, 'bar' => 1])));
+		$this->assertFalse($query->match($this->_produceAccessor(['foo' => 1, 'bar' => 0])));
+		$this->assertFalse($query->match($this->_produceAccessor(['foo' => 1, 'bar' => -1])));
 	}
 
 	public function testMatch_lessEqualsThan() {
@@ -102,9 +108,9 @@ extends TestCase
 			->_mockQuery(['foo','bar'], [ADataQuery::OP_EQ, ADataQuery::OP_LTE])
 			->setRequirements([1, 0]);
 
-		$this->assertTrue($query->match(['foo' => 1, 'bar' => -1]));
-		$this->assertTrue($query->match(['foo' => 1, 'bar' => 0]));
-		$this->assertFalse($query->match(['foo' => 1, 'bar' => 1]));
+		$this->assertTrue($query->match($this->_produceAccessor(['foo' => 1, 'bar' => -1])));
+		$this->assertTrue($query->match($this->_produceAccessor(['foo' => 1, 'bar' => 0])));
+		$this->assertFalse($query->match($this->_produceAccessor(['foo' => 1, 'bar' => 1])));
 	}
 
 	public function testMatch_greaterEqualsThan() {
@@ -112,8 +118,8 @@ extends TestCase
 			->_mockQuery(['foo', 'bar'], [ADataQuery::OP_EQ, ADataQuery::OP_GTE])
 			->setRequirements([1, 0]);
 
-		$this->assertTrue($query->match(['foo' => 1, 'bar' => 1]));
-		$this->assertTrue($query->match(['foo' => 1, 'bar' => 0]));
-		$this->assertFalse($query->match(['foo' => 1, 'bar' => -1]));
+		$this->assertTrue($query->match($this->_produceAccessor(['foo' => 1, 'bar' => 1])));
+		$this->assertTrue($query->match($this->_produceAccessor(['foo' => 1, 'bar' => 0])));
+		$this->assertFalse($query->match($this->_produceAccessor(['foo' => 1, 'bar' => -1])));
 	}
 }
