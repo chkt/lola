@@ -2,6 +2,8 @@
 
 namespace lola\type\query;
 
+use eve\common\access\IItemAccessor;
+
 
 
 interface IDataQuery
@@ -22,5 +24,5 @@ interface IDataQuery
 	public function setRequirements(array $requirements) : IDataQuery;
 
 
-	public function match(array $data) : bool;
+	public function match(IItemAccessor $data) : bool;
 }
