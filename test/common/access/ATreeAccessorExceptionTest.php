@@ -4,7 +4,7 @@ namespace test\common\access;
 
 use PHPUnit\Framework\TestCase;
 
-use eve\common\access\IAccessorException;
+use eve\common\access\exception\IAccessorException;
 use lola\common\access\ITreeAccessorException;
 use lola\common\access\ATreeAccessorException;
 
