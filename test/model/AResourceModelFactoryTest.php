@@ -2,9 +2,10 @@
 
 namespace test\model;
 
-use eve\common\factory\ICoreFactory;
 use PHPUnit\Framework\TestCase;
 
+use eve\common\factory\ICoreFactory;
+use eve\common\access\ITraversableAccessor;
 use eve\common\access\TraversableAccessor;
 use eve\inject\IInjector;
 use lola\common\factory\AStatelessInjectorFactory;
@@ -33,17 +34,12 @@ extends TestCase
 		return $ins;
 	}
 
-	private function _mockModelFactory(array $data = null) {
-		if (is_null($data)) $data = $this->_produceSampleData();
-
-		$factory = $this
-			->getMockBuilder(IModelFactory::class)
-			->getMock();
+	private function _mockModelFactory() {
+		$data = $this->_mockInterface(ITraversableAccessor::class);
+		$factory = $this->_mockInterface(IModelFactory::class);
 
 		$factory
-			->expects($this->atMost(1))
 			->method('produceModelData')
-			->with()
 			->willReturn($data);
 
 		return $factory;
@@ -75,7 +71,7 @@ extends TestCase
 		if ($mode === AResourceModelFactory::MODE_CREATE) $resource
 			->expects($this->once())
 			->method('create')
-			->with($this->isInstanceOf(StructuredData::class))
+			->with($this->isInstanceOf(ITraversableAccessor::class))
 			->willReturnSelf();
 		else if ($mode === AResourceModelFactory::MODE_READ) $resource
 			->expects($this->once())
