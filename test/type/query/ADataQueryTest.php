@@ -122,4 +122,14 @@ extends TestCase
 		$this->assertTrue($query->match($this->_produceAccessor(['foo' => 1, 'bar' => 0])));
 		$this->assertFalse($query->match($this->_produceAccessor(['foo' => 1, 'bar' => -1])));
 	}
+
+	public function testMatch_invalidOperator() {
+		$query = $this
+			->_mockQuery(['foo'], [0])
+			->setRequirements([null]);
+
+		$this->expectException(\ErrorException::class);
+
+		$query->match($this->_produceAccessor([ 'foo' => null ]));
+	}
 }
