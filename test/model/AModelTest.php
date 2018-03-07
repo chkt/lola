@@ -4,7 +4,7 @@ namespace test\model;
 
 use PHPUnit\Framework\TestCase;
 
-use lola\type\StructuredData;
+use eve\common\access\ITraversableAccessor;
 use lola\common\projection\IProjector;
 use lola\model\IResource;
 use lola\model\AModel;
@@ -15,18 +15,20 @@ final class AModelTest
 extends TestCase
 {
 
-	private function _mockResource(StructuredData $data = null) {
-		if (is_null($data)) {
-			$arr = [];
-			$data = new StructuredData($arr);
-		}
-
-		$resource = $this
-			->getMockBuilder(IResource::class)
+	private function _mockInterface(string $qname) {
+		$ins = $this
+			->getMockBuilder($qname)
 			->getMock();
 
+		return $ins;
+	}
+
+	private function _mockResource(ITraversableAccessor $data = null) {
+		if (is_null($data)) $data = $this->_mockInterface(ITraversableAccessor::class);
+
+		$resource = $this->_mockInterface(IResource::class);
+
 		$resource
-			->expects($this->any())
 			->method('getData')
 			->with()
 			->willReturn($data);
@@ -40,9 +42,8 @@ extends TestCase
 			->getMock();
 
 		$projector
-			->expects($this->any())
 			->method('setSource')
-			->with($this->isInstanceOf(StructuredData::class))
+			->with($this->isInstanceOf(ITraversableAccessor::class))
 			->willReturnSelf();
 
 		return $projector;
