@@ -2,9 +2,7 @@
 
 namespace lola\type;
 
-use lola\type\IProjector;
-
-use lola\type\StructuredData;
+use eve\common\access\ITraversableAccessor;
 
 
 
@@ -26,8 +24,8 @@ implements IProjector
 	}
 
 
-	public function setSource(StructuredData& $source) : IProjector {
-		$this->_source =& $source;
+	public function setSource(ITraversableAccessor $source) : IProjector {
+		$this->_source = $source;
 
 		return $this;
 	}
@@ -40,12 +38,12 @@ implements IProjector
 		$trns = $this->_transforms;
 		$res = [];
 
-		if (is_null($selection)) $selection = array_unique($keys);
+		if (is_null($selection)) $selection = $keys;
 
 		for ($i = 0, $l = count($keys); $i < $l; $i += 1) {
 			if (!in_array($keys[$i], $selection)) continue;
 
-			$ret = call_user_func_array($trns[$i], [ & $this->_source ]);
+			$ret = call_user_func_array($trns[$i], [ $this->_source ]);
 			$res = array_merge($res, $ret);
 		}
 
