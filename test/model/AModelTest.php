@@ -5,7 +5,7 @@ namespace test\model;
 use PHPUnit\Framework\TestCase;
 
 use lola\type\StructuredData;
-use lola\type\IProjector;
+use lola\common\projection\IProjector;
 use lola\model\IResource;
 use lola\model\AModel;
 

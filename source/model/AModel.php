@@ -4,7 +4,7 @@ namespace lola\model;
 
 use lola\model\IModel;
 use lola\model\IResource;
-use lola\type\IProjector;
+use lola\common\projection\IProjector;
 
 
 

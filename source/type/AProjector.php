@@ -3,6 +3,7 @@
 namespace lola\type;
 
 use eve\common\access\ITraversableAccessor;
+use lola\common\projection\IProjector;
 
 
 
