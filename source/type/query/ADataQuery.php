@@ -2,8 +2,8 @@
 
 namespace lola\type\query;
 
-use lola\type\StructuredData;
-use lola\type\NoPropertyException;
+use eve\common\access\IItemAccessor;
+use eve\common\access\exception\IAccessorException;
 
 
 
@@ -68,15 +68,15 @@ implements IDataQuery
 	}
 
 
-	public function match(array $data) : bool {
+	public function match(IItemAccessor $data) : bool {
 		foreach ($this->_require as $cond => $test) {
 			$prop = $this->_getPropertyNameOf($cond);
 			$op = $this->_getOperatorNameOf($cond);
 
 			try {
-				$value = StructuredData::useKey($data, $prop);
+				$value = $data->getItem($prop);
 			}
-			catch (NoPropertyException $ex) {
+			catch (IAccessorException $ex) {
 				if ($op === self::OP_EXISTS && $test !== true) continue;
 				else return false;
 			}
