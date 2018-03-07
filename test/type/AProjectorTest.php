@@ -5,7 +5,7 @@ namespace test\type;
 use PHPUnit\Framework\TestCase;
 
 use eve\common\access\ITraversableAccessor;
-use lola\type\AProjector;
+use lola\common\projection\AProjector;
 
 
 
@@ -32,7 +32,7 @@ extends TestCase
 	public function testInheritance() {
 		$projector = $this->_mockProjector([]);
 
-		$this->assertInstanceOf(\lola\type\IProjector::class, $projector);
+		$this->assertInstanceOf(\lola\common\projection\IProjector::class, $projector);
 		$this->assertInstanceOf(\lola\common\projection\IFilterProjectable::class, $projector);
 		$this->assertInstanceOf(\eve\common\projection\IProjectable::class, $projector);
 	}
