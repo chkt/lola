@@ -1,6 +1,6 @@
 <?php
 
-namespace lola\type;
+namespace lola\common\projection;
 
 use eve\common\access\ITraversableAccessor;
 use eve\inject\IInjector;

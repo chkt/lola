@@ -6,7 +6,7 @@ use PHPUnit\Framework\TestCase;
 
 use eve\common\access\TraversableAccessor;
 use eve\inject\IInjector;
-use lola\type\AProjectorFactory;
+use lola\common\projection\AProjectorFactory;
 use lola\common\factory\AStatelessInjectorFactory;
 
 
