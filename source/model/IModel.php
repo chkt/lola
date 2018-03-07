@@ -2,12 +2,12 @@
 
 namespace lola\model;
 
-use eve\common\projection\IProjectable;
+use lola\common\projection\IFilterProjectable;
 
 
 
 interface IModel
-extends IProjectable
+extends IFilterProjectable
 {
 
 	public function isLive();

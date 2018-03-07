@@ -2,12 +2,14 @@
 
 namespace lola\type;
 
+use eve\common\access\ITraversableAccessor;
+use lola\common\projection\IFilterProjectable;
+
 
 
 interface IProjector
+extends IFilterProjectable
 {
 
-	public function setSource(StructuredData& $source) : IProjector;
-
-	public function getProjection(array $selection = null)  : array;
+	public function setSource(ITraversableAccessor $source) : IProjector;
 }
