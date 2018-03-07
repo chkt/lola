@@ -6,7 +6,6 @@ use eve\common\access\ITraversableAccessor;
 use eve\common\factory\ICoreFactory;
 use eve\inject\IInjector;
 use lola\common\factory\AStatelessInjectorFactory;
-use lola\type\StructuredData;
 
 
 
@@ -74,7 +73,7 @@ extends AStatelessInjectorFactory
 
 		return $this->_injector
 			->produce($this->_resource)
-			->create(new StructuredData($data));
+			->create($data);
 	}
 
 	private function _produceRead(ITraversableAccessor $config) {
