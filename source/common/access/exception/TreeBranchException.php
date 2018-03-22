@@ -1,8 +1,6 @@
 <?php
 
-namespace lola\common\access;
-
-use lola\common\access\exception\ATreeAccessorException;
+namespace lola\common\access\exception;
 
 
 

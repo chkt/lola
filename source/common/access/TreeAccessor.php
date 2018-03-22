@@ -5,6 +5,7 @@ namespace lola\common\access;
 use eve\common\access\IItemAccessor;
 use lola\common\access\exception\ITreeAccessorException;
 use lola\common\access\exception\TreePropertyException;
+use lola\common\access\exception\TreeBranchException;
 
 
 
