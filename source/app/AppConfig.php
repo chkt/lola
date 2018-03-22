@@ -4,7 +4,7 @@ namespace lola\app;
 
 use lola\common\IComponentConfig;
 use lola\common\access\TreeAccessor;
-use lola\common\access\TreePropertyException;
+use lola\common\access\exception\ITreeAccessorException;
 
 
 
@@ -30,7 +30,7 @@ implements IComponentConfig
 	}
 
 
-	protected function _handlePropertyException(TreePropertyException $ex) {
+	protected function _handlePropertyException(ITreeAccessorException $ex) {
 		$data =& $ex->useResolvedItem();
 		$key = $ex->getKey();
 

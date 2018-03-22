@@ -8,7 +8,7 @@ use phpmock\phpunit\PHPMock;
 use eve\common\access\IKeyAccessor;
 use eve\common\access\IItemAccessor;
 use lola\common\IComponentConfig;
-use lola\common\access\TreePropertyException;
+use lola\common\access\exception\TreePropertyException;
 use lola\common\access\TreeAccessor;
 use lola\app\AppConfig;
 

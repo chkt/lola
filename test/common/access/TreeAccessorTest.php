@@ -7,7 +7,7 @@ use PHPUnit\Framework\TestCase;
 use eve\common\access\IKeyAccessor;
 use eve\common\access\IItemAccessor;
 use lola\common\access\TreeAccessor;
-use lola\common\access\TreePropertyException;
+use lola\common\access\exception\TreePropertyException;
 use lola\common\access\TreeBranchException;
 
 

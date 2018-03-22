@@ -4,6 +4,7 @@ namespace lola\common\access;
 
 use eve\common\access\IItemAccessor;
 use lola\common\access\exception\ITreeAccessorException;
+use lola\common\access\exception\TreePropertyException;
 
 
 
@@ -19,11 +20,11 @@ implements IItemAccessor
 	}
 
 
-	protected function _handleBranchException(TreeBranchException $ex) {
+	protected function _handleBranchException(ITreeAccessorException $ex) {
 		return false;
 	}
 
-	protected function _handlePropertyException(TreePropertyException $ex) {
+	protected function _handlePropertyException(ITreeAccessorException $ex) {
 		return false;
 	}
 
