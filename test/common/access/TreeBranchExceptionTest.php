@@ -4,7 +4,7 @@ namespace test\common\access;
 
 use PHPUnit\Framework\TestCase;
 
-use lola\common\access\ATreeAccessorException;
+use lola\common\access\exception\ATreeAccessorException;
 use lola\common\access\TreeBranchException;
 
 
