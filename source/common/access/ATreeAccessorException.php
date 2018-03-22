@@ -2,6 +2,8 @@
 
 namespace lola\common\access;
 
+use lola\common\access\exception\ITreeAccessorException;
+
 
 
 abstract class ATreeAccessorException

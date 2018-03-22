@@ -1,6 +1,6 @@
 <?php
 
-namespace lola\common\access;
+namespace lola\common\access\exception;
 
 use eve\common\access\exception\IAccessorException;
 

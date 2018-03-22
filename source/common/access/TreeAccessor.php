@@ -3,6 +3,7 @@
 namespace lola\common\access;
 
 use eve\common\access\IItemAccessor;
+use lola\common\access\exception\ITreeAccessorException;
 
 
 
