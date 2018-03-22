@@ -1,6 +1,6 @@
 <?php
 
-namespace test\common\access;
+namespace test\common\access\exception;
 
 use PHPUnit\Framework\TestCase;
 
