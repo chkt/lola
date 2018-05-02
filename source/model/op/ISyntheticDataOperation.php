@@ -2,7 +2,7 @@
 
 namespace lola\model\op;
 
-use lola\type\data\IItemAccessor;
+use eve\common\access\IItemAccessor;
 
 
 
