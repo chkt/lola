@@ -147,7 +147,25 @@ extends TestCase
 	}
 
 	public function testProduce() {
+		$defaults = null;
 		$core = $this->_mockInterface(ICoreFactory::class);
+
+		$core
+			->method('callMethod')
+			->with(
+				$this->equalTo(\eve\common\base\ArrayOperation::class),
+				$this->equalTo('merge'),
+				$this->logicalAnd(
+					$this->isType('array'),
+					$this->countOf(2)
+				)
+			)
+			->willReturnCallback(function(string $qname, string $method, array $args) use (& $defaults) {
+				$this->assertSame($defaults, $args[0]);
+				$this->assertEquals([], $args[1]);
+
+				return $args[0];
+			});
 
 		$core
 			->expects($this->exactly(2))
@@ -165,9 +183,13 @@ extends TestCase
 			});
 
 		$config = [];
-		$app = $this
-			->_produceAppFactory($core)
-			->produce($config);
+		$appFactory = $this->_produceAppFactory($core);
+
+		$method = new \ReflectionMethod($appFactory, '_getConfigDefaults');
+		$method->setAccessible(true);
+		$defaults = $method->invoke($appFactory);
+
+		$app = $appFactory->produce($config);
 
 		$this->assertInstanceOf(IApp::class, $app);
 		$this->assertInstanceOf(IInjectorDriver::class, $app->driver);
