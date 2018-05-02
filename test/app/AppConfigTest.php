@@ -4,12 +4,8 @@ namespace test\app;
 
 use PHPUnit\Framework\TestCase;
 use phpmock\phpunit\PHPMock;
-
-use eve\common\access\IKeyAccessor;
-use eve\common\access\IItemAccessor;
-use lola\common\IComponentConfig;
-use lola\common\access\exception\TreePropertyException;
-use lola\common\access\TreeAccessor;
+use lola\common\access\IAccessorSelector;
+use lola\common\access\exception\AccessorException;
 use lola\app\AppConfig;
 
 
@@ -21,6 +17,14 @@ extends TestCase
 	use PHPMock;
 
 
+	private function _mockInterface(string $qname) {
+		$ins = $this
+			->getMockBuilder($qname)
+			->getMock();
+
+		return $ins;
+	}
+
 	private function _mockFilterInput() {
 		$this
 			->getFunctionMock('\\lola\\app', 'filter_input')
@@ -29,48 +33,149 @@ extends TestCase
 				$this->equalTo(INPUT_SERVER),
 				$this->equalTo('SCRIPT_FILENAME')
 			)
-			->willReturnCallback(function(string $type, string $name) : string {
-				switch ($name) {
-					case 'SCRIPT_FILENAME' : return '/foo/bar/file/something.php';
-					default : throw new \ErrorException();
-				}
-			});
+			->willReturn('/foo/bar/file/something.php');
 	}
 
 
-	private function _produceConfig(array $data = []) {
-		return new AppConfig($data);
+	private function _produceConfig(IAccessorSelector $selector = null, array & $data = []) {
+		if (is_null($selector)) $selector = $this->_mockInterface(IAccessorSelector::class);
+
+		return new AppConfig($selector, $data);
 	}
 
 
 	public function testInheritance() {
 		$config = $this->_produceConfig();
 
-		$this->assertInstanceOf(TreeAccessor::class, $config);
-		$this->assertInstanceOf(IComponentConfig::class, $config);
-		$this->assertInstanceOf(IItemAccessor::class, $config);
-		$this->assertInstanceOf(IKeyAccessor::class, $config);
+		$this->assertInstanceOf(\lola\common\access\ItemAccessor::class, $config);
+		$this->assertInstanceOf(\lola\common\IComponentConfig::class, $config);
 	}
 
 	public function testRootPath() {
 		$this->_mockFilterInput();
-		$config = $this->_produceConfig();
+
+		$data = [];
+		$selector = $this->_mockInterface(IAccessorSelector::class, $data);
+
+		$selector
+			->method('select')
+			->with(
+				$this->equalTo($data),
+				$this->equalTo('rootPath')
+			)
+			->willReturn($selector);
+
+		$selector
+			->expects($this->at(1))
+			->method('isResolved')
+			->willReturn(false);
+
+		$selector
+			->expects($this->at(5))
+			->method('isResolved')
+			->willReturn(true);
+
+		$selector
+			->expects($this->at(8))
+			->method('isResolved')
+			->willReturn(true);
+
+		$selector
+			->method('getPath')
+			->willReturn('rootPath');
+
+		$selector
+			->method('linkAll')
+			->willReturn($selector);
+
+		$selector
+			->method('setResolvedItem')
+			->with($this->equalTo('/foo/bar'))
+			->willReturn($selector);
+
+		$selector
+			->expects($this->at(6))
+			->method('getResolvedItem')
+			->willReturn('/foo/bar');
+
+		$selector
+			->expects($this->at(9))
+			->method('getResolvedItem')
+			->willReturn('/foo/baz');
+
+		$config = $this->_produceConfig($selector);
 
 		$this->assertEquals('/foo/bar', $config->getItem('rootPath'));
+		$this->assertEquals('/foo/baz', $config->getItem('rootPath'));
 	}
 
 	public function testVerbosity() {
-		$config = $this->_produceConfig();
+		$selector = $this->_mockInterface(IAccessorSelector::class);
+
+		$selector
+			->method('select')
+			->willReturn($selector);
+
+		$selector
+			->expects($this->at(1))
+			->method('isResolved')
+			->willReturn(false);
+
+		$selector
+			->expects($this->at(5))
+			->method('isResolved')
+			->willReturn(true);
+
+		$selector
+			->expects($this->at(8))
+			->method('isResolved')
+			->willReturn(true);
+
+		$selector
+			->method('getPath')
+			->willReturn('verbosity');
+
+		$selector
+			->method('linkAll')
+			->willReturn($selector);
+
+		$selector
+			->method('setResolvedItem')
+			->with($this->equalTo(0))
+			->willReturn($selector);
+
+		$selector
+			->expects($this->at(6))
+			->method('getResolvedItem')
+			->willReturn(0);
+
+		$selector
+			->expects($this->at(9))
+			->method('getResolvedItem')
+			->willReturn(1);
+
+		$config = $this->_produceConfig($selector);
 
 		$this->assertEquals(0, $config->getItem('verbosity'));
+		$this->assertEquals(1, $config->getItem('verbosity'));
 	}
 
 	public function testgetItem_noProperty() {
-		$config = $this->_produceConfig();
 
-		$this->expectException(TreePropertyException::class);
-		$this->expectExceptionMessage('foo');
+		$selector = $this->_mockInterface(IAccessorSelector::class);
 
-		$config->getItem('ACC no property "!foo"');
+		$selector
+			->method('select')
+			->willReturn($selector);
+
+		$selector
+			->method('isResolved')
+			->willReturn(false);
+
+		$config = $this->_produceConfig($selector);
+
+		$this->expectException(AccessorException::class);
+
+		$config->getItem('foo');
 	}
 }
