@@ -3,24 +3,19 @@
 namespace lola\app;
 
 use lola\common\IComponentConfig;
-use lola\common\access\TreeAccessor;
-use lola\common\access\exception\ITreeAccessorException;
+use lola\common\access\IAccessorSelector;
+use lola\common\access\ItemAccessor;
 
 
 
 class AppConfig
-extends TreeAccessor
+extends ItemAccessor
 implements IComponentConfig
 {
 
 	const CONFIG_ROOT_PATH = 'rootPath';
 	const CONFIG_VERBOSITY = 'verbosity';
 
-
-
-	public function __construct(array $data = []) {
-		parent::__construct($data);
-	}
 
 
 	private function _getRootPath() {
@@ -30,14 +25,15 @@ implements IComponentConfig
 	}
 
 
-	protected function _handlePropertyException(ITreeAccessorException $ex) {
-		$data =& $ex->useResolvedItem();
-		$key = $ex->getKey();
+	protected function _handleSelectorFailure(IAccessorSelector $selector) {
+		$key = $selector->getPath();
+		$value = null;
 
-		if ($key === 'verbosity') $data['verbosity'] = 0;
-		else if ($key === 'rootPath') $data['rootPath'] = $this->_getRootPath();
-		else return false;
+		if ($key === self::CONFIG_VERBOSITY) $value = 0;
+		else if ($key === self::CONFIG_ROOT_PATH) $value = $this->_getRootPath();
 
-		return true;
+		if (!is_null($value)) $selector
+			->linkAll()
+			->setResolvedItem($value);
 	}
 }
