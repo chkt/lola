@@ -2,7 +2,7 @@
 
 namespace lola\model\op;
 
-use lola\type\data\IScalarAccessor;
+use lola\common\access\IScalarAccessor;
 
 
 
