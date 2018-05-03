@@ -6,7 +6,6 @@ use eve\common\base\IMethodProxy;
 use eve\common\projection\IProjectable;
 use eve\common\access\IItemAccessor;
 use eve\common\access\ITraversableAccessor;
-use eve\common\access\operator\AItemAccessorComposition;
 use eve\inject\IInjectableIdentity;
 use lola\common\base\ArrayOperation;
 use lola\common\projection\IFilterProjectable;
@@ -15,7 +14,7 @@ use lola\common\access\IAccessorSelector;
 
 
 abstract class AItemAccessorSurrogate
-extends AItemAccessorComposition
+extends \eve\common\access\operator\AItemAccessorSurrogate
 implements IItemAccessorSurrogate
 {
 

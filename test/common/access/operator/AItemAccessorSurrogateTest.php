@@ -79,7 +79,7 @@ extends TestCase
 	public function testInheritance() {
 		$surrogate = $this->_mockSurrogate();
 
-		$this->assertInstanceOf(\eve\common\access\operator\AItemAccessorComposition::class, $surrogate);
+		$this->assertInstanceOf(\eve\common\access\operator\AItemAccessorSurrogate::class, $surrogate);
 		$this->assertInstanceOf(\lola\common\access\operator\IItemAccessorSurrogate::class, $surrogate);
 		$this->assertInstanceOf(\lola\common\access\operator\IItemAccessorComposition::class, $surrogate);
 		$this->assertInstanceOf(\eve\inject\IInjectableIdentity::class, $surrogate);
