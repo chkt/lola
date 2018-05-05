@@ -212,7 +212,7 @@ implements IInjectableIdentity, ILogger
 	}
 
 
-	static protected function _buildExceptionMessage(\Exception $ex) {
+	static protected function _buildExceptionMessage(\Throwable $ex) {
 		$tags = [ self::_createTag(ILogger::TAG_ERROR, '! ' . get_class($ex)) ];
 
 		$code = $ex->getCode();
@@ -250,7 +250,7 @@ implements IInjectableIdentity, ILogger
 	}
 
 
-	static protected function _buildExceptionStack(\Exception $ex) {
+	static protected function _buildExceptionStack(\Throwable $ex) {
 		$trace = $ex->getTrace();
 		$tags = [];
 
