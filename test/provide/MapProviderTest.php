@@ -98,8 +98,9 @@ extends TestCase
 
 	private function _produceProvider(array $map = []) {
 		$assembly = $this->_mockDriverAssembly();
+		$access = $this->_produceAccessor($map);
 
-		return new MapProvider($assembly, $map);
+		return new MapProvider($assembly, $access);
 	}
 
 	private function _produceAccessor(array $data) {
