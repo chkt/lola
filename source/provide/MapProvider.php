@@ -30,7 +30,7 @@ extends AConfigurableProvider
 	private $_map;
 
 
-	public function __construct(IAssemblyHost $driver, array $map) {
+	public function __construct(IAssemblyHost $driver, ITraversableAccessor $map) {
 		parent::__construct($driver);
 
 		$this->_parser = $driver->getItem('entityParser');
@@ -42,10 +42,10 @@ extends AConfigurableProvider
 		$parts = $this->_parser->parse($entity, IEntityParser::COMPONENT_CONFIG);
 		$key = $parts[IEntityParser::COMPONENT_NAME];
 
-		if (!array_key_exists($key, $this->_map)) throw new \ErrorException(sprintf('PRV not providable "%s"', $key));
+		if (!$this->_map->hasKey($key)) throw new \ErrorException(sprintf('PRV not providable "%s"', $key));
 
 		return [
-			'qname' => $this->_map[$key],
+			'qname' => $this->_map->getItem($key),
 			'config' => $parts[IEntityParser::COMPONENT_CONFIG]
 		];
 	}
