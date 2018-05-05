@@ -3,7 +3,7 @@
 use PHPUnit\Framework\TestCase;
 
 use eve\common\access\TraversableAccessor;
-use eve\inject\IInjectable;
+use eve\inject\IInjectableIdentity;
 use lola\route\Route;
 use lola\ctrl\AController;
 
@@ -31,11 +31,20 @@ extends TestCase
 	public function testInheritance() {
 		$ctrl = $this->_mockController();
 
-		$this->assertInstanceOf(IInjectable::class, $ctrl);
+		$this->assertInstanceOf(IInjectableIdentity::class, $ctrl);
+		$this->assertInstanceOf(\eve\inject\IInjectable::class, $ctrl);
 	}
 
 	public function testDependencyConfig() {
 		$this->assertEquals([], AController::getDependencyConfig($this->_produceAccessor()));
+	}
+
+	public function testInstanceIdentity() {
+		$this->assertEquals(IInjectableIdentity::IDENTITY_SINGLE, AController::getInstanceIdentity($this->_produceAccessor()));
+
+		$config = [ 'id' => 'foo' ];
+
+		$this->assertEquals('foo', AController::getInstanceIdentity($this->_produceAccessor($config)));
 	}
 
 
