@@ -43,8 +43,10 @@ extends TestCase
 		$ins
 			->expects($this->any())
 			->method('locate')
-			->with()
-			->willReturnCallback(function() {
+			->with($this->isType('string'))
+			->willReturnCallback(function(string $entity) {
+				$this->assertEquals('controller:foo', $entity);
+
 				return $this->_mockController();
 			});
 
