@@ -13,6 +13,7 @@ use eve\inject\IInjectableIdentity;
 use eve\inject\IInjector;
 use eve\inject\cache\IKeyEncoder;
 use lola\common\IComponentConfig;
+use lola\common\access\IAccessorSelector;
 use lola\error\INativeErrorSource;
 use lola\error\NativeErrorSource;
 use lola\app\IApp;
@@ -168,7 +169,7 @@ extends TestCase
 			});
 
 		$core
-			->expects($this->exactly(2))
+			->expects($this->exactly(3))
 			->method('newInstance')
 			->with(
 				$this->isType('string'),
@@ -179,7 +180,8 @@ extends TestCase
 			)
 			->willReturnCallback(function(string $qname, array $args) {
 				if ($qname === CoreProviderFactory::class) return $this->_mockDriverFactory();
-				else if ($qname === AppConfig::class) return $this->_mockInterface(IComponentConfig::class);
+				else if ($qname === \lola\common\access\AccessorSelector::class) return $this->_mockInterface(IAccessorSelector::class);
+				else if ($qname === AppConfig::class) return $this->_mockInterface(IComponentConfig::class, $args);
 			});
 
 		$config = [];
@@ -195,5 +197,10 @@ extends TestCase
 		$this->assertInstanceOf(IInjectorDriver::class, $app->driver);
 		$this->assertSame($app->driver, $app->driver->getInstanceCache()->getItem(CoreProvider::class . ':' . IInjectableIdentity::IDENTITY_SINGLE));
 		$this->assertInstanceOf(IComponentConfig::class, $app->component);
+		$this->assertObjectHasAttribute('p0', $app->component);
+		$this->assertInstanceOf(IAccessorSelector::class, $app->component->p0);
+		$this->assertObjectHasAttribute('p1', $app->component);
+		$this->assertInternalType('array', $app->component->p1);
+		$this->assertEmpty($app->component->p1);
 	}
 }
