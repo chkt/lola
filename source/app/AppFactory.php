@@ -5,6 +5,8 @@ namespace lola\app;
 use eve\common\factory\ICoreFactory;
 use eve\common\factory\ASimpleFactory;
 use eve\inject\IInjectableIdentity;
+use lola\common\IComponentConfig;
+use lola\common\access\AccessorSelector;
 use lola\error\INativeErrorSource;
 use lola\error\NativeErrorSource;
 
@@ -42,6 +44,14 @@ extends ASimpleFactory
 	}
 
 
+	protected function _produceComponentConfig(ICoreFactory $base, array $config) : IComponentConfig {
+		return $base->newInstance(AppConfig::class, [
+			$base->newInstance(AccessorSelector::class),
+			$config
+		]);
+	}
+
+
 	protected function _produceNativeErrorSource(IApp $app, array $config) : INativeErrorSource {
 		return $app
 			->getInjector()
@@ -63,9 +73,9 @@ extends ASimpleFactory
 
 		$app = $driver
 			->getInjector()
-				->produce(App::class, [
+			->produce(App::class, [
 				'driver' => $driver,
-				'component' => $base->newInstance(AppConfig::class, [ $config['global'] ])
+				'component' => $this->_produceComponentConfig($base, $config['global'])
 			]);
 
 		$this->_produceNativeErrorSource($app, $config);
