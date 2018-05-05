@@ -3,14 +3,14 @@
 namespace lola\ctrl;
 
 use eve\common\access\ITraversableAccessor;
-use eve\inject\IInjectable;
+use eve\inject\IInjectableIdentity;
 use lola\route\Route;
 use lola\route\RouteCanceledException;
 
 
 
 abstract class AController
-implements IInjectable
+implements IInjectableIdentity
 {
 
 	/**
@@ -26,6 +26,10 @@ implements IInjectable
 	 */
 	static public function getDependencyConfig(ITraversableAccessor $config) : array {
 		return [];
+	}
+
+	static public function getInstanceIdentity(ITraversableAccessor $config) : string {
+		return $config->hasKey('id') ? $config->getItem('id') : self::IDENTITY_SINGLE;
 	}
 
 
