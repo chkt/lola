@@ -377,7 +377,7 @@ implements IInjectable
 	 * @return mixed
 	 */
 	public function enter(Callable $fn = null) {
-		$ctrl = $this->_locator->locate('controller', $this->_ctrlName);
+		$ctrl = $this->_locator->locate('controller:' . $this->_ctrlName);
 
 		if (!is_null($fn)) call_user_func_array($fn, [& $ctrl ]);
 
