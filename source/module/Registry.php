@@ -251,19 +251,14 @@ implements IRegistry
 	public function injectModule(string $name, array $module) : IRegistry {
 		if (empty($name)) throw new \ErrorException();
 
-		if (array_key_exists('depend', $module)) {
-			$this->_resolveDependencies($name, $module['depend']);
+		if (array_key_exists('depend', $module)) $this->_resolveDependencies($name, $module['depend']);
 
-			unset($module['depend']);
-		}
+		$this->_modules[$name] = array_diff_key($module, [
+			'depend' => true,
+			'config' => true
+		]);
 
-		if (array_key_exists('config', $module)) {
-			$this->_applyConfig($module['config']);
-
-			unset($module['config']);
-		}
-
-		$this->_modules[$name] = $module;
+		if (array_key_exists('config', $module)) $this->_applyConfig($module['config']);
 
 		return $this;
 	}
