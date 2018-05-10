@@ -213,6 +213,58 @@ extends TestCase
 		]));
 	}
 
+	public function testInjectModule_ownReference() {
+		$this
+			->getFunctionMock('\\lola\\module', 'class_exists')
+			->expects($this->any())
+			->with($this->isType('string'))
+			->willReturnCallback(function(string $qname) {
+				return $qname === '\\foo\\bar\\BazBar';
+			});
+
+		$provider = $this->_mockProvider();
+		$locator = $this->_mockLocator();
+
+		$locator
+			->method('getItem')
+			->with($this->equalTo('bar'))
+			->willReturn($provider);
+
+		$parser = $this->_mockParser();
+
+		$parser
+			->method('parse')
+			->with($this->equalTo('bar:baz'))
+			->willReturn([
+				'type' => 'bar',
+				'module' => '',
+				'descriptor' => 'baz'
+			]);
+
+		$registry = $this->_produceRegistry(null, $locator, $parser);
+
+		$provider
+			->method('addConfiguration')
+			->with(
+				$this->equalTo('baz'),
+				$this->isType('callable')
+			)
+			->willReturnCallback(function(string $name, callable $fn) use ($registry, $provider) {
+				$this->assertEquals(
+					'\\foo\\bar\\BazBar',
+					$registry->getQualifiedName('bar', 'baz')
+				);
+
+				return $provider;
+			});
+
+		$this->assertSame($registry, $registry->injectModule('foo', [
+			'config' => [
+				'bar:baz' => function() {}
+			]
+		]));
+	}
+
 
 	public function testGetQualifiedName_module() {
 		$this->_mock_class_exists();
@@ -222,7 +274,7 @@ extends TestCase
 			->injectModule('foo', [
 				'locator' => [
 					'barType' => [
-						'path' => 'path\\to',
+						'path' => '/path/to/',
 						'prefix' => 'Prefix',
 						'postfix' => 'Postfix'
 					]
@@ -230,7 +282,21 @@ extends TestCase
 			]);
 
 		$this->assertEquals('\\foo\\fooType\\ClassFooType', $registry->getQualifiedName('fooType', 'class', 'foo'));
+		$this->assertEquals('\\foo\\fooType\\ClassFooType', $registry->getQualifiedName('fooType', '/class', 'foo'));
+		$this->assertEquals('\\foo\\fooType\\path\\to\\ClassFooType', $registry->getQualifiedName('fooType', 'path/to/class', 'foo'));
+		$this->assertEquals('\\foo\\fooType\\path\\to\\ClassFooType', $registry->getQualifiedName('fooType', '/path/to/class', 'foo'));
 		$this->assertEquals('\\foo\\path\\to\\PrefixClassPostfix', $registry->getQualifiedName('barType', 'class', 'foo'));
+	}
+
+	public function testGetQualifiedName_descriptorInvalid() {
+		$registry = $this
+			->_produceRegistry()
+			->injectModule('foo', []);
+
+		$this->expectException(\ErrorException::class);
+		$this->expectExceptionMessage('MOD bad descriptor "type://foo/"-"path/to/class/"');
+
+		$registry->getQualifiedName('type', 'path/to/class/');
 	}
 
 	public function testGetQualifiedName_moduleInvalid() {
