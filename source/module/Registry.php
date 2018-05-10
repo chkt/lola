@@ -33,6 +33,7 @@ implements IRegistry
 
 	private $_defered;
 	private $_modules;
+	private $_config;
 
 	private $_dependencyStack;
 
@@ -44,8 +45,33 @@ implements IRegistry
 
 		$this->_defered = [];
 		$this->_modules = [];
+		$this->_config = [];
 
 		$this->_dependencyStack = [];
+	}
+
+
+	private function _getEntityConfig(string $moduleName, string $entityType) : array {
+		$key = $moduleName . '-' . $entityType;
+
+		if (!array_key_exists($key, $this->_config)) {
+			if (!array_key_exists($moduleName, $this->_modules)) $this->_loadModule($moduleName);
+
+			$module = $this->_modules[$moduleName];
+			$locatorConfig = array_key_exists('locator', $module) ? $module['locator'] : [];
+			$config = array_key_exists($entityType, $locatorConfig) ? $locatorConfig[$entityType] : [];
+
+			$this->_config[$key] = [
+				'path' => array_merge(
+					['', $moduleName ],
+					explode('/', array_key_exists('path', $config) ? trim($config['path'], '/') : $entityType)
+				),
+				'prefix' => array_key_exists('prefix', $config) ? $config['prefix'] : '',
+				'postfix' => array_key_exists('postfix', $config) ? $config['postfix'] : ucfirst($entityType)
+			];
+		}
+
+		return $this->_config[$key];
 	}
 
 
@@ -57,17 +83,25 @@ implements IRegistry
 	 * @return string
 	 */
 	private function _getClassPath($moduleName, $entityType, $entityName) {
-		if (!array_key_exists($moduleName, $this->_modules)) $this->_loadModule($moduleName);
+		$config = $this->_getEntityConfig($moduleName, $entityType);
 
-		$module = $this->_modules[$moduleName];
-		$locatorConfig = array_key_exists('locator', $module) ? $module['locator'] : [];
-		$config = array_key_exists($entityType, $locatorConfig) ? $locatorConfig[$entityType] : [];
+		$segments = array_merge(
+			$config['path'],
+			explode('/', ltrim($entityName, '/'))
+		);
 
-		$path = array_key_exists('path', $config) ? $config['path'] : $entityType;
-		$pre = array_key_exists('prefix', $config) ? $config['prefix'] : '';
-		$post = array_key_exists('postfix', $config) ? $config['postfix'] : ucfirst($entityType);
+		$last = count($segments) - 1;
 
-		return '\\' . $moduleName . '\\' . $path . '\\' . $pre . ucfirst($entityName) . $post;
+		if (empty($segments[$last])) throw new \ErrorException(sprintf(
+			'MOD bad descriptor "%1$s://%2$s/"-"%3$s"',
+			$entityType,
+			$moduleName,
+			ltrim($entityName)
+		));
+
+		$segments[$last] = $config['prefix'] . ucfirst($segments[$last]) . $config['postfix'];
+
+		return implode('\\', $segments);
 	}
 
 
