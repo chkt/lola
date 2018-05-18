@@ -7,7 +7,7 @@ use PHPUnit\Framework\TestCase;
 use eve\common\factory\ICoreFactory;
 use eve\common\factory\ISimpleFactory;
 use eve\common\access\ITraversableAccessor;
-use eve\common\access\TraversableAccessorFactory;
+use eve\common\access\factory\TraversableAccessorFactory;
 use eve\common\assembly\IAssemblyHost;
 use eve\driver\IInjectorDriver;
 use lola\app\CoreProvider;
