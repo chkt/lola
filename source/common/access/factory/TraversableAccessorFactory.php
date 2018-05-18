@@ -3,6 +3,7 @@
 namespace lola\common\access\factory;
 
 use eve\common\factory\ICoreFactory;
+use eve\common\access\ITraversableAccessor;
 use lola\common\access\AccessorSelector;
 use lola\common\access\operator\AItemAccessorSurrogate;
 use lola\common\access\TraversableAccessor;
@@ -26,7 +27,7 @@ extends AItemAccessorSurrogate
 	}
 
 
-	public function produce(array & $config) {
+	public function produce(array & $config = []) : ITraversableAccessor {
 		$base = $this->_baseFactory;
 
 		return $base->newInstance(TraversableAccessor::class, [

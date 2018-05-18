@@ -6,6 +6,7 @@ use PHPUnit\Framework\TestCase;
 use eve\common\base\IMethodProxy;
 use eve\common\factory\ICoreFactory;
 use eve\common\access\IItemAccessor;
+use eve\common\access\ITraversableAccessor;
 use lola\common\access\IAccessorSelector;
 use lola\common\access\AccessorSelector;
 use lola\common\access\TraversableAccessor;
@@ -73,7 +74,7 @@ extends TestCase
 				}
 				else if ($qname === TraversableAccessor::class) {
 					if (empty($args)) $this->fail($qname);
-					else return $this->_mockInterface(IItemAccessor::class, $args);
+					else return $this->_mockInterface(ITraversableAccessor::class, $args);
 				}
 				else $this->fail($qname);
 			});

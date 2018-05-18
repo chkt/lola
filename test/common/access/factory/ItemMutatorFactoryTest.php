@@ -7,6 +7,7 @@ use eve\common\base\IMethodProxy;
 use eve\common\factory\ICoreFactory;
 use eve\common\access\IItemAccessor;
 use lola\common\access\IAccessorSelector;
+use lola\common\access\IItemMutator;
 use lola\common\access\AccessorSelector;
 use lola\common\access\ItemMutator;
 use lola\common\access\operator\AItemAccessorSurrogate;
@@ -73,7 +74,7 @@ final class ItemMutatorFactoryTest
 				}
 				else if ($qname === ItemMutator::class) {
 					if (empty($args)) $this->fail($qname);
-					else return $this->_mockInterface(IItemAccessor::class, $args);
+					else return $this->_mockInterface(IItemMutator::class, $args);
 				}
 				else $this->fail($qname);
 			});

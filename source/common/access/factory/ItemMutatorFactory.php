@@ -3,6 +3,7 @@
 namespace lola\common\access\factory;
 
 use eve\common\factory\ICoreFactory;
+use lola\common\access\IItemMutator;
 use lola\common\access\AccessorSelector;
 use lola\common\access\ItemMutator;
 use lola\common\access\operator\AItemAccessorSurrogate;
@@ -27,7 +28,7 @@ extends AItemAccessorSurrogate
 	}
 
 
-	public function produce(array & $config) {
+	public function produce(array & $config = []) : IItemMutator {
 		$base = $this->_baseFactory;
 
 		return $base->newInstance(ItemMutator::class, [

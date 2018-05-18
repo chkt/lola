@@ -3,6 +3,7 @@
 namespace lola\common\access\factory;
 
 use eve\common\factory\ICoreFactory;
+use eve\common\access\IItemAccessor;
 use lola\common\access\AccessorSelector;
 use lola\common\access\ItemAccessor;
 use lola\common\access\operator\AItemAccessorSurrogate;
@@ -27,7 +28,7 @@ extends AItemAccessorSurrogate
 	}
 
 
-	public function produce(array& $config) {
+	public function produce(array& $config = []) : IItemAccessor {
 		return $this->_baseFactory->newInstance(ItemAccessor::class, [
 			$this->_selector,
 			& $config
