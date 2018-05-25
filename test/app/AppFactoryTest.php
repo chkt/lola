@@ -4,7 +4,7 @@ namespace test\app;
 
 use PHPUnit\Framework\TestCase;
 
-use eve\common\factory\ICoreFactory;
+use eve\common\factory\IBaseFactory;
 use eve\common\factory\ISimpleFactory;
 use eve\common\factory\ASimpleFactory;
 use eve\common\access\TraversableMutator;
@@ -134,10 +134,10 @@ extends TestCase
 	}
 
 
-	private function _produceAppFactory(ICoreFactory $core = null) : AppFactory {
-		if (is_null($core)) $core = $this->_mockInterface(ICoreFactory::class);
+	private function _produceAppFactory(IBaseFactory $base = null) : AppFactory {
+		if (is_null($base)) $base = $this->_mockInterface(IBaseFactory::class);
 
-		return new AppFactory($core);
+		return new AppFactory($base);
 	}
 
 
@@ -149,9 +149,9 @@ extends TestCase
 
 	public function testProduce() {
 		$defaults = null;
-		$core = $this->_mockInterface(ICoreFactory::class);
+		$base = $this->_mockInterface(IBaseFactory::class);
 
-		$core
+		$base
 			->method('callMethod')
 			->with(
 				$this->equalTo(\eve\common\base\ArrayOperation::class),
@@ -168,7 +168,7 @@ extends TestCase
 				return $args[0];
 			});
 
-		$core
+		$base
 			->expects($this->exactly(3))
 			->method('newInstance')
 			->with(
@@ -185,7 +185,7 @@ extends TestCase
 			});
 
 		$config = [];
-		$appFactory = $this->_produceAppFactory($core);
+		$appFactory = $this->_produceAppFactory($base);
 
 		$method = new \ReflectionMethod($appFactory, '_getConfigDefaults');
 		$method->setAccessible(true);

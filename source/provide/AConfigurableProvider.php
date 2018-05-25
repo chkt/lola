@@ -37,7 +37,7 @@ implements IConfigurableProvider
 	{
 		$injector = $driver->getItem('injector');
 
-		parent::__construct($injector, $driver->getItem('coreFactory'));
+		parent::__construct($injector, $driver->getItem('baseFactory'));
 
 		$this->_accessorFactory = $driver->getItem('accessorFactory');
 		$this->_injector = $injector;

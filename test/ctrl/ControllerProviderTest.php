@@ -4,7 +4,7 @@ namespace test\controller;
 
 use PHPUnit\Framework\TestCase;
 
-use eve\common\factory\ICoreFactory;
+use eve\common\factory\IBaseFactory;
 use eve\common\factory\ISimpleFactory;
 use eve\common\access\ITraversableAccessor;
 use eve\common\access\TraversableAccessor;
@@ -52,7 +52,7 @@ extends TestCase
 			->method('getItem')
 			->with($this->isType('string'))
 			->willReturnCallback(function (string $key) use ($injector, $parser) {
-				if ($key === 'coreFactory') return $this->_mockInterface(ICoreFactory::class);
+				if ($key === 'baseFactory') return $this->_mockInterface(IBaseFactory::class);
 				else if ($key === 'accessorFactory') return $this->_mockAccessorFactory();
 				else if ($key === 'keyEncoder') return $this->_mockInterface(IKeyEncoder::class);
 				else if ($key === 'instanceCache') return $this->_mockInterface(IKeyMutator::class);

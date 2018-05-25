@@ -5,7 +5,7 @@ namespace test\app;
 use PHPUnit\Framework\TestCase;
 
 use eve\common\ITokenizer;
-use eve\common\factory\ICoreFactory;
+use eve\common\factory\IBaseFactory;
 use eve\common\factory\ISimpleFactory;
 use eve\common\access\ITraversableAccessor;
 use eve\driver\InjectorDriverAssembly;
@@ -28,7 +28,7 @@ extends TestCase
 	}
 
 	private function _mockCoreFactory(array $map) {
-		$base = $this->_mockInterface(ICoreFactory::class);
+		$base = $this->_mockInterface(IBaseFactory::class);
 
 		$base
 			->method('newInstance')
@@ -55,11 +55,11 @@ extends TestCase
 	}
 
 	private function _produceAssembly(array $map = []) {
-		$core = $this->_mockCoreFactory($map);
+		$base = $this->_mockCoreFactory($map);
 		$access = $this->_mockAccessorFactory();
 		$config = $this->_mockAccessor();
 
-		return new CoreProviderAssembly($core, $access, $config);
+		return new CoreProviderAssembly($base, $access, $config);
 	}
 
 

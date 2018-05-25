@@ -90,7 +90,7 @@ extends TestCase
 
 	public function testDependencyConfig() {
 		$this->assertEquals(
-			[ 'core:coreFactory' ],
+			[ 'core:baseFactory' ],
 			AItemAccessorSurrogate::getDependencyConfig($this->_mockInterface(\eve\common\access\ITraversableAccessor::class))
 		);
 	}

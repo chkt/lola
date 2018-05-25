@@ -2,7 +2,7 @@
 
 namespace lola\common\access\factory;
 
-use eve\common\factory\ICoreFactory;
+use eve\common\factory\IBaseFactory;
 use lola\common\access\IItemMutator;
 use lola\common\access\AccessorSelector;
 use lola\common\access\ItemMutator;
@@ -18,7 +18,7 @@ extends AItemAccessorSurrogate
 	private $_selector;
 
 
-	public function __construct(ICoreFactory $base) {
+	public function __construct(IBaseFactory $base) {
 		$selector = $base->newInstance(AccessorSelector::class);
 
 		parent::__construct($base, $selector);

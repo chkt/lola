@@ -3,7 +3,7 @@
 namespace lola\model\collection;
 
 use eve\common\access\ITraversableAccessor;
-use eve\common\factory\ICoreFactory;
+use eve\common\factory\IBaseFactory;
 use eve\inject\IInjector;
 use lola\common\factory\AStatelessInjectorFactory;
 
@@ -20,7 +20,7 @@ extends AStatelessInjectorFactory
 
 	static public function getDependencyConfig(ITraversableAccessor $config) : array {
 		return [
-			'core:coreFactory',
+			'core:baseFactory',
 			'injector:'
 		];
 	}
@@ -35,7 +35,7 @@ extends AStatelessInjectorFactory
 
 
 	public function __construct(
-		ICoreFactory $baseFactory,
+		IBaseFactory $baseFactory,
 		IInjector $injector,
 		string $resourceName,
 		string $queryName

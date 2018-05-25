@@ -4,7 +4,7 @@ namespace test\model;
 
 use PHPUnit\Framework\TestCase;
 
-use eve\common\factory\ICoreFactory;
+use eve\common\factory\IBaseFactory;
 use eve\common\access\ITraversableAccessor;
 use eve\common\access\TraversableAccessor;
 use eve\inject\IInjector;
@@ -45,9 +45,9 @@ extends TestCase
 		return $factory;
 	}
 
-	private function _mockResourceFactory(IInjector $injector = null, ICoreFactory $baseFactory = null) {
+	private function _mockResourceFactory(IInjector $injector = null, IBaseFactory $baseFactory = null) {
 		if (is_null($injector)) $injector = $this->_mockInjector();
-		if (is_null($baseFactory)) $baseFactory = $this->_mockInterface(ICoreFactory::class);
+		if (is_null($baseFactory)) $baseFactory = $this->_mockInterface(IBaseFactory::class);
 
 		$factory = $this
 			->getMockBuilder(AResourceModelFactory::class)
@@ -143,7 +143,7 @@ extends TestCase
 
 	public function testDependencyConfig() {
 		$this->assertEquals([
-			'core:coreFactory',
+			'core:baseFactory',
 			'injector:'
 		], AResourceModelFactory::getDependencyConfig($this->_produceAccessor()));
 	}
@@ -162,7 +162,7 @@ extends TestCase
 
 	public function test_produceInstance_read() {
 		$injector = $this->_mockInjector(AResourceModelFactory::MODE_READ);
-		$baseFactory = $this->_mockInterface(ICoreFactory::class);
+		$baseFactory = $this->_mockInterface(IBaseFactory::class);
 
 		$baseFactory
 			->expects($this->once())

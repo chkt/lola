@@ -4,7 +4,7 @@ namespace test\prov;
 
 use PHPUnit\Framework\TestCase;
 
-use eve\common\factory\ICoreFactory;
+use eve\common\factory\IBaseFactory;
 use eve\common\factory\ISimpleFactory;
 use eve\common\access\ITraversableAccessor;
 use eve\common\access\IItemMutator;
@@ -47,7 +47,7 @@ extends TestCase
 	}
 
 	private function _mockFactory() {
-		$factory = $this->_mockInterface(ICoreFactory::class);
+		$factory = $this->_mockInterface(IBaseFactory::class);
 
 		return $factory;
 	}
@@ -84,7 +84,7 @@ extends TestCase
 
 	private function _mockDriverAssembly(
 		IInjector $injector = null,
-		ICoreFactory $base = null,
+		IBaseFactory $base = null,
 		IItemMutator $cache = null,
 		IKeyEncoder $encoder = null,
 		ISimpleFactory $accessorFactory = null
@@ -102,7 +102,7 @@ extends TestCase
 			->with($this->isType('string'))
 			->willReturnCallback(function(string $key) use ($injector, $base, $encoder, $cache, $accessorFactory) {
 				if ($key === 'injector') return $injector;
-				else if ($key === 'coreFactory') return $base;
+				else if ($key === 'baseFactory') return $base;
 				else if ($key === 'accessorFactory') return $accessorFactory;
 				else if ($key === 'keyEncoder') return $encoder;
 				else if ($key === 'instanceCache') return $cache;
@@ -113,7 +113,7 @@ extends TestCase
 	}
 
 
-	private function _mockProvider(IInjector $injector = null, ICoreFactory $base = null, IItemMutator $cache = null) {
+	private function _mockProvider(IInjector $injector = null, IBaseFactory $base = null, IItemMutator $cache = null) {
 		$driver = $this->_mockDriverAssembly($injector, $base, $cache);
 
 		$prov = $this

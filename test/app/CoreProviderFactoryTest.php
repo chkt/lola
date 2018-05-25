@@ -4,7 +4,7 @@ namespace test\app;
 
 use PHPUnit\Framework\TestCase;
 
-use eve\common\factory\ICoreFactory;
+use eve\common\factory\IBaseFactory;
 use eve\common\factory\ISimpleFactory;
 use eve\common\access\ITraversableAccessor;
 use eve\common\access\factory\TraversableAccessorFactory;
@@ -34,10 +34,10 @@ extends TestCase
 	}
 
 
-	private function _produceProviderFactory(ICoreFactory $core = null) : CoreProviderFactory {
-		if (is_null($core)) $core = $this->_mockInterface(ICoreFactory::class);
+	private function _produceProviderFactory(IBaseFactory $base = null) : CoreProviderFactory {
+		if (is_null($base)) $base = $this->_mockInterface(IBaseFactory::class);
 
-		return new CoreProviderFactory($core);
+		return new CoreProviderFactory($base);
 	}
 
 
@@ -62,7 +62,7 @@ extends TestCase
 		$assembly = $this->_mockInterface(IAssemblyHost::class);
 
 		$defaults = null;
-		$base = $this->_mockInterface(ICoreFactory::class);
+		$base = $this->_mockInterface(IBaseFactory::class);
 
 		$base
 			->method('callMethod')
@@ -93,7 +93,7 @@ extends TestCase
 
 		$assembly
 			->method('getItem')
-			->with($this->equalTo('coreFactory'))
+			->with($this->equalTo('baseFactory'))
 			->willReturn($base);
 
 		$factory = $this->_produceProviderFactory($base);

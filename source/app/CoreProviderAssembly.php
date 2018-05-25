@@ -12,7 +12,7 @@ extends InjectorDriverAssembly
 {
 
 	protected function _produceEntityParser(ITraversableAccessor $config) : IEntityParser {
-		$base = $this->getItem('coreFactory');
+		$base = $this->getItem('baseFactory');
 
 		return $base->newInstance(\lola\module\EntityParser::class, [
 			$base->newInstance(\lola\common\uri\KeyValueTokenizer::class)

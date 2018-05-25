@@ -2,7 +2,7 @@
 
 namespace lola\app;
 
-use eve\common\factory\ICoreFactory;
+use eve\common\factory\IBaseFactory;
 use eve\common\factory\ISimpleFactory;
 use eve\common\access\ITraversableAccessor;
 use eve\common\assembly\IAssemblyHost;
@@ -15,7 +15,7 @@ final class CoreProviderFactory
 extends InjectorDriverFactory
 {
 
-	protected function _produceAssembly(ICoreFactory $base, ISimpleFactory $access, ITraversableAccessor $config) : IAssemblyHost {
+	protected function _produceAssembly(IBaseFactory $base, ISimpleFactory $access, ITraversableAccessor $config) : IAssemblyHost {
 		return $base->newInstance(CoreProviderAssembly::class, [
 			$base,
 			$access,
@@ -25,7 +25,7 @@ extends InjectorDriverFactory
 
 	protected function _produceDriver(IAssemblyHost $assembly) : IInjectorDriver {
 		return $assembly
-			->getItem('coreFactory')
+			->getItem('baseFactory')
 			->newInstance(CoreProvider::class, [ $assembly ]);
 	}
 }

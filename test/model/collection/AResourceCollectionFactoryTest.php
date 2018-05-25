@@ -5,7 +5,7 @@ namespace test\model\collection;
 
 use PHPUnit\Framework\TestCase;
 
-use eve\common\factory\ICoreFactory;
+use eve\common\factory\IBaseFactory;
 use eve\common\access\TraversableAccessor;
 use eve\inject\IInjector;
 use lola\common\factory\AStatelessInjectorFactory;
@@ -64,9 +64,9 @@ extends TestCase
 		return $injector;
 	}
 
-	private function _mockFactory(IInjector $injector = null, ICoreFactory $base = null) {
+	private function _mockFactory(IInjector $injector = null, IBaseFactory $base = null) {
 		if (is_null($injector)) $injector = $this->_mockInjector();
-		if (is_null($base)) $base = $this->_mockInterface(ICoreFactory::class);
+		if (is_null($base)) $base = $this->_mockInterface(IBaseFactory::class);
 
 		$factory = $this
 			->getMockBuilder(AResourceCollectionFactory::class)
@@ -91,7 +91,7 @@ extends TestCase
 
 	public function testDependencyConfig() {
 		$this->assertEquals([
-			'core:coreFactory',
+			'core:baseFactory',
 			'injector:'
 		], AResourceCollectionFactory::getDependencyConfig($this->_produceAccessor()));
 	}
@@ -103,7 +103,7 @@ extends TestCase
 		];
 
 		$injector = $this->_mockInjector(AResourceCollectionFactory::MODE_READ);
-		$base = $this->_mockInterface(ICoreFactory::class);
+		$base = $this->_mockInterface(IBaseFactory::class);
 
 		$base
 			->expects($this->once())

@@ -19,7 +19,7 @@ implements IItemAccessorSurrogate
 {
 
 	static public function getDependencyConfig(ITraversableAccessor $config) : array {
-		return [ 'core:coreFactory' ];
+		return [ 'core:baseFactory' ];
 	}
 
 	static public function getInstanceIdentity(ITraversableAccessor $config) : string {

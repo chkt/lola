@@ -2,7 +2,7 @@
 
 namespace test\common\projection;
 
-use eve\common\factory\ICoreFactory;
+use eve\common\factory\IBaseFactory;
 use lola\common\projection\IProjector;
 use PHPUnit\Framework\TestCase;
 
@@ -25,8 +25,8 @@ extends TestCase
 		return $ins;
 	}
 
-	private function _mockFactory(ICoreFactory $base = null, string $name = 'foo') {
-		if (is_null($base)) $base = $this->_mockInterface(ICoreFactory::class);
+	private function _mockFactory(IBaseFactory $base = null, string $name = 'foo') {
+		if (is_null($base)) $base = $this->_mockInterface(IBaseFactory::class);
 
 		return $this
 			->getMockBuilder(AProjectorFactory::class)
@@ -47,7 +47,7 @@ extends TestCase
 	}
 
 	public function testDependencyConfig() {
-		$this->assertEquals([ 'core:coreFactory' ], AProjectorFactory::getDependencyConfig($this->_produceAccessor()));
+		$this->assertEquals([ 'core:baseFactory' ], AProjectorFactory::getDependencyConfig($this->_produceAccessor()));
 	}
 
 
@@ -58,7 +58,7 @@ extends TestCase
 		];
 
 		$projector = $this->_mockInterface(IProjector::class);
-		$base = $this->_mockInterface(ICoreFactory::class);
+		$base = $this->_mockInterface(IBaseFactory::class);
 
 		$base
 			->method('newInstance')

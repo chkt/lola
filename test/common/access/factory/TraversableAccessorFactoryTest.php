@@ -4,7 +4,7 @@ namespace test\common\access\factory;
 
 use PHPUnit\Framework\TestCase;
 use eve\common\base\IMethodProxy;
-use eve\common\factory\ICoreFactory;
+use eve\common\factory\IBaseFactory;
 use eve\common\access\IItemAccessor;
 use eve\common\access\ITraversableAccessor;
 use lola\common\access\IAccessorSelector;
@@ -34,7 +34,7 @@ extends TestCase
 	private function _mockBaseFactory(IAccessorSelector $selector = null) {
 		if (is_null($selector)) $selector = $this->_mockInterface(IAccessorSelector::class);
 
-		$base = $this->_mockInterface(ICoreFactory::class);
+		$base = $this->_mockInterface(IBaseFactory::class);
 
 		$base
 			->method('newInstance')
@@ -43,7 +43,7 @@ extends TestCase
 		return $base;
 	}
 
-	private function _produceFactory(ICoreFactory $baseFactory = null) {
+	private function _produceFactory(IBaseFactory $baseFactory = null) {
 		if (is_null($baseFactory)) $baseFactory = $this->_mockBaseFactory();
 
 		return new TraversableAccessorFactory($baseFactory);
@@ -56,7 +56,7 @@ extends TestCase
 	}
 
 	public function testProduce() {
-		$base = $this->_mockInterface(ICoreFactory::class);
+		$base = $this->_mockInterface(IBaseFactory::class);
 
 		$base
 			->method('newInstance')

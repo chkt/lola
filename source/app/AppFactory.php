@@ -2,7 +2,7 @@
 
 namespace lola\app;
 
-use eve\common\factory\ICoreFactory;
+use eve\common\factory\IBaseFactory;
 use eve\common\factory\ASimpleFactory;
 use eve\inject\IInjectableIdentity;
 use lola\common\IComponentConfig;
@@ -44,7 +44,7 @@ extends ASimpleFactory
 	}
 
 
-	protected function _produceComponentConfig(ICoreFactory $base, array $config) : IComponentConfig {
+	protected function _produceComponentConfig(IBaseFactory $base, array $config) : IComponentConfig {
 		return $base->newInstance(AppConfig::class, [
 			$base->newInstance(AccessorSelector::class),
 			$config
@@ -59,7 +59,7 @@ extends ASimpleFactory
 	}
 
 
-	protected function _produceInstance(ICoreFactory $base, array $config) {
+	protected function _produceInstance(IBaseFactory $base, array $config) {
 		$driverFactory = $base->newInstance(CoreProviderFactory::class, [ $base ]);
 		$driver = $driverFactory->produce($config);
 

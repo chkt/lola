@@ -3,7 +3,7 @@
 namespace test\common\access\factory;
 
 use PHPUnit\Framework\TestCase;
-use eve\common\factory\ICoreFactory;
+use eve\common\factory\IBaseFactory;
 use eve\common\access\IItemAccessor;
 use lola\common\access\IAccessorSelector;
 use lola\common\access\AccessorSelector;
@@ -30,15 +30,15 @@ extends TestCase
 		return $ins;
 	}
 
-	private function _produceFactory(ICoreFactory $baseFactory = null) {
-		if (is_null($baseFactory)) $baseFactory = $this->_mockInterface(ICoreFactory::class);
+	private function _produceFactory(IBaseFactory $baseFactory = null) {
+		if (is_null($baseFactory)) $baseFactory = $this->_mockInterface(IBaseFactory::class);
 
 		return new ItemAccessorFactory($baseFactory);
 	}
 
 
 	public function testInheritance() {
-		$base = $this->_mockInterface(ICoreFactory::class);
+		$base = $this->_mockInterface(IBaseFactory::class);
 
 		$base
 			->method('newInstance')
@@ -52,7 +52,7 @@ extends TestCase
 	}
 
 	public function testProduce() {
-		$base = $this->_mockInterface(ICoreFactory::class);
+		$base = $this->_mockInterface(IBaseFactory::class);
 
 		$base
 			->method('newInstance')
