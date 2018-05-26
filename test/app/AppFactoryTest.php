@@ -170,7 +170,7 @@ extends TestCase
 
 		$base
 			->expects($this->exactly(3))
-			->method('newInstance')
+			->method('produce')
 			->with(
 				$this->isType('string'),
 				$this->logicalOr(

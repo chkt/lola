@@ -45,8 +45,8 @@ extends ASimpleFactory
 
 
 	protected function _produceComponentConfig(IBaseFactory $base, array $config) : IComponentConfig {
-		return $base->newInstance(AppConfig::class, [
-			$base->newInstance(AccessorSelector::class),
+		return $base->produce(AppConfig::class, [
+			$base->produce(AccessorSelector::class),
 			$config
 		]);
 	}
@@ -60,7 +60,7 @@ extends ASimpleFactory
 
 
 	protected function _produceInstance(IBaseFactory $base, array $config) {
-		$driverFactory = $base->newInstance(CoreProviderFactory::class, [ $base ]);
+		$driverFactory = $base->produce(CoreProviderFactory::class, [ $base ]);
 		$driver = $driverFactory->produce($config);
 
 		$key = $driver

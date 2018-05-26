@@ -56,7 +56,7 @@ extends AStatelessInjectorFactory
 		$limit = $config->hasKey('limit') ? $config->getItem('limit') : 10;
 		$offset = $config->hasKey('offset') ? $config->getItem('offset') : 0;
 
-		$query = $this->_baseFactory->newInstance($this->_query, [ $map, $order ]);
+		$query = $this->_baseFactory->produce($this->_query, [ $map, $order ]);
 
 		return $this->_injector
 			->produce($this->_resource)

@@ -14,8 +14,8 @@ extends InjectorDriverAssembly
 	protected function _produceEntityParser(ITraversableAccessor $config) : IEntityParser {
 		$base = $this->getItem('baseFactory');
 
-		return $base->newInstance(\lola\module\EntityParser::class, [
-			$base->newInstance(\lola\common\uri\KeyValueTokenizer::class)
+		return $base->produce(\lola\module\EntityParser::class, [
+			$base->produce(\lola\common\uri\KeyValueTokenizer::class)
 		]);
 	}
 }

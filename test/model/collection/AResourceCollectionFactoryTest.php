@@ -107,7 +107,7 @@ extends TestCase
 
 		$base
 			->expects($this->once())
-			->method('newInstance')
+			->method('produce')
 			->with($this->isType('string'), $this->isType('array'))
 			->willReturnCallback(function(string $qname, array $args) {
 				$args['name'] = $qname;

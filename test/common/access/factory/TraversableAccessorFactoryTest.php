@@ -37,7 +37,7 @@ extends TestCase
 		$base = $this->_mockInterface(IBaseFactory::class);
 
 		$base
-			->method('newInstance')
+			->method('produce')
 			->willReturn($selector);
 
 		return $base;
@@ -59,7 +59,7 @@ extends TestCase
 		$base = $this->_mockInterface(IBaseFactory::class);
 
 		$base
-			->method('newInstance')
+			->method('produce')
 			->with(
 				$this->logicalOr(
 					$this->equalTo(AccessorSelector::class),

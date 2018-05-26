@@ -18,7 +18,7 @@ extends AItemAccessorSurrogate
 
 
 	public function __construct(IBaseFactory $baseFactory) {
-		$selector = $baseFactory->newInstance(AccessorSelector::class);
+		$selector = $baseFactory->produce(AccessorSelector::class);
 
 		parent::__construct($baseFactory, $selector);
 
@@ -30,7 +30,7 @@ extends AItemAccessorSurrogate
 	public function produce(array & $config = []) : ITraversableAccessor {
 		$base = $this->_baseFactory;
 
-		return $base->newInstance(TraversableAccessor::class, [
+		return $base->produce(TraversableAccessor::class, [
 			$base,
 			$this->_selector,
 			& $config

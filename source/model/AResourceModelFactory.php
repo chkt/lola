@@ -79,7 +79,7 @@ extends AStatelessInjectorFactory
 	private function _produceRead(ITraversableAccessor $config) {
 		if (!$config->hasKey('map')) throw new \ErrorException();
 
-		$query = $this->_baseFactory->newInstance($this->_query, [ $config->getItem('map') ]);
+		$query = $this->_baseFactory->produce($this->_query, [ $config->getItem('map') ]);
 
 		return $this->_injector
 			->produce($this->_resource)

@@ -16,7 +16,7 @@ extends InjectorDriverFactory
 {
 
 	protected function _produceAssembly(IBaseFactory $base, ISimpleFactory $access, ITraversableAccessor $config) : IAssemblyHost {
-		return $base->newInstance(CoreProviderAssembly::class, [
+		return $base->produce(CoreProviderAssembly::class, [
 			$base,
 			$access,
 			$config
@@ -26,6 +26,6 @@ extends InjectorDriverFactory
 	protected function _produceDriver(IAssemblyHost $assembly) : IInjectorDriver {
 		return $assembly
 			->getItem('baseFactory')
-			->newInstance(CoreProvider::class, [ $assembly ]);
+			->produce(CoreProvider::class, [ $assembly ]);
 	}
 }

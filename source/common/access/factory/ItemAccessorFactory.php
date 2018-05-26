@@ -19,7 +19,7 @@ extends AItemAccessorSurrogate
 
 
 	public function __construct(IBaseFactory $baseFactory) {
-		$selector = $baseFactory->newInstance(AccessorSelector::class);
+		$selector = $baseFactory->produce(AccessorSelector::class);
 
 		parent::__construct($baseFactory, $selector);
 
@@ -29,7 +29,7 @@ extends AItemAccessorSurrogate
 
 
 	public function produce(array& $config = []) : IItemAccessor {
-		return $this->_baseFactory->newInstance(ItemAccessor::class, [
+		return $this->_baseFactory->produce(ItemAccessor::class, [
 			$this->_selector,
 			& $config
 		]);

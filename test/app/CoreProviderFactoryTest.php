@@ -82,7 +82,7 @@ extends TestCase
 			});
 
 		$base
-			->method('newInstance')
+			->method('produce')
 			->with($this->isType('string'))
 			->willReturnCallback(function(string $qname) use ($base, $accessorFactory, $assembly, $provider) {
 				if ($qname === CoreProviderAssembly::class) return $assembly;

@@ -61,7 +61,7 @@ extends TestCase
 		$base = $this->_mockInterface(IBaseFactory::class);
 
 		$base
-			->method('newInstance')
+			->method('produce')
 			->with($this->isType('string'), $this->isType('array'))
 			->willReturnCallback(function(string $qname, array $config) use ($data, $projector) {
 				$this->assertEquals('bar', $qname);
