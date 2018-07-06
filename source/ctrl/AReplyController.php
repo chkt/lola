@@ -162,11 +162,7 @@ extends AController
 	}
 
 
-	/**
-	 * Replies with the instance-action referenced by $route
-	 * @param Route $route The route
-	 */
-	public function enter(Route& $route) {
+	public function enter(string $action, IControllerState $route) : IController {
 		$this->_route =& $route;
 
 		if (!is_null($this->_requestTransform)) $this
@@ -174,11 +170,7 @@ extends AController
 			->setTarget($this)
 			->process();
 
-		$ret = parent::enter($route);
-
-		if (isset($ret) && !is_null($ret)) $route
-			->useActionResult()
-			->pushItem($ret);
+		parent::enter($action, $route);
 
 		if (!is_null($this->_replyTransform)) $this
 			->useReplyTransform()
@@ -188,5 +180,7 @@ extends AController
 		$this
 			->useReply()
 			->send();
+
+		return $this;
 	}
 }
