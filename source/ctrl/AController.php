@@ -3,27 +3,13 @@
 namespace lola\ctrl;
 
 use eve\common\access\ITraversableAccessor;
-use eve\inject\IInjectableIdentity;
-use lola\route\Route;
-use lola\route\RouteCanceledException;
 
 
 
 abstract class AController
-implements IInjectableIdentity
+implements IController
 {
 
-	/**
-	 * The version string
-	 */
-	const VERSION = '0.5.0';
-
-
-	/**
-	 * Gets the dependency configuration
-	 * @param array $config The seed config
-	 * @return array
-	 */
 	static public function getDependencyConfig(ITraversableAccessor $config) : array {
 		return [];
 	}
@@ -39,7 +25,7 @@ implements IInjectableIdentity
 	 * @return string
 	 * @throws \ErrorException if <code>$path</code> is not a <code>String</code>
 	 */
-	static public function pathToCamel($path) {
+	static public function pathToCamel($path) {		//TODO:remove
 		if (!is_string($path)) throw new \ErrorException();
 
 		$segs = array_map(function($item) {
@@ -55,7 +41,7 @@ implements IInjectableIdentity
 	 * @return string
 	 * @throws \ErrorException if <code>$path</code> is not a <code>String</code>
 	 */
-	static public function pathToSnake($path) {
+	static public function pathToSnake($path) {		//TODO:remove
 		if (!is_string($path)) throw new \ErrorException();
 
 		return strtolower(str_replace('/', '_', $path));
@@ -63,74 +49,30 @@ implements IInjectableIdentity
 
 
 
-	/**
-	 * Returns the method name of $action
-	 * @param string $action
-	 * @return string
-	 */
 	private function _getMethodName($action) {
 		return lcfirst($action) . 'Action';
 	}
 
 
-	/**
-	 * Returns true if $action exists, false otherwise
-	 * @param type $action
-	 * @return bool
-	 */
-	public function hasAction($action) {
-		return method_exists($this, $this->_getMethodName($action));
+	public function hasAction(string $name) : bool {
+		return method_exists($this, $this->_getMethodName($name));
 	}
 
-	/**
-	 * Returns true if the action specified by $route exists, false otherwise
-	 * @param Route $route
-	 * @return bool
-	 */
-	public function isEnterable(Route $route) {
-		return $this->hasAction($route->getAction());
-	}
 
-	/**
-	 * Enters the action of the instance referenced by $route
-	 * @param Route $route The associated route
-	 * @return mixed
-	 */
-	public function enter(Route& $route) {
-		$method = $this->_getMethodName($route->getAction());
 
-		if (!method_exists($this, $method)) $method = $this->_getMethodName('default');
-
-		return $this->$method($route);
-	}
-
-	/**
-	 * Reenters the instance through $action
-	 * @param string $action The controller action
-	 * @param Route $route The associated route
-	 * @return mixed
-	 * @throws \ErrorException if $action is not a nonempty string
-	 * @throws \ErrorException if $action does not reference an action of the instance
-	 */
-	protected function _reenter($action, Route& $route) {
-		if (!is_string($action) || empty($action)) throw new \ErrorException();
-
+	public function enter(string $action, IControllerState $route) : IController {
 		$method = $this->_getMethodName($action);
 
-		if (!method_exists($this, $method)) throw new \ErrorException();
+		if (!method_exists($this, $method)) throw new NoActionException($action);
 
-		$route->setAction($action);
+		$ret = $this->$method($route);
 
-		return $this->$method($route);
-	}
+		if (!is_null($ret)) {
+			if (!is_array($ret)) $ret = [ $action => $ret];
 
+			$route->setVars($ret);
+		}
 
-	/**
-	 * The default action of the controller
-	 * @param Route $route The associated route
-	 * @return mixed
-	 */
-	public function defaultAction(Route $route) {
-		throw new RouteCanceledException();
+		return $this;
 	}
 }
