@@ -4,7 +4,7 @@ use PHPUnit\Framework\TestCase;
 
 use eve\common\access\TraversableAccessor;
 use eve\inject\IInjectableIdentity;
-use lola\route\Route;
+use lola\ctrl\IControllerState;
 use lola\ctrl\AController;
 
 
@@ -12,6 +12,29 @@ use lola\ctrl\AController;
 final class AControllerTest
 extends TestCase
 {
+
+	private function _mockInterface(string $qname) {
+		$res = $this
+			->getMockBuilder($qname)
+			->getMock();
+
+		return $res;
+	}
+
+	private function _mockControllerState(array& $vars = []) {
+		$state = $this->_mockInterface(IControllerState::class);
+
+		$state
+			->method('setVars')
+			->with($this->isType('array'))
+			->willReturnCallback(function(array $items) use (& $vars, $state) {
+				$vars = array_merge($vars, $items);
+
+				return $state;
+			});
+
+		return $state;
+	}
 
 	private function _mockController(array $methods = []) {
 		$ctrl = $this
@@ -31,7 +54,8 @@ extends TestCase
 	public function testInheritance() {
 		$ctrl = $this->_mockController();
 
-		$this->assertInstanceOf(IInjectableIdentity::class, $ctrl);
+		$this->assertInstanceOf(\lola\ctrl\IController::class, $ctrl);
+		$this->assertInstanceOf(\eve\inject\IInjectableIdentity::class, $ctrl);
 		$this->assertInstanceOf(\eve\inject\IInjectable::class, $ctrl);
 	}
 
@@ -56,94 +80,55 @@ extends TestCase
 		$this->assertFalse($ctrl->hasAction('bar'));
 	}
 
-	public function testIsEnterable() {
-		$route = $this
-			->getMockBuilder(Route::class)
-			->disableOriginalConstructor()
-			->getMock();
-
-		$route
-			->expects($this->at(0))
-			->method('getAction')
-			->willReturn('foo');
-
-		$route
-			->expects($this->at(1))
-			->method('getAction')
-			->willReturn('Foo');
-
-		$route
-			->expects($this->at(2))
-			->method('getAction')
-			->willReturn('bar');
-
-		$ctrl = $this->_mockController(['fooAction']);
-
-		$this->assertTrue($ctrl->isEnterable($route));
-		$this->assertTrue($ctrl->isEnterable($route));
-		$this->assertFalse($ctrl->isEnterable($route));
-	}
 
 	public function testEnter() {
-		$route = $this
-			->getMockBuilder(Route::class)
-			->disableOriginalConstructor()
-			->getMock();
-
-		$route
-			->expects($this->at(0))
-			->method('getAction')
-			->willReturn('foo');
-
-		$route
-			->expects($this->at(1))
-			->method('getAction')
-			->willReturn('bar');
-
-		$ctrl = $this->_mockController(['fooAction', 'defaultAction']);
+		$route = $this->_mockControllerState();
+		$ctrl = $this->_mockController(['fooAction']);
 
 		$ctrl
-			->expects($this->once())
 			->method('fooAction')
-			->with($this->isInstanceOf(Route::class))
-			->willReturn('fooResult');
+			->with($this->isInstanceOf(IControllerState::class))
+			->willReturn(null);
 
-		$ctrl
-			->expects($this->once())
-			->method('defaultAction')
-			->with($this->isInstanceOf(Route::class))
-			->willReturn('defaultResult');
-
-		$this->assertEquals('fooResult', $ctrl->enter($route));
-		$this->assertEquals('defaultResult', $ctrl->enter($route));
+		$this->assertSame($ctrl, $ctrl->enter('foo', $route));
 	}
 
-	public function test_reenter() {
-		$route = $this
-			->getMockBuilder(Route::class)
-			->disableOriginalConstructor()
-			->getMock();
+	public function testEnter_noAction() {
+		$route = $this->_mockControllerState();
+		$ctrl = $this->_mockController([]);
 
-		$route
-			->expects($this->at(0))
-			->method('setAction')
-			->with($this->equalTo('bar'))
-			->willReturn($route);
+		$this->expectException(\lola\ctrl\NoActionException::class);
+		$this->expectExceptionMessage('CTR no action "foo"');
 
-		$ctrl = $this->_mockController(['barAction']);
+		$ctrl->enter('foo', $route);
+	}
+
+	public function testEnter_result() {
+		$result = [];
+		$route = $this->_mockControllerState($result);
+		$ctrl = $this->_mockController([ 'fooAction' ]);
 
 		$ctrl
-			->expects($this->once())
-			->method('barAction')
-			->with($this->isInstanceOf(Route::class))
-			->willReturn('barResult');
+			->method('fooAction')
+			->with($this->isInstanceOf(IControllerState::class))
+			->willReturn('bar');
 
-		$reenter = new \ReflectionMethod($ctrl, '_reenter');
-		$reenter->setAccessible(true);
+		$this->assertSame($ctrl, $ctrl->enter('foo', $route));
+		$this->assertEquals([ 'foo' => 'bar'], $result);
+	}
 
-		$this->assertEquals('barResult', $reenter->invokeArgs($ctrl, [ 'bar', & $route ]));
+	public function testEnter_resultArray() {
+		$result = [];
+		$route = $this->_mockControllerState($result);
+		$ctrl = $this->_mockController([ 'fooAction' ]);
 
-		$this->expectException(\ErrorException::class);
-		$reenter->invokeArgs($ctrl,  [ 'baz', & $route ]);
+		$props = [ 'foo' => 1, 'bar' => 2 ];
+		$ctrl
+			->method('fooAction')
+			->with($this->isInstanceOf(IControllerState::class))
+			->willReturn($props);
+
+		$this->assertSame($ctrl, $ctrl->enter('foo', $route));
+		$this->assertEquals($props, $result);
 	}
 }
