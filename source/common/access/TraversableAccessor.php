@@ -21,7 +21,7 @@ implements ITraversableAccessor, IFilterProjectable
 	public function __construct(
 		IMethodProxy $proxy,
 		IAccessorSelector $selector,
-		array& $data
+		array& $data = []
 	) {
 		parent::__construct($selector, $data);
 
@@ -39,7 +39,7 @@ implements ITraversableAccessor, IFilterProjectable
 	}
 
 
-	public function& iterate() : \Generator {
+	public function iterate() : \Generator {
 		$gen = $this->_methodProxy->callMethod(ArrayOperation::class, 'iterate', [ $this->_useData() ]);
 
 		foreach ($gen as $key => & $value) yield $key => $value;
