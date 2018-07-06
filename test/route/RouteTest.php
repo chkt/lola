@@ -26,9 +26,14 @@ extends TestCase
 		$ins
 			->expects($this->any())
 			->method('enter')
-			->with($this->isInstanceOf(Route::class))
-			->willReturnCallback(function(Route& $route) {
-				$route->setVar('entered', true);
+			->with(
+				$this->isType('string'),
+				$this->isInstanceOf(Route::class)
+			)
+			->willReturnCallback(function(string $name, Route $route) use ($ins) {
+				$route->setVar('entered', $name);
+
+				return $ins;
 			});
 
 		return $ins;
@@ -67,6 +72,7 @@ extends TestCase
 	public function testInheritance() {
 		$route = $this->_produceRoute([]);
 
+		$this->assertInstanceOf(\lola\ctrl\IControllerState::class, $route);
 		$this->assertInstanceOf(IInjectable::class, $route);
 	}
 
@@ -101,7 +107,7 @@ extends TestCase
 		]);
 
 		$this->assertNull($route->enter());
-		$this->assertTrue($route->getVar('entered'));
+		$this->assertEquals('bar', $route->getVar('entered'));
 	}
 
 	public function testEnter_callable() {
@@ -115,7 +121,7 @@ extends TestCase
 		$this->assertNull($route->enter(function(AController& $ctrl) use (& $intercept) {
 			$intercept = true;
 		}));
-		$this->assertTrue($route->getVar('entered'));
+		$this->assertEquals('bar', $route->getVar('entered'));
 		$this->assertTrue($intercept);
 	}
 }
