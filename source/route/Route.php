@@ -4,16 +4,15 @@ namespace lola\route;
 
 use eve\common\access\ITraversableAccessor;
 use eve\inject\IInjector;
-use eve\inject\IInjectable;
 use eve\provide\ILocator;
-
 use lola\type\Collection;
 use lola\type\Stack;
+use lola\ctrl\IControllerState;
 
 
 
 class Route
-implements IInjectable
+implements IControllerState
 {
 
 	/**
@@ -365,7 +364,7 @@ implements IInjectable
 	 * Returns a reference to the stacked action results of the route
 	 * @return Stack
 	 */
-	public function& useActionResult() {
+	public function& useActionResult() {	//TODO: not used by controllers any more
 		if (is_null($this->_result)) $this->_result = new Stack();
 
 		return $this->_result;
@@ -381,6 +380,6 @@ implements IInjectable
 
 		if (!is_null($fn)) call_user_func_array($fn, [& $ctrl ]);
 
-		$ctrl->enter($this);
+		$ctrl->enter($this->getAction(), $this);
 	}
 }
