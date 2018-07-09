@@ -19,35 +19,6 @@ implements IController
 	}
 
 
-	/**
-	 * Returns a camelCase representation of <code>$path</code>
-	 * @param string $path The path
-	 * @return string
-	 * @throws \ErrorException if <code>$path</code> is not a <code>String</code>
-	 */
-	static public function pathToCamel($path) {		//TODO:remove
-		if (!is_string($path)) throw new \ErrorException();
-
-		$segs = array_map(function($item) {
-			return ucfirst($item);
-		}, explode('/', $path));
-
-		return lcfirst(implode('', $segs));
-	}
-
-	/**
-	 * Returns a snake_case representation of <code>$path</code>
-	 * @param string $path The path
-	 * @return string
-	 * @throws \ErrorException if <code>$path</code> is not a <code>String</code>
-	 */
-	static public function pathToSnake($path) {		//TODO:remove
-		if (!is_string($path)) throw new \ErrorException();
-
-		return strtolower(str_replace('/', '_', $path));
-	}
-
-
 
 	private function _getMethodName($action) {
 		return lcfirst($action) . 'Action';
@@ -59,7 +30,6 @@ implements IController
 	}
 
 
-
 	public function enter(string $action, IControllerState $route) : IController {
 		$method = $this->_getMethodName($action);
 
@@ -68,7 +38,7 @@ implements IController
 		$ret = $this->$method($route);
 
 		if (!is_null($ret)) {
-			if (!is_array($ret)) $ret = [ $action => $ret];
+			if (!is_array($ret)) $ret = [ $action => $ret ];
 
 			$route->setVars($ret);
 		}
