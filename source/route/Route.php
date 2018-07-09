@@ -6,7 +6,6 @@ use eve\common\access\ITraversableAccessor;
 use eve\inject\IInjector;
 use eve\provide\ILocator;
 use lola\type\Collection;
-use lola\type\Stack;
 use lola\ctrl\IControllerState;
 
 
@@ -77,11 +76,6 @@ implements IControllerState
 	 * @var Collection|null
 	 */
 	private $_models = null;
-	/**
-	 * The route action result data
-	 * @var Stack|null
-	 */
-	private $_result = null;
 
 
 	/**
@@ -108,7 +102,6 @@ implements IControllerState
 		$this->_vars = new Collection();
 
 		$this->_models = null;
-		$this->_result = null;
 	}
 
 
@@ -357,17 +350,6 @@ implements IControllerState
 		if (is_null($this->_models)) $this->_models = new Collection();
 
 		return $this->_models;
-	}
-
-
-	/**
-	 * Returns a reference to the stacked action results of the route
-	 * @return Stack
-	 */
-	public function& useActionResult() {	//TODO: not used by controllers any more
-		if (is_null($this->_result)) $this->_result = new Stack();
-
-		return $this->_result;
 	}
 
 
