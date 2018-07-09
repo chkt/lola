@@ -14,18 +14,18 @@ extends TestCase
 {
 
 	public function testViewStep() {
-		$return = new \lola\type\Stack();
-
 		$route = $this
 			->getMockBuilder('\lola\route\Route')
 			->disableOriginalConstructor()
-			->setMethods([ 'useActionResult' ])
+			->setMethods([ 'useVars' ])
 			->getMock();
 
 		$route
-			->expects($this->once())
-			->method('useActionResult')
-			->willReturn($return);
+			->method('useVars')
+			->willReturn([
+				'state' => 'success',
+				'items' => []
+			]);
 
 		$driver = new MockDriver();
 
@@ -39,11 +39,6 @@ extends TestCase
 			->expects($this->once())
 			->method('useRoute')
 			->willReturn($route);
-
-		$return->pushItem([
-			'state' => 'success',
-			'items' => []
-		]);
 
 		$trn = new RESTReplyTransform();
 

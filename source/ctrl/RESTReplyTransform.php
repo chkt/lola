@@ -2,9 +2,6 @@
 
 namespace lola\ctrl;
 
-use lola\ctrl\ControllerTransform;
-
-use lola\ctrl\AReplyController;
 use lola\io\http\HttpConfig;
 
 
@@ -12,8 +9,6 @@ use lola\io\http\HttpConfig;
 class RESTReplyTransform
 extends ControllerTransform
 {
-
-	const VERSION = '0.5.0';
 
 	const STEP_VIEW = 'view';
 
@@ -39,8 +34,7 @@ extends ControllerTransform
 	public function viewStep(AReplyController& $ctrl) {
 		$json = $ctrl
 			->useRoute()
-			->useActionResult()
-			->popItem();
+			->useVars();
 
 		$ctrl
 			->useReply()
