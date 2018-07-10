@@ -3,7 +3,7 @@
 namespace lola\ctrl;
 
 use eve\common\access\ITraversableAccessor;
-use lola\io\http\IHttpDriver;
+use lola\io\IIOHost;
 
 
 
@@ -18,33 +18,15 @@ extends AController
 
 
 	protected $_state = null;
+	protected $_ioHost = null;
 
-	/**
-	 * The http driver
-	 * @var IHttpDriver
-	 */
-	protected $_httpDriver = null;
-
-	/**
-	 * The request transform
-	 * @var ControllerTransform|null
-	 */
 	protected $_requestTransform = null;
-
-	/**
-	 * The reply transform
-	 * @var ControllerTransform|null
-	 */
 	protected $_replyTransform = null;
 
 
-	/**
-	 * Creates a new instance
-	 * @param IHttpDriver $http
-	 */
-	public function __construct(IHttpDriver& $http) {
+	public function __construct(IIOHost $io) {
 		$this->_state = null;
-		$this->_httpDriver =& $http;
+		$this->_ioHost = $io;
 	}
 
 
@@ -59,43 +41,27 @@ extends AController
 	}
 
 
-	/**
-	 * Returns a reference to the http driver
-	 * @return IHttpDriver
-	 */
-	public function& useDriver() {
-		return $this->_httpDriver;
+	public function useDriver() {
+		return $this->_ioHost;
 	}
 
-	/**
-	 * Sets the http driver
-	 * @param IHttpDriver $driver
-	 * @return AReplyController
-	 */
-	public function setDriver(IHttpDriver& $driver) {
-		$this->_httpDriver = $driver;
+	public function setDriver(IIOHost $io) {
+		$this->_ioHost = $io;
 
 		return $this;
 	}
 
-	/**
-	 * Returns a reference to the request
-	 * @return HttpRequest
-	 */
+
 	public function& useRequest() {
 		return $this
 			->useDriver()
-			->useRequest();
+			->getRequest();
 	}
 
-	/**
-	 * Returns a reference to the reply
-	 * @return HttpReply
-	 */
 	public function& useReply() {
 		return $this
 			->useDriver()
-			->useReply();
+			->getReply();
 	}
 
 
