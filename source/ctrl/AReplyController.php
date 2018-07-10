@@ -4,7 +4,6 @@ namespace lola\ctrl;
 
 use eve\common\access\ITraversableAccessor;
 use lola\io\http\IHttpDriver;
-use lola\route\Route;
 
 
 
@@ -18,11 +17,7 @@ extends AController
 
 
 
-	/**
-	 * The reply route
-	 * @var Route
-	 */
-	protected $_route = null;
+	protected $_state = null;
 
 	/**
 	 * The http driver
@@ -48,25 +43,17 @@ extends AController
 	 * @param IHttpDriver $http
 	 */
 	public function __construct(IHttpDriver& $http) {
+		$this->_state = null;
 		$this->_httpDriver =& $http;
 	}
 
 
-	/**
-	 * Returns a reference to the route
-	 * @return Route
-	 */
-	public function& useRoute() {
-		return $this->_route;
+	public function useRoute() {
+		return $this->_state;
 	}
 
-	/**
-	 * Sets the route
-	 * @param Route $route The route
-	 * @return AReplyController
-	 */
-	public function setRoute(Route $route) {
-		$this->_route = $route;
+	public function setRoute(IControllerState $state) {
+		$this->_state = $state;
 
 		return $this;
 	}
@@ -156,15 +143,15 @@ extends AController
 	}
 
 
-	public function enter(string $action, IControllerState $route) : IController {
-		$this->_route =& $route;
+	public function enter(string $action, IControllerState $state) : IController {
+		$this->_state = $state;
 
 		if (!is_null($this->_requestTransform)) $this
 			->useRequestTransform()
 			->setTarget($this)
 			->process();
 
-		parent::enter($action, $route);
+		parent::enter($action, $state);
 
 		if (!is_null($this->_replyTransform)) $this
 			->useReplyTransform()
