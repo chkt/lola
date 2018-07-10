@@ -70,7 +70,7 @@ extends ControllerTransform
 
 
 	public function resolveStep(ACollectionController& $ctrl) {
-		$request =& $ctrl->useRequest();
+		$request = $ctrl->useRequest();
 
 		$mime = $request->getPreferedAcceptMime([
 			HttpConfig::MIME_JSON

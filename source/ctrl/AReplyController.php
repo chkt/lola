@@ -51,14 +51,13 @@ extends AController
 		return $this;
 	}
 
-
-	public function& useRequest() {
+	public function useRequest() {
 		return $this
 			->useDriver()
 			->getRequest();
 	}
 
-	public function& useReply() {
+	public function useReply() {
 		return $this
 			->useDriver()
 			->getReply();
