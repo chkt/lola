@@ -40,10 +40,10 @@ extends TestCase
 	}
 
 
-	public function testUseRequest() {
+	public function testGetRequest() {
 		$driver = new HttpDriver();
 
-		$this->assertInstanceOf('\lola\io\http\HttpRequest', $driver->useRequest());
+		$this->assertInstanceOf('\lola\io\http\HttpRequest', $driver->getRequest());
 	}
 
 	public function testUsePayload() {
@@ -58,10 +58,10 @@ extends TestCase
 		$this->assertInstanceOf('\lola\io\http\HttpClient', $driver->useClient());
 	}
 
-	public function testUseReply() {
+	public function testGetReply() {
 		$driver = new HttpDriver();
 
-		$this->assertInstanceOf('\lola\io\http\HttpReply', $driver->useReply());
+		$this->assertInstanceOf('\lola\io\http\HttpReply', $driver->getReply());
 	}
 
 	public function testUseCookies() {
