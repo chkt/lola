@@ -53,7 +53,7 @@ implements IHttpDriver, IInjectableIdentity
 	}
 
 
-	public function& useRequest() : IRequest {
+	public function getRequest() : IRequest {
 		if (is_null($this->_request)) $this->_request = new HttpRequest($this);
 
 		return $this->_request;
@@ -71,7 +71,7 @@ implements IHttpDriver, IInjectableIdentity
 		return $this->_client;
 	}
 
-	public function& useReply() : IReply {
+	public function getReply() : IReply {
 		if (is_null($this->_reply)) $this->_reply = new HttpReply($this);
 
 		return $this->_reply;
