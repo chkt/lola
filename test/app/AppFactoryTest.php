@@ -148,7 +148,6 @@ extends TestCase
 	}
 
 	public function testProduce() {
-		$defaults = null;
 		$base = $this->_mockInterface(IBaseFactory::class);
 
 		$base
@@ -162,7 +161,42 @@ extends TestCase
 				)
 			)
 			->willReturnCallback(function(string $qname, string $method, array $args) use (& $defaults) {
-				$this->assertSame($defaults, $args[0]);
+				$this->assertCount(2, $args);
+
+				$defaults = $args[0];
+				$this->assertInternalType('array', $defaults);
+				$this->assertArrayHasKey('resolvers', $defaults);
+				$this->assertArrayHasKey('providers', $defaults);
+				$this->assertArrayHasKey('global', $defaults);
+
+				$resolvers = $defaults['resolvers'];
+				$this->assertCount(4, $resolvers);
+				$this->assertArrayHasKey('core', $resolvers);
+				$this->assertArrayHasKey('environment', $resolvers);
+				$this->assertArrayHasKey('service', $resolvers);
+				$this->assertArrayHasKey('controller', $resolvers);
+
+				$providers = $defaults['providers'];
+				$this->assertCount(4, $providers);
+				$this->assertArrayHasKey('core', $providers);
+				$this->assertArrayHasKey('environment', $providers);
+				$this->assertArrayHasKey('service', $providers);
+				$this->assertArrayHasKey('controller', $providers);
+
+				$this->assertEmpty($defaults['global']);
+
+				$env = $providers['environment'];
+				$this->assertInternalType('array', $env);
+				$this->assertArrayHasKey('qname', $env);
+				$this->assertEquals(\lola\provide\MapProvider::class, $env['qname']);
+				$this->assertArrayHasKey('config', $env);
+				$this->assertCount(5, $env['config']);
+				$this->assertArrayHasKey('app', $env['config']);
+				$this->assertArrayHasKey('registry', $env['config']);
+				$this->assertArrayHasKey('io', $env['config']);
+				$this->assertArrayHasKey('log', $env['config']);
+				$this->assertArrayHasKey('errors', $env['config']);
+
 				$this->assertEquals([], $args[1]);
 
 				return $args[0];
@@ -186,11 +220,6 @@ extends TestCase
 
 		$config = [];
 		$appFactory = $this->_produceAppFactory($base);
-
-		$method = new \ReflectionMethod($appFactory, '_getConfigDefaults');
-		$method->setAccessible(true);
-		$defaults = $method->invoke($appFactory);
-
 		$app = $appFactory->produce($config);
 
 		$this->assertInstanceOf(IApp::class, $app);
