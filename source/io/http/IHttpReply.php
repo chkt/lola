@@ -2,14 +2,16 @@
 
 namespace lola\io\http;
 
+use lola\io\IRequest;
 use lola\io\IReply;
 
-use lola\io\http\IHttpCookies;
 
 
 interface IHttpReply
 extends IReply
 {
+
+	public function& useRequest() : IRequest;
 
 	public function& useCookies() : IHttpCookies;
 
@@ -49,4 +51,16 @@ extends IReply
 	public function resetHeader(string $name) : IHttpReply;
 
 	public function getHeaders() : array;
+
+
+	public function getBody() : string;
+
+	public function setBody(string $body) : IReply;
+
+	public function setBodyFromOB() : IReply;
+
+
+	public function send();
+
+	public function sendOB();
 }
