@@ -47,7 +47,7 @@ extends TestCase
 
 
 	public function testDependencyConfig() {
-		$this->assertEquals([ 'environment:http'], AReplyController::getDependencyConfig($this->_produceAccessor()));
+		$this->assertEquals([ 'environment:io' ], AReplyController::getDependencyConfig($this->_produceAccessor()));
 	}
 
 
