@@ -91,7 +91,7 @@ extends TestCase
 		$driver = new \lola\io\http\HttpDriver();
 		$controller->setDriver($driver);
 
-		$this->assertEquals($driver->useRequest(), $controller->useRequest());
+		$this->assertEquals($driver->getRequest(), $controller->useRequest());
 	}
 
 	public function testUseReply() {
@@ -102,7 +102,7 @@ extends TestCase
 		$driver = new \lola\io\http\HttpDriver();
 		$controller->setDriver($driver);
 
-		$this->assertEquals($driver->useReply(), $controller->useReply());
+		$this->assertEquals($driver->getReply(), $controller->useReply());
 	}
 
 	public function testUseRequestTransform() {
