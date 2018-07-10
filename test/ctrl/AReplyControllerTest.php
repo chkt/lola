@@ -51,6 +51,24 @@ extends TestCase
 	}
 
 
+	public function testUseRoute() {
+		$controller = $this->_mockController();
+
+		$this->assertNull($controller->useRoute());
+	}
+
+	public function testSetRoute() {
+		$route = $this
+			->getMockBuilder(IControllerState::class)
+			->getMock();
+
+		$controller = $this->_mockController();
+
+		$this->assertSame($controller, $controller->setRoute($route));
+		$this->assertSame($route, $controller->useRoute());
+	}
+
+
 	public function testUseDriver() {
 		$controller = $this->_mockController();
 
