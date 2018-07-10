@@ -64,7 +64,7 @@ extends TestCase
 
 		$logger = new FileLogger();
 		$driver = new MockDriver();
-		$request =& $driver->useRequest();
+		$request = $driver->getRequest();
 
 		$request
 			->setMethod('POST')
@@ -86,7 +86,7 @@ extends TestCase
 
 		$logger = new FileLogger();
 		$driver = new MockDriver();
-		$reply =& $driver->useReply();
+		$reply = $driver->getReply();
 
 		$reply
 			->setCode('302')

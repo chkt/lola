@@ -48,7 +48,7 @@ extends HttpDriver
 
 
 	public function sendReply() {
-		$reply =& $this->useReply();
+		$reply = $this->getReply();
 
 		if (!is_null($this->_replyCallback)) call_user_func_array($this->_replyCallback, [& $reply ]);
 	}

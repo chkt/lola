@@ -47,7 +47,9 @@ implements IHttpReply
 
 
 	public function& useRequest() : IRequest {
-		return $this->_driver->useRequest();
+		$request = $this->_driver->getRequest();
+
+		return $request;
 	}
 
 	public function& useCookies() : IHttpCookies {

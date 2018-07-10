@@ -30,7 +30,7 @@ extends TestCase
 	public function testUseRequest() {
 		$reply = new HttpReply($this->_driver);
 
-		$this->assertEquals($this->_driver->useRequest(), $reply->useRequest());
+		$this->assertEquals($this->_driver->getRequest(), $reply->useRequest());
 	}
 
 	public function testUseCookies() {
@@ -225,7 +225,7 @@ extends TestCase
 
 
 	public function testSend() {
-		$this->_driver->setReplyCallback(function(HttpReply& $reply) {
+		$this->_driver->setReplyCallback(function(HttpReply $reply) {
 			$this->assertEquals($reply->getCode(), '404');
 			$this->assertEquals($reply->getMime(), 'text/html');
 			$this->assertEquals($reply->getEncoding(), 'iso-8859-1');
@@ -233,7 +233,7 @@ extends TestCase
 		});
 
 		$this->_driver
-			->useReply()
+			->getReply()
 			->setCode('404')
 			->setMime('text/html')
 			->setEncoding('iso-8859-1')
@@ -242,7 +242,7 @@ extends TestCase
 	}
 
 	public function testSendOB() {
-		$this->_driver->setReplyCallback(function(HttpReply& $reply) {
+		$this->_driver->setReplyCallback(function(HttpReply $reply) {
 			$this->assertEquals($reply->getCode(), '404');
 			$this->assertEquals($reply->getMime(), 'text/html');
 			$this->assertEquals($reply->getEncoding(), 'iso-8859-1');
@@ -254,7 +254,7 @@ extends TestCase
 		print 'bar';
 
 		$this->_driver
-			->useReply()
+			->getReply()
 			->setCode('404')
 			->setMime('text/html')
 			->setEncoding('iso-8859-1')

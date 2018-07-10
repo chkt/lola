@@ -15,7 +15,7 @@ extends TestCase
 	public function testFilterHeadersStep() {
 		$trn = new HttpReplyTransform();
 		$driver = new MockDriver();
-		$reply =& $driver->useReply();
+		$reply = $driver->getReply();
 
 		$reply
 			->setHeader('Content-Length', '200')
@@ -30,7 +30,7 @@ extends TestCase
 	public function testSendHeadersStep() {
 		$trn = new HttpReplyTransform();
 		$driver = new MockDriver();
-		$reply =& $driver->useReply();
+		$reply = $driver->getReply();
 
 		$reply
 			->setCode('302')
@@ -95,7 +95,7 @@ extends TestCase
 	public function testSendRedirectStep() {
 		$trn = new HttpReplyTransform();
 		$driver = new MockDriver();
-		$reply =& $driver->useReply();
+		$reply = $driver->getReply();
 
 		$reply
 			->setCode('302')
@@ -116,7 +116,7 @@ extends TestCase
 	public function testRedirectBodyStep() {
 		$trn = new HttpReplyTransform();
 		$driver = new MockDriver();
-		$reply =& $driver->useReply();
+		$reply = $driver->getReply();
 
 		$reply
 			->setMime('text/plain')
@@ -131,7 +131,7 @@ extends TestCase
 	public function testSendBodyStep() {
 		$trn = new HttpReplyTransform();
 		$driver = new MockDriver();
-		$reply =& $driver->useReply();
+		$reply = $driver->getReply();
 
 		$reply->setBody('foo-bar-baz');
 

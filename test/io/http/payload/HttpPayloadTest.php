@@ -19,16 +19,16 @@ extends TestCase
 
 		$this->assertFalse($payload->isValid());
 
-		$driver->useRequest()->setBody('{"foo":"bar"}');
+		$driver->getRequest()->setBody('{"foo":"bar"}');
 
 		$this->assertFalse($payload->isValid());
 
-		$driver->useRequest()->setMime(HttpConfig::MIME_JSON);
+		$driver->getRequest()->setMime(HttpConfig::MIME_JSON);
 
 		$this->assertTrue($payload->isValid());
 
 		$driver
-			->useRequest()
+			->getRequest()
 			->setMime(HttpConfig::MIME_FORM)
 			->setBody('foo=bar');
 
@@ -40,7 +40,7 @@ extends TestCase
 		$payload =& $driver->usePayload();
 
 		$driver
-			->useRequest()
+			->getRequest()
 			->setMime(HttpConfig::MIME_FORM)
 			->setBody('foo=bar&baz=quux');
 
@@ -50,7 +50,7 @@ extends TestCase
 		], $payload->get());
 
 		$driver
-			->useRequest()
+			->getRequest()
 			->setMime(HttpConfig::MIME_JSON)
 			->setBody('{"foo":"bar","baz":"quux"}');
 
@@ -62,7 +62,7 @@ extends TestCase
 
 	public function testSet() {
 		$driver = new MockDriver();
-		$request =& $driver->useRequest();
+		$request = $driver->getRequest();
 		$payload =& $driver->usePayload();
 
 		$request->setMime(HttpConfig::MIME_FORM);

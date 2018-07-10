@@ -32,7 +32,7 @@ extends TestCase
 	public function testUseReply() {
 		$request = new HttpRequest($this->_driver);
 
-		$this->assertEquals($this->_driver->useReply(), $request->useReply());
+		$this->assertEquals($this->_driver->getReply(), $request->useReply());
 	}
 
 	public function testUseCookies() {

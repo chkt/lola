@@ -13,7 +13,7 @@ extends TestCase
 
 	public function testSimpleReply() {
 		$driver = new MockDriver();
-		$reply =& $driver->useReply();
+		$reply = $driver->getReply();
 		$trn =& $driver->useReplyTransform();
 
 		$reply
@@ -57,7 +57,7 @@ extends TestCase
 
 	public function testRedirectReply() {
 		$driver = new MockDriver();
-		$reply =& $driver->useReply();
+		$reply = $driver->getReply();
 		$trn =& $driver->useReplyTransform();
 
 		$reply
@@ -104,7 +104,7 @@ extends TestCase
 
 	public function testCookieReply() {
 		$driver = new MockDriver();
-		$reply =& $driver->useReply();
+		$reply = $driver->getReply();
 		$trn =& $driver->useReplyTransform();
 
 		$reply
@@ -161,7 +161,7 @@ extends TestCase
 
 	public function testCookieRedirectReply() {
 		$driver = new MockDriver();
-		$reply =& $driver->useReply();
+		$reply = $driver->getReply();
 		$trn =& $driver->useReplyTransform();
 
 		$reply

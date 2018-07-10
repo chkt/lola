@@ -29,7 +29,7 @@ implements IHttpPayload
 
 	private function _getPayloadParser() : IPayloadParser {
 		$mime = $this->_driver
-			->useRequest()
+			->getRequest()
 			->getMime();
 
 		$name = $this->_driver
@@ -52,7 +52,7 @@ implements IHttpPayload
 
 	public function isValid() : bool {
 		$body = $this->_driver
-			->useRequest()
+			->getRequest()
 			->getBody();
 
 		if (empty($body)) return false;
@@ -71,7 +71,7 @@ implements IHttpPayload
 
 	public function get() : array {
 		$body = $this->_driver
-			->useRequest()
+			->getRequest()
 			->getBody();
 
 		return $this
@@ -85,7 +85,7 @@ implements IHttpPayload
 			->stringify($payload);
 
 		$this->_driver
-			->useRequest()
+			->getRequest()
 			->setBody($string);
 
 		return $this;

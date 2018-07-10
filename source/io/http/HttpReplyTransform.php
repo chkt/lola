@@ -83,7 +83,7 @@ extends AStateTransform
 
 
 	public function filterHeadersStep(IHttpDriver& $driver) {
-		$reply =& $driver->useReply();
+		$reply = $driver->getReply();
 
 		if ($reply->hasHeader('Content-Length')) $reply->resetHeader('Content-Length');
 		if ($reply->hasHeader('Set-Cookie')) $reply->resetHeader('Set-Cookie');
@@ -92,7 +92,7 @@ extends AStateTransform
 	public function sendHeadersStep(IHttpDriver& $driver) {
 		while (ob_get_level() !== 0) ob_end_clean();
 
-		$reply =& $driver->useReply();
+		$reply = $driver->getReply();
 		$rules =& $driver->useConfig();
 		$resource = $driver->useReplyResource();
 
@@ -116,12 +116,12 @@ extends AStateTransform
 			else if ($cookies->isRemoved($name)) $resource->sendCookie($name, '', 0);
 		}
 
-		if ($driver->useReply()->isRedirect()) return 'redirect';
+		if ($driver->getReply()->isRedirect()) return 'redirect';
 		else return self::STEP_SUCCESS;
 	}
 
 	public function sendRedirectStep(IHttpDriver& $driver) {
-		$reply =& $driver->useReply();
+		$reply = $driver->getReply();
 
 		$driver->useReplyResource()->sendHeader('Location: ' . $reply->getRedirectTarget());
 
@@ -130,7 +130,7 @@ extends AStateTransform
 	}
 
 	public function redirectBodyStep(IHttpDriver& $driver) {
-		$reply =& $driver->useReply();
+		$reply = $driver->getReply();
 
 		$body = $driver
 			->useConfig()
@@ -140,7 +140,7 @@ extends AStateTransform
 	}
 
 	public function sendBodyStep(IHttpDriver& $driver) {
-		$reply = $driver->useReply();
+		$reply = $driver->getReply();
 		$body = $reply->getBody();
 
 		$driver
