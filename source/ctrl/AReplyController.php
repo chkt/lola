@@ -12,14 +12,8 @@ abstract class AReplyController
 extends AController
 {
 
-	/**
-	 * The version string
-	 */
-	const VERSION = '0.5.2';
-
-
 	static public function getDependencyConfig(ITraversableAccessor $config) : array {
-		return [ 'environment:http' ];
+		return [ 'environment:io' ];
 	}
 
 
