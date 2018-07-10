@@ -31,7 +31,7 @@ extends ASimpleFactory
 					'config' => [
 						'app' => \lola\app\App::class,
 						'registry' => \lola\module\Registry::class,
-						'http' => \lola\io\http\HttpDriver::class,
+						'io' => \lola\io\http\HttpDriver::class,
 						'log' => \lola\log\FileLogger::class,
 						'errors' => \lola\error\ErrorDriver::class
 					]
