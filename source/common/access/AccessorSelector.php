@@ -89,15 +89,20 @@ implements IAccessorSelector
 
 
 	public function select(array& $source, string $key) : IAccessorSelector {
-		$path = explode($this->_separator, $key);
+		$limit = $this->_separator;
+
+		if (strpos(
+			$limit . $key . $limit,
+			$limit . $limit
+			) !== false) throw new \ErrorException(sprintf('ACC degenerate key "%s"', $key));
+
+		$path = explode($limit, $key);
 		$items = [];
 
 		$data =& $source;
 		$resolved = 0;
 
 		foreach ($path as $segment) {
-			if (empty($segment)) throw new \ErrorException(sprintf('ACC degenerate key "%s"', $key));
-
 			if (!is_array($data)) break;
 
 			$items[] =& $data;
