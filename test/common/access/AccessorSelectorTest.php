@@ -215,12 +215,29 @@ extends TestCase
 
 	public function testSelect_badKey() {
 		$selector = $this->_produceSelector();
-		$data = [ 'foo' => 1 ];
+		$data = [];
 
 		$this->expectException(\ErrorException::class);
 		$this->expectExceptionMessage('ACC degenerate key "foo..baz"');
 
 		$selector->select($data, 'foo..baz');
+	}
+
+	public function testSelect_notBadKey() {
+		$selector = $this->_produceSelector();
+		$data = [
+			'null' => 0,
+			'false' => 1,
+			'0' => 2,
+			'NAN' => 3,
+			' ' => 4
+		];
+
+		$this->assertEquals(0, $selector->select($data, 'null')->getResolvedItem());
+		$this->assertEquals(1, $selector->select($data, 'false')->getResolvedItem());
+		$this->assertEquals(2, $selector->select($data, '0')->getResolvedItem());
+		$this->assertEquals(3, $selector->select($data, 'NAN')->getResolvedItem());
+		$this->assertEquals(4, $selector->select($data, ' ')->getResolvedItem());
 	}
 
 
